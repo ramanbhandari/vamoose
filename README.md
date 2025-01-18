@@ -4,5 +4,5 @@
 Raman Bhandari (bhandar1@myumanitoba.ca)
 Anmolpreet Khangura (khangura@myumanitoba.ca)
 Chukwunaza Chukwuocha (chukwuo1@myumanitoba.ca)
-Pritha
+Pritha Das (dasp4@myumanitoba.ca)
 Anmolpreet Singh (sin121@myumanitoba.ca)
