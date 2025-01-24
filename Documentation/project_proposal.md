@@ -70,11 +70,16 @@ https://rubygarage.org/blog/clear-acceptance-criteria-and-why-its-important
 
 ### Account Creation and Management
 
-Anmol
+* As a new user, I want to create an account using my name, email and a secure password, so that I can access features on the platform.
+* As a returning user, I want to log in using my email and password, so that I can continue where I left off.
+* As a user, I want to reset my password if I forget it, so that I can regain access to my account without creating a new one.
+* As a user, I want to delete my account, so that my data is removed permanently if I no longer wish to use the platform.
 
 ### Personalized Profile Form
 
-Anmol
+* As a user, I want to fill out a profile form with my preferences/interests, so that the platform can provide tailored recommendations to me.
+* As a user, I want to update my profile form whenever my preferences change, so that the platform continues to provide relevant suggestions.
+* As a user, I want to review my profile summary after completing the form, so that I can ensure all my details are accurate before saving.
 
 ### Roommate Preference Quizzes
 
