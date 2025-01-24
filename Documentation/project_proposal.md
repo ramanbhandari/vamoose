@@ -78,11 +78,14 @@ Anmol
 
 ### Roommate Preference Quizzes
 
-AK
+* As a user, I want to take quizzes about my habits and preferences, So that I can find roommates who share similar traits.
+* As a user, I should be able to modify my answers to the quizzes if my lifestyle or preferences change (e.g., I adopt a pet, change my work hours).
+* As a user, I should be able to see my progress while completing the preference quiz (e.g., how many questions I’ve answered and how many are left).
 
 ### Compatibility Scoring System
 
-AK
+* As a user, I want to see a compatibility score based on my profile, So that I can quickly find roommates who match my preferences.
+* As a user, I should receive suggestions for roommates with the highest compatibility scores based on my profile.
 
 ### Live Chat
 
