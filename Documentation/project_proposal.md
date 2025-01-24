@@ -86,11 +86,17 @@ AK
 
 ### Live Chat
 
-Chuks
+* As a user, I want to start a chat with a potential roommate, so that I can get to know them better before making a decision.
+* As a user, I want to receive notifications for new messages, so that I can respond promptly to the conversation.
+* As a user, I want to see my chat history with a potential roommate, so that I can revisit previous discussions for reference.
+
 
 ### Roommate Reviews and Ratings
 
-Chuks
+* As a user, I want to leave a review for my previous roommate, so that others can make informed decisions about living with them.
+* As a user, I want to view reviews for a potential roommate, so that I can assess their compatibility before reaching out.
+* As a user, I want to rate a roommate on specific attributes (e.g., cleanliness, communication, punctuality in paying bills), so that my review reflects detailed feedback.
+
 
 #### (Good faith feature) Shared Expense Tracker
 
