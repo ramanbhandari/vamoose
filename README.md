@@ -1,4 +1,4 @@
-# Comp 4350
+# Vamoose! - Comp 4350
 
 # Branching strategy - Git Flow
 
