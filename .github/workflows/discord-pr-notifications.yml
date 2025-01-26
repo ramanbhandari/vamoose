@@ -1,0 +1,22 @@
+name: PR Updates to Discord
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed, edited]
+  issue_comment:
+    types: [created]
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR Update to Discord
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            📢 **PR Update:** `${{ github.event.pull_request.title }}`
+            🔄 **Action:** `${{ github.event.action }}`
+            🧑 **By:** `${{ github.event.pull_request.user.login }}`
+            🔗 [View PR](${{ github.event.pull_request.html_url }})
+            📌 **Status:** `${{ github.event.pull_request.state }}`

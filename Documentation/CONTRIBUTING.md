@@ -18,9 +18,11 @@
   RB/feature/12345-fix-expense-calculation
   ```
 
-### Other updates (eg. for Documentation Updates)
+### Other updates (eg. Documentation Updates, Workflow updates)
 
-`{Initials}/docs/{short-description}`
+Documentation - `{Initials}/docs/{short-description}`
+
+Workflows - `{Initials}/workflow/{short-description}`
 
 ---
 
