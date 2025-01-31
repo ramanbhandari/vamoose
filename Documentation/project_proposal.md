@@ -21,9 +21,9 @@ This platform is ideal for:
 
 #### Backend: Node.js + Express.js
 
-#### Database: PostgreSQL (relational, structured data).
+#### Database: PostgreSQL, Supabase, Prisma + MongoDB (to store chat).
 
-#### Authentication: Firebase Auth or JWT (Google login, email/password).
+#### Authentication: Supabase Auth (Google login, email/password).
 
 #### Real-Time Features: WebSockets (Socket.io) (for chat, live expenses).
 
