@@ -1,0 +1,25 @@
+name: "Check Labels on PR"
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+  workflow_dispatch: # this is to allow manual triggering somehow :/
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Verify PR has at least one label"
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.setFailed("This event is not associated with a pull request.");
+            }
+            const labels = pr.labels;
+            if (!labels || labels.length === 0) {
+              core.setFailed("Merge blocked: Please add at least one label to your pull request.");
+            } else {
+              console.log(`PR has ${labels.length} label(s).`);
+            }
