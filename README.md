@@ -9,12 +9,12 @@
 - [Team](#team)
 - [Meeting Times](#meeting-times)
 
-
 ## Description
 
 **Vamoose!** is an intuitive group trip planning app designed to help friends, families, and teams organize their travel plans with ease. Whether you're planning a vacation, a business trip, or a group event, Vamoose! consolidates all your trip details in one convenient platform. The app allows users to plan and share itineraries, track and split expenses, collaborate on packing lists, and communicate in real-time.
 
 Key features include:
+
 - **Trip Planning Dashboard**
 - **Expense Tracking**
 - **Real-Time Chat & Voting**
@@ -24,25 +24,19 @@ Key features include:
 
 Vamoose! aims to make group trip planning seamless and fun, removing the stress of coordination and allowing users to focus on enjoying their time together.
 
-
-
 ## Documents
 
 - [Proposal Document](./Documentation/project_proposal.md)
 
 ## Architecture
+
 ![Architecture](./Diagrams/Vamoose-Architecture.jpg)
-
-
 
 ## Installation
 
-
-
 ## Contributing
+
 Please follow the [Contributing Guidelines](./Documentation/CONTRIBUTING.md).
-
-
 
 ## Team
 
@@ -58,7 +52,7 @@ Please follow the [Contributing Guidelines](./Documentation/CONTRIBUTING.md).
   Email: chukwuo1@myumanitoba.ca  
   **Roles:** Backend Focused
 
-- **Anmolpreet Khangura** 
+- **Anmolpreet Khangura**
   Email: khangura@myumanitoba.ca  
   **Roles:** Full Stack
 
@@ -66,12 +60,7 @@ Please follow the [Contributing Guidelines](./Documentation/CONTRIBUTING.md).
   Email: sin121@myumanitoba.ca  
   **Roles:** Full Stack
 
-
-
 ## Meeting Times
 
 - **Tuesday:** 6:00 PM
 - **Saturday:** 2:00 PM
-
-
-
