@@ -31,7 +31,7 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
 - [Proposal Document](./Documentation/project_proposal.md)
 
 ## Architecture
-![Architecture](./Documentation/Vamoose-Architecture.jpg)
+![Architecture](./Diagrams/Vamoose-Architecture.jpg)
 
 
 
