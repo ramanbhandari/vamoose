@@ -6,27 +6,27 @@
 
 // DATABASE PROVIDER
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
   extensions = [pgcrypto]
 }
 
 // ─── USER MODEL ─────────────────────────────────────────────────────────────
 model User {
-  id        Int      @id @default(autoincrement())  // Auto-incrementing ID
+  id        Int      @id @default(autoincrement()) // Auto-incrementing ID
   email     String   @unique
   fullName  String?
   avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdTrips Trip[]        @relation("TripCreator")  // Trips created by user
-  tripMembers  TripMember[]  // Trips where the user is a member
+  createdTrips Trip[]        @relation("TripCreator") // Trips created by user
+  tripMembers  TripMember[] // Trips where the user is a member
   tripInvites  TripInvitee[] // Trips where the user is invited
 
   expenses     Expense[]
@@ -34,6 +34,8 @@ model User {
   polls        Poll[]
   packingItems PackingItem[]
   ExpenseShare ExpenseShare[]
+
+  staysBooked Stay[]
 }
 
 // ─── TRIP MODEL ─────────────────────────────────────────────────────────────
@@ -46,15 +48,15 @@ model Trip {
   endDate     DateTime
   budget      Float?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdBy   Int
-  creator     User     @relation(name: "TripCreator", fields: [createdBy], references: [id])
+  createdBy Int
+  creator   User @relation(name: "TripCreator", fields: [createdBy], references: [id])
 
-  members     TripMember[]
-  invitees    TripInvitee[]
-  stays       Stay[]
+  members  TripMember[]
+  invitees TripInvitee[]
+  stays    Stay[]
 
   expenses    Expense[]
   itineraries Itinerary[]
@@ -87,16 +89,16 @@ model TripInvitee {
 
 // ─── STAY MODEL (ACCOMMODATION FOR TRIP MEMBERS) ───────────────────────────
 model Stay {
-  id          Int      @id @default(autoincrement())
-  tripId      Int
-  trip        Trip     @relation(fields: [tripId], references: [id])
-  name        String   // e.g., "Hilton Hotel"
-  address     String?  // Optional for flexibility
-  checkInDate DateTime
+  id           Int      @id @default(autoincrement())
+  tripId       Int
+  trip         Trip     @relation(fields: [tripId], references: [id])
+  name         String // e.g., "Hilton Hotel"
+  address      String? // Optional for flexibility
+  checkInDate  DateTime
   checkOutDate DateTime
-  bookedBy    User?    @relation(fields: [bookedById], references: [id])
-  bookedById  Int?
-  url         String?  // Optional field for accommodation website/booking link
+  bookedBy     User?    @relation(fields: [bookedById], references: [id])
+  bookedById   Int?
+  url          String? // Optional field for accommodation website/booking link
 }
 
 // ─── EXPENSE MODEL ─────────────────────────────────────────────────────────
@@ -107,9 +109,9 @@ model Expense {
   description String?
   createdAt   DateTime @default(now())
 
-  trip     Trip   @relation(fields: [tripId], references: [id])
+  trip     Trip @relation(fields: [tripId], references: [id])
   tripId   Int
-  paidBy   User   @relation(fields: [paidById], references: [id])
+  paidBy   User @relation(fields: [paidById], references: [id])
   paidById Int
 
   shares ExpenseShare[]
