@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
+      "allowImportingTsExtensions": true,
+      "noEmit": true,
       "target": "ES6",                  
       "module": "ESNext",               
       "moduleResolution": "node",       
