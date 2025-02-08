@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import planRoutes from './routes/plans.js';
+import tripRoutes from './routes/tripRoutes.ts';
 import connectMongoDB from './db/mongo.js';
 
 dotenv.config();
@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', planRoutes);
+app.use('/trips', tripRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
