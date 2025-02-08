@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const MONGO_URI = process.env.MONGO_URI || '';
+dotenv.config();
+
+const MONGO_URI = `mongodb://${process.env.MONGO_ROOT_USERNAME}:${process.env.MONGO_ROOT_PASSWORD}@localhost:27017/${process.env.MONGO_DB_NAME}?authSource=admin&directConnection=true`;
 
 const connectMongoDB = async (): Promise<void> => {
   try {
