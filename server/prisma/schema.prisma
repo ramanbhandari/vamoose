@@ -4,27 +4,31 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// DATABASE PROVIDER
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   extensions = [pgcrypto]
 }
 
+// ─── USER MODEL ─────────────────────────────────────────────────────────────
 model User {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id        Int      @id @default(autoincrement())  // Auto-incrementing ID
   email     String   @unique
   fullName  String?
   avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdTrips Trip[]
-  tripMembers  TripMember[]
+  createdTrips Trip[]        @relation("TripCreator")  // Trips created by user
+  tripMembers  TripMember[]  // Trips where the user is a member
+  tripInvites  TripInvitee[] // Trips where the user is invited
+
   expenses     Expense[]
   messages     Message[]
   polls        Poll[]
@@ -32,6 +36,7 @@ model User {
   ExpenseShare ExpenseShare[]
 }
 
+// ─── TRIP MODEL ─────────────────────────────────────────────────────────────
 model Trip {
   id          Int      @id @default(autoincrement())
   name        String
@@ -40,12 +45,17 @@ model Trip {
   startDate   DateTime
   endDate     DateTime
   budget      Float?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  createdBy   String        @db.Uuid
-  creator     User          @relation(fields: [createdBy], references: [id])
+  createdBy   Int
+  creator     User     @relation(name: "TripCreator", fields: [createdBy], references: [id])
+
   members     TripMember[]
+  invitees    TripInvitee[]
+  stays       Stay[]
+
   expenses    Expense[]
   itineraries Itinerary[]
   messages    Message[]
@@ -53,16 +63,43 @@ model Trip {
   packingList PackingItem[]
 }
 
+// ─── TRIP MEMBER MODEL ──────────────────────────────────────────────────────
 model TripMember {
   trip   Trip   @relation(fields: [tripId], references: [id])
   tripId Int
   user   User   @relation(fields: [userId], references: [id])
-  userId String @db.Uuid
-  role   String @default("member")
+  userId Int
+  role   String @default("member") //member, creator
 
   @@id([tripId, userId])
 }
 
+// ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
+model TripInvitee {
+  trip   Trip   @relation(fields: [tripId], references: [id])
+  tripId Int
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+  status String @default("pending") // pending, accepted, declined
+
+  @@id([tripId, userId])
+}
+
+// ─── STAY MODEL (ACCOMMODATION FOR TRIP MEMBERS) ───────────────────────────
+model Stay {
+  id          Int      @id @default(autoincrement())
+  tripId      Int
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  name        String   // e.g., "Hilton Hotel"
+  address     String?  // Optional for flexibility
+  checkInDate DateTime
+  checkOutDate DateTime
+  bookedBy    User?    @relation(fields: [bookedById], references: [id])
+  bookedById  Int?
+  url         String?  // Optional field for accommodation website/booking link
+}
+
+// ─── EXPENSE MODEL ─────────────────────────────────────────────────────────
 model Expense {
   id          Int      @id @default(autoincrement())
   amount      Float
@@ -73,22 +110,24 @@ model Expense {
   trip     Trip   @relation(fields: [tripId], references: [id])
   tripId   Int
   paidBy   User   @relation(fields: [paidById], references: [id])
-  paidById String @db.Uuid
+  paidById Int
 
   shares ExpenseShare[]
 }
 
+// ─── EXPENSE SHARE MODEL ────────────────────────────────────────────────────
 model ExpenseShare {
   expense   Expense @relation(fields: [expenseId], references: [id])
   expenseId Int
   user      User    @relation(fields: [userId], references: [id])
-  userId    String  @db.Uuid
+  userId    Int
   share     Float
   settled   Boolean @default(false)
 
   @@id([expenseId, userId])
 }
 
+// ─── ITINERARY MODEL ────────────────────────────────────────────────────────
 model Itinerary {
   id          Int      @id @default(autoincrement())
   trip        Trip     @relation(fields: [tripId], references: [id])
@@ -97,20 +136,22 @@ model Itinerary {
   title       String
   description String
   location    String?
-  assignedTo  String?  @db.Uuid
+  assignedTo  Int?
   createdAt   DateTime @default(now())
 }
 
+// ─── MESSAGE MODEL ──────────────────────────────────────────────────────────
 model Message {
   id        Int      @id @default(autoincrement())
   content   String
   trip      Trip     @relation(fields: [tripId], references: [id])
   tripId    Int
   sender    User     @relation(fields: [senderId], references: [id])
-  senderId  String   @db.Uuid
+  senderId  Int
   createdAt DateTime @default(now())
 }
 
+// ─── POLL MODEL ────────────────────────────────────────────────────────────
 model Poll {
   id          Int      @id @default(autoincrement())
   question    String
@@ -118,19 +159,20 @@ model Poll {
   trip        Trip     @relation(fields: [tripId], references: [id])
   tripId      Int
   createdBy   User     @relation(fields: [createdById], references: [id])
-  createdById String   @db.Uuid
+  createdById Int
   createdAt   DateTime @default(now())
 }
 
+// ─── PACKING LIST MODEL ─────────────────────────────────────────────────────
 model PackingItem {
   id         Int      @id @default(autoincrement())
   name       String
   quantity   Int      @default(1)
   packed     Boolean  @default(false)
-  assignedTo String?  @db.Uuid
+  assignedTo Int?
   trip       Trip     @relation(fields: [tripId], references: [id])
   tripId     Int
   createdAt  DateTime @default(now())
   User       User?    @relation(fields: [userId], references: [id])
-  userId     String?  @db.Uuid
+  userId     Int?
 }
