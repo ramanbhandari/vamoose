@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- CreateTable
 CREATE TABLE "User" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "fullName" TEXT,
     "avatarUrl" TEXT,
@@ -24,7 +24,7 @@ CREATE TABLE "Trip" (
     "budget" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "createdBy" UUID NOT NULL,
+    "createdBy" INTEGER NOT NULL,
 
     CONSTRAINT "Trip_pkey" PRIMARY KEY ("id")
 );
@@ -32,10 +32,33 @@ CREATE TABLE "Trip" (
 -- CreateTable
 CREATE TABLE "TripMember" (
     "tripId" INTEGER NOT NULL,
-    "userId" UUID NOT NULL,
+    "userId" INTEGER NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'member',
 
     CONSTRAINT "TripMember_pkey" PRIMARY KEY ("tripId","userId")
+);
+
+-- CreateTable
+CREATE TABLE "TripInvitee" (
+    "tripId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+
+    CONSTRAINT "TripInvitee_pkey" PRIMARY KEY ("tripId","userId")
+);
+
+-- CreateTable
+CREATE TABLE "Stay" (
+    "id" SERIAL NOT NULL,
+    "tripId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "address" TEXT,
+    "checkInDate" TIMESTAMP(3) NOT NULL,
+    "checkOutDate" TIMESTAMP(3) NOT NULL,
+    "bookedById" INTEGER,
+    "url" TEXT,
+
+    CONSTRAINT "Stay_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -46,7 +69,7 @@ CREATE TABLE "Expense" (
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "tripId" INTEGER NOT NULL,
-    "paidById" UUID NOT NULL,
+    "paidById" INTEGER NOT NULL,
 
     CONSTRAINT "Expense_pkey" PRIMARY KEY ("id")
 );
@@ -54,7 +77,7 @@ CREATE TABLE "Expense" (
 -- CreateTable
 CREATE TABLE "ExpenseShare" (
     "expenseId" INTEGER NOT NULL,
-    "userId" UUID NOT NULL,
+    "userId" INTEGER NOT NULL,
     "share" DOUBLE PRECISION NOT NULL,
     "settled" BOOLEAN NOT NULL DEFAULT false,
 
@@ -69,7 +92,7 @@ CREATE TABLE "Itinerary" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "location" TEXT,
-    "assignedTo" UUID,
+    "assignedTo" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Itinerary_pkey" PRIMARY KEY ("id")
@@ -80,7 +103,7 @@ CREATE TABLE "Message" (
     "id" SERIAL NOT NULL,
     "content" TEXT NOT NULL,
     "tripId" INTEGER NOT NULL,
-    "senderId" UUID NOT NULL,
+    "senderId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
@@ -92,7 +115,7 @@ CREATE TABLE "Poll" (
     "question" TEXT NOT NULL,
     "options" JSONB NOT NULL,
     "tripId" INTEGER NOT NULL,
-    "createdById" UUID NOT NULL,
+    "createdById" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Poll_pkey" PRIMARY KEY ("id")
@@ -104,10 +127,10 @@ CREATE TABLE "PackingItem" (
     "name" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "packed" BOOLEAN NOT NULL DEFAULT false,
-    "assignedTo" UUID,
+    "assignedTo" INTEGER,
     "tripId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "userId" UUID,
+    "userId" INTEGER,
 
     CONSTRAINT "PackingItem_pkey" PRIMARY KEY ("id")
 );
@@ -123,6 +146,18 @@ ALTER TABLE "TripMember" ADD CONSTRAINT "TripMember_tripId_fkey" FOREIGN KEY ("t
 
 -- AddForeignKey
 ALTER TABLE "TripMember" ADD CONSTRAINT "TripMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TripInvitee" ADD CONSTRAINT "TripInvitee_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TripInvitee" ADD CONSTRAINT "TripInvitee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Stay" ADD CONSTRAINT "Stay_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Stay" ADD CONSTRAINT "Stay_bookedById_fkey" FOREIGN KEY ("bookedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Expense" ADD CONSTRAINT "Expense_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "Trip"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
