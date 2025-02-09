@@ -18,16 +18,16 @@ datasource db {
 
 // ─── USER MODEL ─────────────────────────────────────────────────────────────
 model User {
-  id        Int      @id @default(autoincrement()) // Auto-incrementing ID
+  id        Int      @id @default(autoincrement())
   email     String   @unique
   fullName  String?
   avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdTrips Trip[]        @relation("TripCreator") // Trips created by user
-  tripMembers  TripMember[] // Trips where the user is a member
-  tripInvites  TripInvitee[] // Trips where the user is invited
+  createdTrips Trip[]
+  tripMembers  TripMember[]
+  tripInvites  TripInvitee[]
 
   expenses     Expense[]
   messages     Message[]
@@ -52,7 +52,7 @@ model Trip {
   updatedAt DateTime @updatedAt
 
   createdBy Int
-  creator   User @relation(name: "TripCreator", fields: [createdBy], references: [id])
+  creator   User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   members  TripMember[]
   invitees TripInvitee[]
@@ -67,38 +67,38 @@ model Trip {
 
 // ─── TRIP MEMBER MODEL ──────────────────────────────────────────────────────
 model TripMember {
-  trip   Trip   @relation(fields: [tripId], references: [id])
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId Int
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
-  role   String @default("member") //member, creator
+  role   String @default("member")
 
   @@id([tripId, userId])
 }
 
 // ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
 model TripInvitee {
-  trip   Trip   @relation(fields: [tripId], references: [id])
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId Int
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
-  status String @default("pending") // pending, accepted, declined
+  status String @default("pending")
 
   @@id([tripId, userId])
 }
 
-// ─── STAY MODEL (ACCOMMODATION FOR TRIP MEMBERS) ───────────────────────────
+// ─── STAY MODEL ───────────────────────────────────────────────────────────
 model Stay {
   id           Int      @id @default(autoincrement())
   tripId       Int
-  trip         Trip     @relation(fields: [tripId], references: [id])
-  name         String // e.g., "Hilton Hotel"
-  address      String? // Optional for flexibility
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name         String
+  address      String?
   checkInDate  DateTime
   checkOutDate DateTime
-  bookedBy     User?    @relation(fields: [bookedById], references: [id])
+  bookedBy     User?    @relation(fields: [bookedById], references: [id], onDelete: SetNull)
   bookedById   Int?
-  url          String? // Optional field for accommodation website/booking link
+  url          String?
 }
 
 // ─── EXPENSE MODEL ─────────────────────────────────────────────────────────
@@ -109,19 +109,19 @@ model Expense {
   description String?
   createdAt   DateTime @default(now())
 
-  trip     Trip @relation(fields: [tripId], references: [id])
+  trip     Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId   Int
-  paidBy   User @relation(fields: [paidById], references: [id])
-  paidById Int
+  paidBy   User? @relation(fields: [paidById], references: [id], onDelete: SetNull)
+  paidById Int?
 
   shares ExpenseShare[]
 }
 
 // ─── EXPENSE SHARE MODEL ────────────────────────────────────────────────────
 model ExpenseShare {
-  expense   Expense @relation(fields: [expenseId], references: [id])
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   expenseId Int
-  user      User    @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   share     Float
   settled   Boolean @default(false)
@@ -132,7 +132,7 @@ model ExpenseShare {
 // ─── ITINERARY MODEL ────────────────────────────────────────────────────────
 model Itinerary {
   id          Int      @id @default(autoincrement())
-  trip        Trip     @relation(fields: [tripId], references: [id])
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      Int
   date        DateTime
   title       String
@@ -146,9 +146,9 @@ model Itinerary {
 model Message {
   id        Int      @id @default(autoincrement())
   content   String
-  trip      Trip     @relation(fields: [tripId], references: [id])
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId    Int
-  sender    User     @relation(fields: [senderId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
   senderId  Int
   createdAt DateTime @default(now())
 }
@@ -157,11 +157,11 @@ model Message {
 model Poll {
   id          Int      @id @default(autoincrement())
   question    String
-  options     Json // Stores { option: string, votes: string[] }[]
-  trip        Trip     @relation(fields: [tripId], references: [id])
+  options     Json
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      Int
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdById Int
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById Int?
   createdAt   DateTime @default(now())
 }
 
@@ -172,9 +172,9 @@ model PackingItem {
   quantity   Int      @default(1)
   packed     Boolean  @default(false)
   assignedTo Int?
-  trip       Trip     @relation(fields: [tripId], references: [id])
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId     Int
   createdAt  DateTime @default(now())
-  User       User?    @relation(fields: [userId], references: [id])
+  User       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId     Int?
 }
