@@ -1,16 +1,16 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../interfaces/authInterface.ts";
 import { CreateTripInput } from "../interfaces/tripInterface.ts";
 import { createTrip } from "../models/tripModels.ts";
 
-export const createTripHandler = async (req: AuthenticatedRequest<CreateTripInput>, res: Response): Promise<void> => {
+export const createTripHandler = async (req: Request, res: Response) => {
   try {
     // This should be the right way to do it after the middleware has been configured
     //But for now i'll send the user id in the body
-    // const { userId, body: { name, description, destination, startDate, endDate, budget } } = req; 
+    // const { userId, body: { name, description, destination, startDate, endDate, budget } } = req as AuthenticatedRequest; 
 
     //  TODO : Delete this after the middleware has been configured and use the above instead
-    const { body: { name, description, destination, startDate: start, endDate: end, budget, userId } } = req;
+    const { body: { name, description, destination, startDate: start, endDate: end, budget, userId } } = req as AuthenticatedRequest;
 
 
     if (!userId) {
