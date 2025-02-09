@@ -1,13 +1,18 @@
-import { Request, Response } from 'express';
+import { CreateTripInput } from "../interfaces/tripInterface.ts";
+import prisma from "../config/prismaClient.ts";
 
-async function getTrips(req: Request, res: Response) {
-  try {
-    // use the models to interact with database
-    // process the data
-    // send the data back
-
-  } catch (error) {
-  }
-}
-
-export {getTrips};
+// Create a Trip
+export const createTrip = async (tripData: CreateTripInput) => {
+  return await prisma.trip.create({
+    data: {
+      ...tripData,
+      members: {
+        create: {
+          userId: tripData.createdBy,
+          role: "creator",
+        },
+      },
+    },
+    include: { members: true },
+  });
+};

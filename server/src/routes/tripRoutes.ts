@@ -1,8 +1,8 @@
 import express from 'express';
-import { getTrips } from '../controllers/tripController.ts';
+import { createTripHandler } from '../controllers/tripController.ts';
 
 const router = express.Router();
 
-router.get('/', getTrips);
+router.post('/', createTripHandler);
 
 export default router;
