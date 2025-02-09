@@ -7,6 +7,6 @@ export interface CreateTripInput {
     budget?: number | null;
     createdBy: number;
 
-    //Remove this field after middleware is configured
+    // TODO: Remove this field after middleware is configured
     userId?: number
 }
