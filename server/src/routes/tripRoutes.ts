@@ -1,8 +1,9 @@
 import express from 'express';
-import { createTripHandler } from '../controllers/tripController.ts';
+import { createTripHandler, deleteTripHandler } from '../controllers/tripController.ts';
 
 const router = express.Router();
 
 router.post('/', createTripHandler);
+router.delete('/:tripId', deleteTripHandler);
 
 export default router;

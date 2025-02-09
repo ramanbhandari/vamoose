@@ -2,7 +2,6 @@ import { createTripHandler } from "../../controllers/tripController";
 import prisma from "../../config/prismaClient";
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../interfaces/authInterface";
-import { CreateTripInput } from "../../interfaces/tripInterface";
 
 // Mock Prisma client functions
 // Add models->functions you want to mock here
@@ -16,7 +15,7 @@ jest.mock("../../config/prismaClient", () => ({
 }));
 
 describe("Trip Controller - createTripHandler (with model)", () => {
-    let mockReq: Partial<AuthenticatedRequest<any>>;
+    let mockReq: Partial<AuthenticatedRequest>;
     let mockRes: Partial<Response>;
     let jsonMock: jest.Mock;
     let statusMock: jest.Mock;
@@ -82,7 +81,7 @@ describe("Trip Controller - createTripHandler (with model)", () => {
             ...trip,
         });
 
-        await createTripHandler(mockReq as AuthenticatedRequest<any>, mockRes as Response);
+        await createTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
         expect(statusMock).toHaveBeenCalledWith(201);
         expect(jsonMock).toHaveBeenCalledWith({ message, trip });
@@ -111,7 +110,7 @@ describe("Trip Controller - createTripHandler (with model)", () => {
     ])("when request body is $overrides should return $expectedStatus", async ({ overrides, expectedStatus, expectedMessage }) => {
         mockReq = setupRequest(overrides);
 
-        await createTripHandler(mockReq as AuthenticatedRequest<any>, mockRes as Response);
+        await createTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
         expect(statusMock).toHaveBeenCalledWith(expectedStatus);
         expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -121,7 +120,7 @@ describe("Trip Controller - createTripHandler (with model)", () => {
         mockReq = setupRequest();
         (prisma.trip.create as jest.Mock).mockRejectedValue(new Error("Database error"));
 
-        await createTripHandler(mockReq as AuthenticatedRequest<any>, mockRes as Response);
+        await createTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
         expect(statusMock).toHaveBeenCalledWith(500);
         expect(jsonMock).toHaveBeenCalledWith({ error: "Internal Server Error" });
