@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { NotFoundError, ConflictError, BadRequestError, DatabaseError } from "./errors";
+import { NotFoundError, ConflictError, BadRequestError, DatabaseError, BaseError } from "./errors";
 
 export const handlePrismaError = (error: unknown): Error => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -17,6 +17,10 @@ export const handlePrismaError = (error: unknown): Error => {
             default:
                 return new DatabaseError(`Prisma error: ${error.message}`);
         }
+    }
+
+    if (error instanceof BaseError) {
+        return error;
     }
 
     return new DatabaseError("An unexpected database error occurred.");

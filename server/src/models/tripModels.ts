@@ -1,6 +1,7 @@
 import { CreateTripInput } from "../interfaces/tripInterface.ts";
 import prisma from "../config/prismaClient.ts";
 import { handlePrismaError } from "../utils/prismaErrorHandler.ts";
+import { NotFoundError } from "../utils/errors.ts";
 
 // Create a Trip
 export const createTrip = async (tripData: CreateTripInput) => {
@@ -32,6 +33,29 @@ export const deleteTrip = async (userId: number, tripId: number) => {
         createdBy: userId,
       },
     });
+  } catch (error) {
+    console.error("Error deleting trip from DB:", error);
+    throw handlePrismaError(error);
+  }
+};
+
+//delete multiple trips
+export const deleteMultipleTrips = async (userId: number, tripIds: number[]) => {
+  try {
+    const result = await prisma.trip.deleteMany({
+      where: {
+        id: {
+          in: tripIds
+        },
+        createdBy: userId,
+      },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundError("No trips deleted. Either they do not exist or you are not authorized.");
+    }
+
+    return { message: "Trips deleted successfully", deletedCount: result.count };
   } catch (error) {
     console.error("Error deleting trip from DB:", error);
     throw handlePrismaError(error);
