@@ -3,7 +3,7 @@ name: "Check Labels on PR"
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize, labeled, unlabeled]
-  workflow_dispatch: # this is to allow manual triggering somehow :/
+  # workflow_dispatch: # this is to allow manual triggering somehow :/
 
 jobs:
   check-labels:
