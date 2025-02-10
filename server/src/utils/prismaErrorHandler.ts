@@ -11,7 +11,7 @@ export const handlePrismaError = (error: unknown): Error => {
             case "P2004":
                 return new BadRequestError("A constraint failed on the database.");
             case "P2007":
-                return new BadRequestError("Data validation error");
+                return new BadRequestError("Data validation error.");
             case "P2025":
                 return new NotFoundError("Record not found.");
             default:

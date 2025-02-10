@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../interfaces/authInterface.ts";
 import { createTrip, deleteTrip, deleteMultipleTrips, updateTrip } from "../models/tripModels.ts";
 import { BaseError } from "../utils/errors";
-import { UpdateTripInput } from "../interfaces/tripInterface.ts";
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -62,6 +61,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
+      console.error("Error updating trip:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   }
@@ -95,6 +95,7 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
+      console.error("Error updating trip:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   }
@@ -127,6 +128,7 @@ export const deleteMultipleTripsHandler = async (req: Request, res: Response) =>
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
+      console.error("Error updating trip:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   }
@@ -142,10 +144,6 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     const { body: { userId, createdBy: _, ...tripData } } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
 
-    const safeTripData: UpdateTripInput = {
-      ...(tripData as Pick<UpdateTripInput, keyof UpdateTripInput>), // Removes extra fields
-    };
-
     if (!userId) {
       res.status(401).json({ error: "Unauthorized Request" });
       return;
@@ -156,12 +154,12 @@ export const updateTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    if (Object.keys(safeTripData).length === 0) {
+    if (Object.keys(tripData).length === 0) {
       res.status(400).json({ error: "No fields provided for update" });
       return;
     }
 
-    const updatedTrip = await updateTrip(userId, tripId, safeTripData);
+    const updatedTrip = await updateTrip(userId, tripId, tripData);
 
     res.status(200).json({ message: "Trip updated successfully", trip: updatedTrip });
     return;
