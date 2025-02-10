@@ -8,5 +8,7 @@ export interface CreateTripInput {
     createdBy: number;
 
     // TODO: Remove this field after middleware is configured
-    userId?: number
+    userId?: number;
 }
+
+export interface UpdateTripInput extends Partial<Omit<CreateTripInput, "createdBy">> { }

@@ -1,5 +1,5 @@
 export class BaseError extends Error {
-    public statusCode: number;
+    public readonly statusCode: number;
 
     constructor(message: string, statusCode: number) {
         super(message);
@@ -41,5 +41,11 @@ export class InternalServerError extends BaseError {
 export class DatabaseError extends BaseError {
     constructor(message = "Database error") {
         super(message, 500);
+    }
+}
+
+export class ValidationError extends BaseError {
+    constructor(message = "Error during field validation") {
+        super(message, 400);
     }
 }

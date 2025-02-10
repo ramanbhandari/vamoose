@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../interfaces/authInterface.ts";
-import { createTrip, deleteTrip, deleteMultipleTrips } from "../models/tripModels.ts";
+import { createTrip, deleteTrip, deleteMultipleTrips, updateTrip } from "../models/tripModels.ts";
 import { BaseError } from "../utils/errors";
+import { UpdateTripInput } from "../interfaces/tripInterface.ts";
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -31,7 +32,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
     // Ensure valid dates
     if (isNaN(startDate.getDate()) || isNaN(endDate.getDate())) {
       res.status(400).json({ error: "Invalid start date or end date format" });
-      return
+      return;
     }
 
     // Ensure start date is today at the earliest or in the future
@@ -126,6 +127,49 @@ export const deleteMultipleTripsHandler = async (req: Request, res: Response) =>
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+};
+
+export const updateTripHandler = async (req: Request, res: Response) => {
+  try {
+    // This should be the right way to do it after the middleware has been configured
+    //But for now i'll send the user id in the body
+    // const { userId, body: {createdBy:_, ...tripData } } = req as AuthenticatedRequest;
+
+    // TODO: Replace this after middleware is configured
+    const { body: { userId, createdBy: _, ...tripData } } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+
+    const safeTripData: UpdateTripInput = {
+      ...(tripData as Pick<UpdateTripInput, keyof UpdateTripInput>), // Removes extra fields
+    };
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized Request" });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: "Invalid trip ID" });
+      return;
+    }
+
+    if (Object.keys(safeTripData).length === 0) {
+      res.status(400).json({ error: "No fields provided for update" });
+      return;
+    }
+
+    const updatedTrip = await updateTrip(userId, tripId, safeTripData);
+
+    res.status(200).json({ message: "Trip updated successfully", trip: updatedTrip });
+    return;
+  } catch (error) {
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      console.error("Error updating trip:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   }
