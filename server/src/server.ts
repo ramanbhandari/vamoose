@@ -1,5 +1,11 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import dotenv from 'dotenv';
 import planRoutes from './routes/plans.js';
+import connectMongoDB from './db/mongo.js';
+
+dotenv.config();
+
+connectMongoDB();
 
 const port: number | string = process.env.PORT || 3000;
 
