@@ -1,7 +1,7 @@
-import { CreateTripInput } from "../interfaces/tripInterface.ts";
+import { CreateTripInput, UpdateTripInput } from "../interfaces/tripInterface.ts";
 import prisma from "../config/prismaClient.ts";
 import { handlePrismaError } from "../utils/prismaErrorHandler.ts";
-import { NotFoundError } from "../utils/errors.ts";
+import { NotFoundError, } from "../utils/errors.ts";
 
 // Create a Trip
 export const createTrip = async (tripData: CreateTripInput) => {
@@ -23,6 +23,25 @@ export const createTrip = async (tripData: CreateTripInput) => {
     throw handlePrismaError(error);
   }
 };
+
+//Update a trip
+export const updateTrip = async (userId: number, tripId: number, updateData: UpdateTripInput) => {
+  try {
+    return await prisma.trip.update({
+      where: {
+        id: tripId,
+        createdBy: userId, // Ensure only the creator can update
+      },
+      data: {
+        ...updateData,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating trip:", error);
+    throw handlePrismaError(error);
+  }
+};
+
 
 // Delete a Trip
 export const deleteTrip = async (userId: number, tripId: number) => {

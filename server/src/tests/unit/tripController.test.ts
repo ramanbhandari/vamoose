@@ -1,4 +1,4 @@
-import { createTripHandler, deleteTripHandler, deleteMultipleTripsHandler } from "../../controllers/tripController";
+import { createTripHandler, deleteTripHandler, deleteMultipleTripsHandler, updateTripHandler } from "../../controllers/tripController";
 import prisma from "../../config/prismaClient";
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../interfaces/authInterface";
@@ -12,7 +12,8 @@ jest.mock("../../config/prismaClient", () => ({
         trip: {
             create: jest.fn(),
             delete: jest.fn(),
-            deleteMany: jest.fn()
+            deleteMany: jest.fn(),
+            update: jest.fn(),
         },
     },
 }));
@@ -32,7 +33,7 @@ describe("Trip Controller - createTripHandler (with model)", () => {
             startDate: getXDaysFromToday(0).toISOString(),
             endDate: getXDaysFromToday(7).toISOString(),
             budget: 500,
-            userId: 1, //TODO cleanup this field after middleware is implemented
+            userId: 1, // TODO: cleanup this field after middleware is implemented
             ...overrides, // Allows customization for different test cases
         },
     });
@@ -139,7 +140,7 @@ describe("Trip Controller - deleteTripHandler", () => {
     function setupRequest(overrides = {}) {
         return {
             params: { tripId: "1" },
-            body: { userId: 1 },
+            body: { userId: 1 }, // TODO: modify this after middleware implementation
             ...overrides
         };
     }
@@ -218,7 +219,11 @@ describe("Trip Controller - deleteMultipleTripsHandler", () => {
 
     function setupRequest(overrides = {}) {
         return {
-            body: { userId: 1, tripIds: [1, 2, 3], ...overrides },
+            body: {
+                userId: 1,  // TODO: modify this after middleware implementation
+                tripIds: [1, 2, 3],
+                ...overrides
+            },
         };
     }
 
@@ -281,6 +286,113 @@ describe("Trip Controller - deleteMultipleTripsHandler", () => {
         (prisma.trip.deleteMany as jest.Mock).mockRejectedValue(new Error("Database error"));
 
         await deleteMultipleTripsHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(500);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "An unexpected database error occurred." });
+    });
+});
+
+describe("Trip Controller - updateTripHandler", () => {
+    let mockReq: Partial<AuthenticatedRequest>;
+    let mockRes: Partial<Response>;
+    let jsonMock: jest.Mock;
+    let statusMock: jest.Mock;
+
+    const setupRequest = (tripId: number, overrides = {}) => ({
+        params: { tripId: tripId.toString() },
+        body: Object.fromEntries(
+            Object.entries({
+                userId: 1, // TODO: Modify this after middleware implementation
+                name: "Trip Name",
+                description: "Trip description",
+                budget: 800,
+                ...overrides,
+            }).filter(([_, v]) => v !== undefined) // Remove undefined fields
+        ),
+    });
+
+    beforeEach(() => {
+        jsonMock = jest.fn();
+        statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+        mockRes = {
+            status: statusMock,
+            json: jsonMock,
+        } as Partial<Response>;
+    });
+
+    it("should update a trip successfully", async () => {
+        mockReq = setupRequest(1);
+
+        (prisma.trip.update as jest.Mock).mockResolvedValue({
+            id: 1,
+            name: "Updated Trip Name",
+            description: "Updated description",
+            budget: 800,
+            createdBy: 1,
+        });
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(200);
+        expect(jsonMock).toHaveBeenCalledWith({
+            message: "Trip updated successfully",
+            trip: {
+                id: 1,
+                name: "Updated Trip Name",
+                description: "Updated description",
+                budget: 800,
+                createdBy: 1,
+            },
+        });
+    });
+
+    it("should return 400 if no fields are provided for update", async () => {
+        mockReq = setupRequest(1, { name: undefined, description: undefined, budget: undefined }); // No update fields
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(400);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "No fields provided for update" });
+    });
+
+    it("should return 400 if tripId is invalid", async () => {
+        mockReq = setupRequest(NaN);
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(400);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "Invalid trip ID" });
+    });
+
+    it("should return 401 if user is not authenticated", async () => {
+        mockReq = setupRequest(1, { userId: undefined });
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(401);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "Unauthorized Request" });
+    });
+
+    it("should return 404 if the trip does not exist", async () => {
+        mockReq = setupRequest(999); // Non-existent trip ID
+
+        (prisma.trip.update as jest.Mock).mockRejectedValue(
+            new NotFoundError("Record not found.")
+        );
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(404);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "Record not found." });
+    });
+
+    it("should return 500 if a generic database error occurs", async () => {
+        mockReq = setupRequest(1);
+
+        (prisma.trip.update as jest.Mock).mockRejectedValue(new Error("Database failure"));
+
+        await updateTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
         expect(statusMock).toHaveBeenCalledWith(500);
         expect(jsonMock).toHaveBeenCalledWith({ error: "An unexpected database error occurred." });
