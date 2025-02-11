@@ -2,20 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* the following light theme and dark theme are applied based on user's system preferences*/
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --primary: #FF5A5F;
+  --primary-hover: #FF4045;
+  --secondary: #3A4F6C;
+  --secondary-hover: #FF5A5F;
+
+  --accent: #10B981;
+  --error: #e63946;
+
+  --font-general: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-brand: var(--font-brand), cursive; /* added for Vamoose! */
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark)  {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --primary: #FF5A5F;
+    --primary-hover: #FF7377;
+    --secondary: #a8dadc;
+    --secondary-hover: #FF7377;
+    
+    --accent: #14b8a6;
+    --error: #f28482;
   }
+}
+/* the following are to allow manual override */
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  --primary: #FF5A5F;
+  --primary-hover: #FF4045;
+  --secondary: #3A4F6C;
+  --secondary-hover: #FF5A5F;
+
+  --accent: #10B981;
+  --error: #e63946;
+
+  --font-general: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-brand: var(--font-brand), cursive; /* added for Vamoose! */
+}
+
+
+[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+
+  --primary: #FF5A5F;
+  --primary-hover: #FF7377;
+  --secondary: #a8dadc;
+  --secondary-hover: #FF7377;
+
+  --accent: #14b8a6;
+  --error: #f28482;
+
+  --font-general: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-brand: var(--font-brand), cursive; /* added for Vamoose! */
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-general);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
