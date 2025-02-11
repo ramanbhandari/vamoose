@@ -1,7 +1,8 @@
-import { createTripHandler } from "../../controllers/tripController";
+import { createTripHandler, deleteTripHandler, deleteMultipleTripsHandler } from "../../controllers/tripController";
 import prisma from "../../config/prismaClient";
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../interfaces/authInterface";
+import { NotFoundError } from "../../utils/errors";
 
 // Mock Prisma client functions
 // Add models->functions you want to mock here
@@ -10,6 +11,8 @@ jest.mock("../../config/prismaClient", () => ({
     default: {
         trip: {
             create: jest.fn(),
+            delete: jest.fn(),
+            deleteMany: jest.fn()
         },
     },
 }));
@@ -123,7 +126,164 @@ describe("Trip Controller - createTripHandler (with model)", () => {
         await createTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
         expect(statusMock).toHaveBeenCalledWith(500);
-        expect(jsonMock).toHaveBeenCalledWith({ error: "Internal Server Error" });
+        expect(jsonMock).toHaveBeenCalledWith({ error: "An unexpected database error occurred." });
+    });
+});
+
+describe("Trip Controller - deleteTripHandler", () => {
+    let mockReq: Partial<AuthenticatedRequest>;
+    let mockRes: Partial<Response>;
+    let jsonMock: jest.Mock;
+    let statusMock: jest.Mock;
+
+    function setupRequest(overrides = {}) {
+        return {
+            params: { tripId: "1" },
+            body: { userId: 1 },
+            ...overrides
+        };
+    }
+    beforeEach(() => {
+        jsonMock = jest.fn();
+        statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+        mockRes = {
+            status: statusMock,
+            json: jsonMock,
+        } as Partial<Response>;
+    });
+
+    it("should delete a trip successfully", async () => {
+        mockReq = setupRequest();
+
+        (prisma.trip.delete as jest.Mock).mockResolvedValue({
+            id: 1,
+            name: "Deleted Trip",
+        });
+
+        await deleteTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(200);
+        expect(jsonMock).toHaveBeenCalledWith({
+            message: "Trip deleted successfully",
+            trip: { id: 1, name: "Deleted Trip" },
+        });
+    });
+
+    it.each([
+        { overrides: { body: { userId: undefined } }, expectedStatus: 401, expectedMessage: "Unauthorized Request" },
+        { overrides: { params: { tripId: "invalid" } }, expectedStatus: 400, expectedMessage: "Invalid trip ID" },
+    ])(
+        "when request is $overrides should return $expectedStatus",
+        async ({ overrides, expectedStatus, expectedMessage }) => {
+            mockReq = setupRequest(overrides);
+
+            await deleteTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+            expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+            expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+        }
+    );
+
+    it("should return 404 if trip is not found", async () => {
+        mockReq = setupRequest();
+
+        (prisma.trip.delete as jest.Mock).mockRejectedValue(new NotFoundError("Trip not found"));
+
+        await deleteTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(404);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "Trip not found" });
+    });
+
+    it("should return 500 if database error occurs", async () => {
+        mockReq = setupRequest();
+
+        (prisma.trip.delete as jest.Mock).mockRejectedValue(new Error("Database error"));
+
+        await deleteTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(500);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "An unexpected database error occurred." });
+    });
+
+
+});
+
+describe("Trip Controller - deleteMultipleTripsHandler", () => {
+    let mockReq: Partial<AuthenticatedRequest>;
+    let mockRes: Partial<Response>;
+    let jsonMock: jest.Mock;
+    let statusMock: jest.Mock;
+
+    function setupRequest(overrides = {}) {
+        return {
+            body: { userId: 1, tripIds: [1, 2, 3], ...overrides },
+        };
+    }
+
+    beforeEach(() => {
+        jsonMock = jest.fn();
+        statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+        mockRes = {
+            status: statusMock,
+            json: jsonMock,
+        } as Partial<Response>;
+    });
+
+    it("should delete multiple trips successfully", async () => {
+        mockReq = setupRequest({ tripIds: [1, 2, 3] });
+
+        (prisma.trip.deleteMany as jest.Mock).mockResolvedValue({
+            count: 3,
+        });
+
+        await deleteMultipleTripsHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(200);
+        expect(jsonMock).toHaveBeenCalledWith({
+            message: "Trips deleted successfully",
+            deletedCount: 3,
+        });
+    });
+
+    it.each([
+        { overrides: { userId: undefined }, expectedStatus: 401, expectedMessage: "Unauthorized Request" },
+        { overrides: { tripIds: "invalid" }, expectedStatus: 400, expectedMessage: "Invalid trip ID list" },
+        { overrides: { tripIds: [] }, expectedStatus: 400, expectedMessage: "Invalid trip ID list" },
+    ])(
+        "when request is $overrides should return $expectedStatus",
+        async ({ overrides, expectedStatus, expectedMessage }) => {
+            mockReq = setupRequest(overrides);
+
+            await deleteMultipleTripsHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+            expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+            expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+        }
+    );
+
+    it("should return 404 if no trips were deleted", async () => {
+        mockReq = setupRequest({ tripIds: [1, 2, 3] });
+
+        (prisma.trip.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+        await deleteMultipleTripsHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(404);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "No trips deleted. Either they do not exist or you are not authorized." });
+    });
+
+    it("should return 500 if database error occurs", async () => {
+        mockReq = setupRequest({ tripIds: [1, 2, 3] });
+
+        (prisma.trip.deleteMany as jest.Mock).mockRejectedValue(new Error("Database error"));
+
+        await deleteMultipleTripsHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(500);
+        expect(jsonMock).toHaveBeenCalledWith({ error: "An unexpected database error occurred." });
     });
 });
 

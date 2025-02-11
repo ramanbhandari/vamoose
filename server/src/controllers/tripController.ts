@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../interfaces/authInterface.ts";
-import { CreateTripInput } from "../interfaces/tripInterface.ts";
-import { createTrip } from "../models/tripModels.ts";
+import { createTrip, deleteTrip, deleteMultipleTrips } from "../models/tripModels.ts";
+import { BaseError } from "../utils/errors";
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -58,8 +58,75 @@ export const createTripHandler = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Trip created successfully", trip });
     return;
   } catch (error) {
-    console.error("Error creating trip:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+};
+
+export const deleteTripHandler = async (req: Request, res: Response) => {
+  try {
+    // This should be the right way to do it after the middleware has been configured
+    //But for now i'll send the user id in the body
+    // const { userId } = req as AuthenticatedRequest;;
+
+    //  TODO : Delete this after the middleware has been configured and use the above instead
+    const { body: { userId } } = req as AuthenticatedRequest;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized Request" });
+      return;
+    }
+
+    const tripId = Number(req.params.tripId);
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: "Invalid trip ID" });
+      return;
+    }
+
+    const deletedTrip = await deleteTrip(userId, tripId);
+
+    res.status(200).json({ message: "Trip deleted successfully", trip: deletedTrip });
     return;
+  } catch (error) {
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+};
+
+export const deleteMultipleTripsHandler = async (req: Request, res: Response) => {
+  try {
+    // This should be the right way to do it after the middleware has been configured
+    //But for now i'll send the user id in the body
+    // const { userId, body: { tripIds } } = req as AuthenticatedRequest;;
+
+    // TODO: Replace this after middleware is configured
+    const { body: { userId, tripIds } } = req as AuthenticatedRequest;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized Request" });
+      return;
+    }
+
+    if (!Array.isArray(tripIds) || tripIds.length === 0) {
+      res.status(400).json({ error: "Invalid trip ID list" });
+      return;
+    }
+
+    const result = await deleteMultipleTrips(userId, tripIds);
+
+    res.status(200).json({ message: "Trips deleted successfully", deletedCount: result.deletedCount });
+    return;
+  } catch (error) {
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
