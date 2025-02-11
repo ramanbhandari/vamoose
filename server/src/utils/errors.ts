@@ -1,51 +1,51 @@
 export class BaseError extends Error {
-    public readonly statusCode: number;
+  public readonly statusCode: number;
 
-    constructor(message: string, statusCode: number) {
-        super(message);
-        this.statusCode = statusCode;
-        Object.setPrototypeOf(this, new.target.prototype);
-    }
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
 }
 
 export class NotFoundError extends BaseError {
-    constructor(message = "Resource not found") {
-        super(message, 404);
-    }
+  constructor(message = 'Resource not found') {
+    super(message, 404);
+  }
 }
 
 export class ConflictError extends BaseError {
-    constructor(message = "Conflict occurred") {
-        super(message, 409);
-    }
+  constructor(message = 'Conflict occurred') {
+    super(message, 409);
+  }
 }
 
 export class BadRequestError extends BaseError {
-    constructor(message = "Bad request") {
-        super(message, 400);
-    }
+  constructor(message = 'Bad request') {
+    super(message, 400);
+  }
 }
 
 export class UnauthorizedError extends BaseError {
-    constructor(message = "Unauthorized") {
-        super(message, 401);
-    }
+  constructor(message = 'Unauthorized') {
+    super(message, 401);
+  }
 }
 
 export class InternalServerError extends BaseError {
-    constructor(message = "Internal Server error") {
-        super(message, 500);
-    }
+  constructor(message = 'Internal Server error') {
+    super(message, 500);
+  }
 }
 
 export class DatabaseError extends BaseError {
-    constructor(message = "Database error") {
-        super(message, 500);
-    }
+  constructor(message = 'Database error') {
+    super(message, 500);
+  }
 }
 
 export class ValidationError extends BaseError {
-    constructor(message = "Error during field validation") {
-        super(message, 400);
-    }
+  constructor(message = 'Error during field validation') {
+    super(message, 400);
+  }
 }

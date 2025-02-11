@@ -14,7 +14,7 @@ const port: number | string = process.env.PORT || 3000;
 const app = express();
 
 //Middleware
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -27,7 +27,7 @@ app.listen(port, () => {
 });
 
 // Handle Prisma Client shutdown gracefully
-process.on("SIGINT", async () => {
+process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
