@@ -8,9 +8,9 @@ const MONGO_URI = `mongodb://${process.env.MONGO_ROOT_USERNAME}:${process.env.MO
 const connectMongoDB = async (): Promise<void> => {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log('✅ MongoDB Connected');
+    console.log('MongoDB Connected');
   } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error);
+    console.error('MongoDB Connection Error:', error);
     process.exit(1);
   }
 };
