@@ -4,6 +4,7 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// DATABASE PROVIDER
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -15,8 +16,9 @@ datasource db {
   extensions = [pgcrypto]
 }
 
+// ─── USER MODEL ─────────────────────────────────────────────────────────────
 model User {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id        Int      @id @default(autoincrement())
   email     String   @unique
   fullName  String?
   avatarUrl String?
@@ -25,13 +27,18 @@ model User {
 
   createdTrips Trip[]
   tripMembers  TripMember[]
+  tripInvites  TripInvitee[]
+
   expenses     Expense[]
   messages     Message[]
   polls        Poll[]
   packingItems PackingItem[]
   ExpenseShare ExpenseShare[]
+
+  staysBooked Stay[]
 }
 
+// ─── TRIP MODEL ─────────────────────────────────────────────────────────────
 model Trip {
   id          Int      @id @default(autoincrement())
   name        String
@@ -40,12 +47,17 @@ model Trip {
   startDate   DateTime
   endDate     DateTime
   budget      Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  createdBy   String        @db.Uuid
-  creator     User          @relation(fields: [createdBy], references: [id])
-  members     TripMember[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy Int
+  creator   User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  members  TripMember[]
+  invitees TripInvitee[]
+  stays    Stay[]
+
   expenses    Expense[]
   itineraries Itinerary[]
   messages    Message[]
@@ -53,16 +65,43 @@ model Trip {
   packingList PackingItem[]
 }
 
+// ─── TRIP MEMBER MODEL ──────────────────────────────────────────────────────
 model TripMember {
-  trip   Trip   @relation(fields: [tripId], references: [id])
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId Int
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
   role   String @default("member")
 
   @@id([tripId, userId])
 }
 
+// ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
+model TripInvitee {
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  status String @default("pending")
+
+  @@id([tripId, userId])
+}
+
+// ─── STAY MODEL ───────────────────────────────────────────────────────────
+model Stay {
+  id           Int      @id @default(autoincrement())
+  tripId       Int
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name         String
+  address      String?
+  checkInDate  DateTime
+  checkOutDate DateTime
+  bookedBy     User?    @relation(fields: [bookedById], references: [id], onDelete: SetNull)
+  bookedById   Int?
+  url          String?
+}
+
+// ─── EXPENSE MODEL ─────────────────────────────────────────────────────────
 model Expense {
   id          Int      @id @default(autoincrement())
   amount      Float
@@ -70,67 +109,72 @@ model Expense {
   description String?
   createdAt   DateTime @default(now())
 
-  trip     Trip   @relation(fields: [tripId], references: [id])
+  trip     Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId   Int
-  paidBy   User   @relation(fields: [paidById], references: [id])
-  paidById String @db.Uuid
+  paidBy   User? @relation(fields: [paidById], references: [id], onDelete: SetNull)
+  paidById Int?
 
   shares ExpenseShare[]
 }
 
+// ─── EXPENSE SHARE MODEL ────────────────────────────────────────────────────
 model ExpenseShare {
-  expense   Expense @relation(fields: [expenseId], references: [id])
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   expenseId Int
-  user      User    @relation(fields: [userId], references: [id])
-  userId    String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
   share     Float
   settled   Boolean @default(false)
 
   @@id([expenseId, userId])
 }
 
+// ─── ITINERARY MODEL ────────────────────────────────────────────────────────
 model Itinerary {
   id          Int      @id @default(autoincrement())
-  trip        Trip     @relation(fields: [tripId], references: [id])
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      Int
   date        DateTime
   title       String
   description String
   location    String?
-  assignedTo  String?  @db.Uuid
+  assignedTo  Int?
   createdAt   DateTime @default(now())
 }
 
+// ─── MESSAGE MODEL ──────────────────────────────────────────────────────────
 model Message {
   id        Int      @id @default(autoincrement())
   content   String
-  trip      Trip     @relation(fields: [tripId], references: [id])
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId    Int
-  sender    User     @relation(fields: [senderId], references: [id])
-  senderId  String   @db.Uuid
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  Int
   createdAt DateTime @default(now())
 }
 
+// ─── POLL MODEL ────────────────────────────────────────────────────────────
 model Poll {
   id          Int      @id @default(autoincrement())
   question    String
-  options     Json // Stores { option: string, votes: string[] }[]
-  trip        Trip     @relation(fields: [tripId], references: [id])
+  options     Json
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      Int
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdById String   @db.Uuid
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById Int?
   createdAt   DateTime @default(now())
 }
 
+// ─── PACKING LIST MODEL ─────────────────────────────────────────────────────
 model PackingItem {
   id         Int      @id @default(autoincrement())
   name       String
   quantity   Int      @default(1)
   packed     Boolean  @default(false)
-  assignedTo String?  @db.Uuid
-  trip       Trip     @relation(fields: [tripId], references: [id])
+  assignedTo Int?
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId     Int
   createdAt  DateTime @default(now())
-  User       User?    @relation(fields: [userId], references: [id])
-  userId     String?  @db.Uuid
+  User       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     Int?
 }
