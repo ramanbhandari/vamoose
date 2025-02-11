@@ -70,7 +70,7 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
   try {
     // This should be the right way to do it after the middleware has been configured
     //But for now i'll send the user id in the body
-    // const { userId } = req as AuthenticatedRequest;; 
+    // const { userId } = req as AuthenticatedRequest;;
 
     //  TODO : Delete this after the middleware has been configured and use the above instead
     const { body: { userId } } = req as AuthenticatedRequest;
@@ -103,7 +103,7 @@ export const deleteMultipleTripsHandler = async (req: Request, res: Response) =>
   try {
     // This should be the right way to do it after the middleware has been configured
     //But for now i'll send the user id in the body
-    // const { userId, body: { tripIds } } = req as AuthenticatedRequest;; 
+    // const { userId, body: { tripIds } } = req as AuthenticatedRequest;;
 
     // TODO: Replace this after middleware is configured
     const { body: { userId, tripIds } } = req as AuthenticatedRequest;

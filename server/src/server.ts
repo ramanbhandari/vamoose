@@ -1,7 +1,13 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import tripRoutes from './routes/tripRoutes.ts';
 import prisma from './config/prismaClient.ts';
 import cors from 'cors';
+import connectMongoDB from './db/mongo.js';
+
+dotenv.config();
+
+connectMongoDB();
 
 const port: number | string = process.env.PORT || 3000;
 
