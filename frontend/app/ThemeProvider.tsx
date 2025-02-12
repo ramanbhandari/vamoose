@@ -3,7 +3,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
 import { createAppTheme } from "@/theme/theme";
-import ThemeToggle from "../components/ThemeToggle";
 
 export default function ThemeProvider({ children }: { children: ReactNode }) {
   // the way nextjs works with server and client side, we need to make sure we don't try to render theme before component is mounted on client
@@ -29,7 +28,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <ThemeToggle />
       {children}
     </MuiThemeProvider>
   );
