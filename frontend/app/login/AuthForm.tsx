@@ -86,7 +86,10 @@ export default function AuthForm() {
           p: 4,
           bgcolor: "background.paper",
           borderRadius: 3,
-          boxShadow: 3,
+          boxShadow: (theme) =>
+            theme.palette.mode === "dark"
+              ? "0 4px 20px rgba(255, 255, 255, 0.3)"
+              : "0 4px 20px rgba(0, 0, 0, 0.3)",
           width: "100%",
         }}
       >

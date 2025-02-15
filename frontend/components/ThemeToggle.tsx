@@ -35,12 +35,8 @@ export default function ThemeToggle() {
       <IconButton
         onClick={toggleTheme}
         sx={{
-          position: "fixed",
-          top: 16,
-          right: 16,
-          bgcolor: theme.palette.background.paper,
-          color: theme.palette.text.primary,
-          "&:hover": { bgcolor: theme.palette.primary.main, color: "white" },
+          color: "#ffffff",
+          "&:hover": { color: theme.palette.secondary.main },
         }}
       >
         {isDarkMode ? <Brightness7 /> : <Brightness4 />}
