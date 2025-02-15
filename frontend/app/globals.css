@@ -6,9 +6,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --background-paper: #ffffff;
 
   --primary: #FF5A5F;
-  --primary-hover: #FF4045;
+  --primary-hover: #FF7377;
   --secondary: #3A4F6C;
   --secondary-hover: #FF5A5F;
 
@@ -24,6 +25,7 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --background-paper: #1a1a1a;
 
     --primary: #FF5A5F;
     --primary-hover: #FF7377;
@@ -38,9 +40,10 @@
 [data-theme="light"] {
   --background: #ffffff;
   --foreground: #171717;
+  --background-paper: #ffffff;
 
   --primary: #FF5A5F;
-  --primary-hover: #FF4045;
+  --primary-hover: #FF7377;
   --secondary: #3A4F6C;
   --secondary-hover: #FF5A5F;
 
@@ -56,6 +59,7 @@
 [data-theme="dark"] {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --background-paper: #1a1a1a;
 
   --primary: #FF5A5F;
   --primary-hover: #FF7377;

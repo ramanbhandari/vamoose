@@ -21,7 +21,7 @@ export const createAppTheme = () => {
       secondary: { main: getCSSVariable("--secondary") || "#3A4F6C" },
       background: {
         default: getCSSVariable("--background") || "#ffffff",
-        paper: getCSSVariable("--background") || "#ffffff",
+        paper: getCSSVariable("--background-paper") || "#ffffff",
       },
       text: { primary: getCSSVariable("--foreground") || "#171717" },
       error: { main: getCSSVariable("--error") || "#e63946" },

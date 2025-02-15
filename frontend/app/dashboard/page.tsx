@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
-import { Button, Typography, Box } from "@mui/material";
-import { logout } from "./actions";
+import { Typography, Box } from "@mui/material";
+
 import { getMessages } from "./messages";
 
 export default async function Dashboard() {
@@ -17,18 +17,6 @@ export default async function Dashboard() {
       <Typography variant="h4" sx={{ mb: 2 }}>
         {getMessages.welcome} {user ? user.email : "Guest"}!
       </Typography>
-
-      <form action={logout}>
-        {" "}
-        <Button
-          variant="contained"
-          color="error"
-          type="submit"
-          sx={{ borderRadius: "8px", py: 1.5 }}
-        >
-          {getMessages.logoutButtonText}
-        </Button>
-      </form>
     </Box>
   );
 }
