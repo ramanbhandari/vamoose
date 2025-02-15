@@ -8,7 +8,7 @@ import tripRoutes from './routes/tripRoutes.ts';
 
 dotenv.config();
 
-connectMongoDB();
+//connectMongoDB();
 
 const port: number | string = process.env.PORT || 3000;
 

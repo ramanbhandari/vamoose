@@ -89,15 +89,19 @@ export const fetchTripHandler = async (req: Request, res: Response) => {
   try{
     const tripId = parseInt(req.params.tripId, 10);
     if (isNaN(tripId)){
-      return res.status(400).json({ error: 'Invalid trip ID'});
+      res.status(400).json({ error: 'Invalid trip ID'});
+      return;
     }
 
     const trip = await fetchTrip(tripId);
     if (!trip){
-      return res.status(404).json({ error: 'Trip not Found'});
+      res.status(404).json({ error: 'Trip not Found'});
+      return;
     }
 
     res.status(200).json(trip);
+    return;
+    
   } catch(error){
     console.error('Error updating trip:', error);
     res.status(500).json({ error: 'Error fetching trip'});
