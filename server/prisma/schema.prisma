@@ -18,7 +18,7 @@ datasource db {
 
 // ─── USER MODEL ─────────────────────────────────────────────────────────────
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid()) // Use UUID to match Supabase Auth
   email     String   @unique
   fullName  String?
   avatarUrl String?
@@ -51,8 +51,8 @@ model Trip {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdBy Int
-  creator   User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdBy String
+  creator   User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   members  TripMember[]
   invitees TripInvitee[]
@@ -70,7 +70,7 @@ model TripMember {
   trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId Int
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+  userId String
   role   String @default("member")
 
   @@id([tripId, userId])
@@ -81,7 +81,7 @@ model TripInvitee {
   trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId Int
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+  userId String
   status String @default("pending")
 
   @@id([tripId, userId])
@@ -97,7 +97,7 @@ model Stay {
   checkInDate  DateTime
   checkOutDate DateTime
   bookedBy     User?    @relation(fields: [bookedById], references: [id], onDelete: SetNull)
-  bookedById   Int?
+  bookedById   String?
   url          String?
 }
 
@@ -109,10 +109,10 @@ model Expense {
   description String?
   createdAt   DateTime @default(now())
 
-  trip     Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip     Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId   Int
-  paidBy   User? @relation(fields: [paidById], references: [id], onDelete: SetNull)
-  paidById Int?
+  paidBy   User?   @relation(fields: [paidById], references: [id], onDelete: SetNull)
+  paidById String?
 
   shares ExpenseShare[]
 }
@@ -122,7 +122,7 @@ model ExpenseShare {
   expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   expenseId Int
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  userId    String
   share     Float
   settled   Boolean @default(false)
 
@@ -138,7 +138,7 @@ model Itinerary {
   title       String
   description String
   location    String?
-  assignedTo  Int?
+  assignedTo  String?
   createdAt   DateTime @default(now())
 }
 
@@ -149,7 +149,7 @@ model Message {
   trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId    Int
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  senderId  Int
+  senderId  String
   createdAt DateTime @default(now())
 }
 
@@ -161,7 +161,7 @@ model Poll {
   trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      Int
   createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  createdById Int?
+  createdById String?
   createdAt   DateTime @default(now())
 }
 
@@ -171,10 +171,10 @@ model PackingItem {
   name       String
   quantity   Int      @default(1)
   packed     Boolean  @default(false)
-  assignedTo Int?
+  assignedTo String?
   trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId     Int
   createdAt  DateTime @default(now())
   User       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId     Int?
+  userId     String?
 }

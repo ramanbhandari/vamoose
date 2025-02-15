@@ -5,11 +5,11 @@ export interface CreateTripInput {
   startDate: Date;
   endDate: Date;
   budget?: number | null;
-  createdBy: number;
+  createdBy: string;
 
   // TODO: Remove this field after middleware is configured
-  userId?: number;
+  userId?: string;
 }
 
 export interface UpdateTripInput
-  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
+  extends Partial<Omit<CreateTripInput, 'createdBy'>> { }
