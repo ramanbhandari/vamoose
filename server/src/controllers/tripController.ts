@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../interfaces/authInterface.ts';
 import {
   createTrip,
+  fetchTrip,
   deleteTrip,
   deleteMultipleTrips,
   updateTrip,
 } from '../models/tripModels.ts';
 import { BaseError } from '../utils/errors';
+import { error } from 'console';
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -80,6 +82,25 @@ export const createTripHandler = async (req: Request, res: Response) => {
       console.error('Error updating trip:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
+  }
+};
+
+export const fetchTripHandler = async (req: Request, res: Response) => {
+  try{
+    const tripId = parseInt(req.params.tripId, 10);
+    if (isNaN(tripId)){
+      return res.status(400).json({ error: 'Invalid trip ID'});
+    }
+
+    const trip = await fetchTrip(tripId);
+    if (!trip){
+      return res.status(404).json({ error: 'Trip not Found'});
+    }
+
+    res.status(200).json(trip);
+  } catch(error){
+    console.error('Error updating trip:', error);
+    res.status(500).json({ error: 'Error fetching trip'});
   }
 };
 

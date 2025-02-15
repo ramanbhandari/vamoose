@@ -27,6 +27,17 @@ export const createTrip = async (tripData: CreateTripInput) => {
   }
 };
 
+//Fetch (get) a trip
+export const fetchTrip = async (tripId: number) => {
+  return await prisma.trip.findUnique({
+    where: {id: tripId},
+    include: {
+      creator: true,
+      members: true,
+    }
+  });
+};
+
 //Update a trip
 export const updateTrip = async (
   userId: string,
