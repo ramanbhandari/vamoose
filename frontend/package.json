@@ -18,6 +18,8 @@
     "@supabase/supabase-js": "^2.48.1",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
+    "date-fns": "^4.1.0",
+    "gsap": "^3.12.7",
     "next": "15.1.6",
     "prettier": "^3.4.2",
     "react": "^19.0.0",

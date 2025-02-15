@@ -37,7 +37,7 @@ export default function Footer() {
             color: theme.palette.mode === "light" ? "#000000" : "#ffffff",
           }}
         >
-          © {currentYear} Vamoose! All rights reserved | Developed by{" "}
+          © {currentYear} Vamoose! All rights reserved | Developed with ❤️ by{" "}
           <strong>ByteMates</strong>
         </Typography>
       </Container>
