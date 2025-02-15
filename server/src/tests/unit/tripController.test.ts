@@ -38,7 +38,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       startDate: getXDaysFromToday(0).toISOString(),
       endDate: getXDaysFromToday(7).toISOString(),
       budget: 500,
-      userId: 1, // TODO: cleanup this field after middleware is implemented
+      userId: "1", // TODO: cleanup this field after middleware is implemented
       ...overrides, // Allows customization for different test cases
     },
   });
@@ -59,7 +59,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       members: [
         {
           tripId: 1,
-          userId: 1,
+          userId: "1",
           role: 'creator',
         },
       ],
@@ -170,7 +170,7 @@ describe('Trip Controller - deleteTripHandler', () => {
   function setupRequest(overrides = {}) {
     return {
       params: { tripId: '1' },
-      body: { userId: 1 }, // TODO: modify this after middleware implementation
+      body: { userId: "1" }, // TODO: modify this after middleware implementation
       ...overrides,
     };
   }
@@ -274,7 +274,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
   function setupRequest(overrides = {}) {
     return {
       body: {
-        userId: 1, // TODO: modify this after middleware implementation
+        userId: "1", // TODO: modify this after middleware implementation
         tripIds: [1, 2, 3],
         ...overrides,
       },
@@ -387,7 +387,7 @@ describe('Trip Controller - updateTripHandler', () => {
     params: { tripId: tripId.toString() },
     body: Object.fromEntries(
       Object.entries({
-        userId: 1, // TODO: Modify this after middleware implementation
+        userId: "1", // TODO: Modify this after middleware implementation
         name: 'Trip Name',
         description: 'Trip description',
         budget: 800,

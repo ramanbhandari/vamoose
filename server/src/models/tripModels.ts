@@ -29,7 +29,7 @@ export const createTrip = async (tripData: CreateTripInput) => {
 
 //Update a trip
 export const updateTrip = async (
-  userId: number,
+  userId: string,
   tripId: number,
   updateData: UpdateTripInput,
 ) => {
@@ -50,7 +50,7 @@ export const updateTrip = async (
 };
 
 // Delete a Trip
-export const deleteTrip = async (userId: number, tripId: number) => {
+export const deleteTrip = async (userId: string, tripId: number) => {
   try {
     return await prisma.trip.delete({
       where: {
@@ -66,7 +66,7 @@ export const deleteTrip = async (userId: number, tripId: number) => {
 
 //delete multiple trips
 export const deleteMultipleTrips = async (
-  userId: number,
+  userId: string,
   tripIds: number[],
 ) => {
   try {
