@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../interfaces/authInterface.ts';
 import {
   createTrip,
   deleteTrip,
@@ -10,11 +9,6 @@ import { BaseError } from '../utils/errors';
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
-    // This should be the right way to do it after the middleware has been configured
-    //But for now i'll send the user id in the body
-    // const { userId, body: { name, description, destination, startDate, endDate, budget } } = req as AuthenticatedRequest;
-
-    //  TODO : Delete this after the middleware has been configured and use the above instead
     const {
       body: {
         name,
@@ -25,7 +19,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
         budget,
         userId,
       },
-    } = req as AuthenticatedRequest;
+    } = req;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -85,14 +79,9 @@ export const createTripHandler = async (req: Request, res: Response) => {
 
 export const deleteTripHandler = async (req: Request, res: Response) => {
   try {
-    // This should be the right way to do it after the middleware has been configured
-    //But for now i'll send the user id in the body
-    // const { userId } = req as AuthenticatedRequest;;
-
-    //  TODO : Delete this after the middleware has been configured and use the above instead
     const {
       body: { userId },
-    } = req as AuthenticatedRequest;
+    } = req;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -126,14 +115,9 @@ export const deleteMultipleTripsHandler = async (
   res: Response,
 ) => {
   try {
-    // This should be the right way to do it after the middleware has been configured
-    //But for now i'll send the user id in the body
-    // const { userId, body: { tripIds } } = req as AuthenticatedRequest;;
-
-    // TODO: Replace this after middleware is configured
     const {
       body: { userId, tripIds },
-    } = req as AuthenticatedRequest;
+    } = req;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -164,14 +148,9 @@ export const deleteMultipleTripsHandler = async (
 
 export const updateTripHandler = async (req: Request, res: Response) => {
   try {
-    // This should be the right way to do it after the middleware has been configured
-    //But for now i'll send the user id in the body
-    // const { userId, body: {createdBy:_, ...tripData } } = req as AuthenticatedRequest;
-
-    // TODO: Replace this after middleware is configured
     const {
       body: { userId, createdBy: _, ...tripData },
-    } = req as AuthenticatedRequest;
+    } = req;
     const tripId = Number(req.params.tripId);
 
     if (!userId) {

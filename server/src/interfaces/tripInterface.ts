@@ -6,9 +6,6 @@ export interface CreateTripInput {
   endDate: Date;
   budget?: number | null;
   createdBy: string;
-
-  // TODO: Remove this field after middleware is configured
-  userId?: string;
 }
 
 export interface UpdateTripInput

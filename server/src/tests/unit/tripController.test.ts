@@ -5,8 +5,7 @@ import {
   updateTripHandler,
 } from '../../controllers/tripController';
 import prisma from '../../config/prismaClient';
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../../interfaces/authInterface';
+import { Request, Response } from 'express';
 import { NotFoundError } from '../../utils/errors';
 
 // Mock Prisma client functions
@@ -24,7 +23,7 @@ jest.mock('../../config/prismaClient', () => ({
 }));
 
 describe('Trip Controller - createTripHandler (with model)', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
@@ -38,7 +37,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       startDate: getXDaysFromToday(0).toISOString(),
       endDate: getXDaysFromToday(7).toISOString(),
       budget: 500,
-      userId: "1", // TODO: cleanup this field after middleware is implemented
+      userId: "1",
       ...overrides, // Allows customization for different test cases
     },
   });
@@ -88,7 +87,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
     });
 
     await createTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -134,7 +133,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       mockReq = setupRequest(overrides);
 
       await createTripHandler(
-        mockReq as AuthenticatedRequest,
+        mockReq as Request,
         mockRes as Response,
       );
 
@@ -150,7 +149,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
     );
 
     await createTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -162,7 +161,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
 });
 
 describe('Trip Controller - deleteTripHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
@@ -170,7 +169,7 @@ describe('Trip Controller - deleteTripHandler', () => {
   function setupRequest(overrides = {}) {
     return {
       params: { tripId: '1' },
-      body: { userId: "1" }, // TODO: modify this after middleware implementation
+      body: { userId: "1" },
       ...overrides,
     };
   }
@@ -193,7 +192,7 @@ describe('Trip Controller - deleteTripHandler', () => {
     });
 
     await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -221,7 +220,7 @@ describe('Trip Controller - deleteTripHandler', () => {
       mockReq = setupRequest(overrides);
 
       await deleteTripHandler(
-        mockReq as AuthenticatedRequest,
+        mockReq as Request,
         mockRes as Response,
       );
 
@@ -238,7 +237,7 @@ describe('Trip Controller - deleteTripHandler', () => {
     );
 
     await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -254,7 +253,7 @@ describe('Trip Controller - deleteTripHandler', () => {
     );
 
     await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -266,7 +265,7 @@ describe('Trip Controller - deleteTripHandler', () => {
 });
 
 describe('Trip Controller - deleteMultipleTripsHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
@@ -274,7 +273,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
   function setupRequest(overrides = {}) {
     return {
       body: {
-        userId: "1", // TODO: modify this after middleware implementation
+        userId: "1",
         tripIds: [1, 2, 3],
         ...overrides,
       },
@@ -299,7 +298,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
     });
 
     await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -332,7 +331,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
       mockReq = setupRequest(overrides);
 
       await deleteMultipleTripsHandler(
-        mockReq as AuthenticatedRequest,
+        mockReq as Request,
         mockRes as Response,
       );
 
@@ -347,7 +346,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
     (prisma.trip.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
 
     await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -366,7 +365,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
     );
 
     await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -378,7 +377,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
 });
 
 describe('Trip Controller - updateTripHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
@@ -387,7 +386,7 @@ describe('Trip Controller - updateTripHandler', () => {
     params: { tripId: tripId.toString() },
     body: Object.fromEntries(
       Object.entries({
-        userId: "1", // TODO: Modify this after middleware implementation
+        userId: "1",
         name: 'Trip Name',
         description: 'Trip description',
         budget: 800,
@@ -418,7 +417,7 @@ describe('Trip Controller - updateTripHandler', () => {
     });
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -443,7 +442,7 @@ describe('Trip Controller - updateTripHandler', () => {
     }); // No update fields
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -457,7 +456,7 @@ describe('Trip Controller - updateTripHandler', () => {
     mockReq = setupRequest(NaN);
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -469,7 +468,7 @@ describe('Trip Controller - updateTripHandler', () => {
     mockReq = setupRequest(1, { userId: undefined });
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -485,7 +484,7 @@ describe('Trip Controller - updateTripHandler', () => {
     );
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 
@@ -501,7 +500,7 @@ describe('Trip Controller - updateTripHandler', () => {
     );
 
     await updateTripHandler(
-      mockReq as AuthenticatedRequest,
+      mockReq as Request,
       mockRes as Response,
     );
 

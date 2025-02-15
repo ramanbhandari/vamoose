@@ -7,7 +7,7 @@ import connectMongoDB from './db/mongo.js';
 
 dotenv.config();
 
-connectMongoDB();
+// connectMongoDB();
 
 const port: number | string = process.env.PORT || 3000;
 
