@@ -21,9 +21,9 @@ app.use(express.urlencoded({ extended: true }));
 //Routes
 app.use('/api', appRouter);
 
-// Handle non-exisiting routes 
+// Handle non-exisiting routes
 app.use((_req: Request, res: Response, _next: NextFunction) => {
-  res.status(404).send("Route not found");
+  res.status(404).send('Route not found');
 });
 
 //Start server

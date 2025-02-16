@@ -15,4 +15,4 @@ export interface CreateTripInput {
 }
 
 export interface UpdateTripInput
-  extends Partial<Omit<CreateTripInput, 'createdBy'>> { }
+  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
