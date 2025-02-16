@@ -29,7 +29,7 @@ describe('Validation Error Handler Middleware', () => {
     mockNext = jest.fn();
   });
 
-  test('should call next() if no validation errors', () => {
+  it('should call next() if no validation errors', () => {
     mockReq = { body: {} };
     (validationResult as unknown as jest.Mock).mockReturnValue({
       isEmpty: () => true,
@@ -42,7 +42,7 @@ describe('Validation Error Handler Middleware', () => {
     expect(jsonMock).not.toHaveBeenCalled();
   });
 
-  test('should return 400 and validation errors if validation fails', () => {
+  it('should return 400 and validation errors if validation fails', () => {
     mockReq = { body: {} };
 
     (validationResult as unknown as jest.Mock).mockReturnValue({
