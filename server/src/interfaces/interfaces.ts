@@ -1,3 +1,9 @@
+import { Request } from 'express';
+
+export interface AuthenticatedRequest extends Request {
+  userId: string;
+}
+
 export interface CreateTripInput {
   name: string;
   description?: string;
@@ -6,10 +12,7 @@ export interface CreateTripInput {
   endDate: Date;
   budget?: number | null;
   createdBy: string;
-
-  // TODO: Remove this field after middleware is configured
-  userId?: string;
 }
 
 export interface UpdateTripInput
-  extends Partial<Omit<CreateTripInput, 'createdBy'>> { }
+  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
