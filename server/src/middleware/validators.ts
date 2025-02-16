@@ -1,7 +1,7 @@
-import { body, param } from "express-validator";
+import { body, checkExact, param } from "express-validator";
 
 // Validation for Creating a Trip
-export const validateCreateTrip = [
+export const validateCreateTripInput = checkExact([
     body("name").isString().notEmpty().withMessage("Trip name is required"),
     body("description").optional().isString().withMessage("Description must be a string"),
     body("destination").isString().notEmpty().withMessage("Destination is required"),
@@ -14,10 +14,10 @@ export const validateCreateTrip = [
             return true;
         }),
     body("budget").optional().isFloat({ min: 0 }).withMessage("Budget must be a positive number"),
-];
+]);
 
 // Validation for Updating a Trip
-export const validateUpdateTrip = [
+export const validateUpdateTripInput = checkExact([
     param("tripId").isInt().withMessage("Trip ID must be a number"),
     body("name").optional().isString().withMessage("Name must be a string"),
     body("description").optional().isString().withMessage("Description must be a string"),
@@ -31,9 +31,9 @@ export const validateUpdateTrip = [
             return true;
         }),
     body("budget").optional().isFloat({ min: 0 }).withMessage("Budget must be a positive number"),
-];
+]);
 
 // Validation for Deleting a Trip
-export const validateDeleteTrip = [
+export const validateDeleteTripInput = checkExact([
     param("tripId").isInt().withMessage("Trip ID must be a number"),
-];
+]);

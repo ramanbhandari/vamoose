@@ -6,10 +6,12 @@ import {
   updateTrip,
 } from '../models/tripModels.ts';
 import { BaseError } from '../utils/errors';
+import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
     const {
+      userId,
       body: {
         name,
         description,
@@ -17,9 +19,8 @@ export const createTripHandler = async (req: Request, res: Response) => {
         startDate: start,
         endDate: end,
         budget,
-        userId,
       },
-    } = req;
+    } = req as AuthenticatedRequest;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -80,8 +81,8 @@ export const createTripHandler = async (req: Request, res: Response) => {
 export const deleteTripHandler = async (req: Request, res: Response) => {
   try {
     const {
-      body: { userId },
-    } = req;
+      userId,
+    } = req as AuthenticatedRequest;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -116,8 +117,9 @@ export const deleteMultipleTripsHandler = async (
 ) => {
   try {
     const {
-      body: { userId, tripIds },
-    } = req;
+      userId,
+      body: { tripIds },
+    } = req as AuthenticatedRequest;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -149,8 +151,9 @@ export const deleteMultipleTripsHandler = async (
 export const updateTripHandler = async (req: Request, res: Response) => {
   try {
     const {
-      body: { userId, createdBy: _, ...tripData },
-    } = req;
+      userId,
+      body: { ...tripData },
+    } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
 
     if (!userId) {

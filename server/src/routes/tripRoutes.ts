@@ -1,6 +1,7 @@
 import express from 'express';
+import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 import { authMiddleware } from '../middleware/authMiddleware.ts';
-import { validateCreateTrip, validateDeleteTrip, validateUpdateTrip } from '../middleware/validators.ts';
+import { validateCreateTripInput, validateDeleteTripInput, validateUpdateTripInput } from '../middleware/validators.ts';
 
 import {
   createTripHandler,
@@ -11,9 +12,9 @@ import {
 
 const router = express.Router();
 
-router.post('/', authMiddleware(validateCreateTrip), createTripHandler)
-  .patch('/:tripId', authMiddleware(validateUpdateTrip), updateTripHandler)
-  .delete('/:tripId', authMiddleware(validateDeleteTrip), deleteTripHandler)
-  .delete('/', authMiddleware(validateDeleteTrip), deleteMultipleTripsHandler);
+router.post('/', validateCreateTripInput, validationErrorHandler, authMiddleware, createTripHandler)
+  .patch('/:tripId', validateUpdateTripInput, validationErrorHandler, authMiddleware, updateTripHandler)
+  .delete('/:tripId', validateDeleteTripInput, validationErrorHandler, authMiddleware, deleteTripHandler)
+  .delete('/', validateDeleteTripInput,validationErrorHandler, authMiddleware, deleteMultipleTripsHandler);
 
 export default router;
