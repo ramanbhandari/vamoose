@@ -9,7 +9,7 @@ dotenv.config();
 
 // connectMongoDB();
 
-const port: number | string = process.env.PORT || 3000;
+const port: number | string = process.env.PORT || 8000;
 
 const app = express();
 

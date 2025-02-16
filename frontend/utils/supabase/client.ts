@@ -7,3 +7,12 @@ export const createClient = () =>
   );
 
 export const supabase = createClient();
+
+// our api client will use this function to attach auth token with API requests
+export const getAuthToken = async () => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  console.log(session?.access_token);
+  return session?.access_token || null;
+};
