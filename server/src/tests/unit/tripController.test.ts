@@ -3,6 +3,7 @@ import {
   deleteTripHandler,
   deleteMultipleTripsHandler,
   updateTripHandler,
+  fetchTripHandler,
 } from '../../controllers/tripController';
 import prisma from '../../config/prismaClient';
 import { Response } from 'express';
@@ -16,6 +17,7 @@ jest.mock('../../config/prismaClient', () => ({
   default: {
     trip: {
       create: jest.fn(),
+      findUnique: jest.fn(),
       delete: jest.fn(),
       deleteMany: jest.fn(),
       update: jest.fn(),
@@ -160,6 +162,82 @@ describe('Trip Controller - createTripHandler (with model)', () => {
     });
   });
 });
+
+describe('Trip Controller - fetchTripHandler', () => {
+  let mockReq: Partial<AuthenticatedRequest>;
+  let mockRes: Partial<Response>;
+  let jsonMock: jest.Mock;
+  let statusMock: jest.Mock;
+
+  const setupRequest = (tripId: number, overrides = {}) => ({
+    params: { tripId: tripId.toString() },
+    body: { userId: "1" },
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  it('should fetch a trip successfully', async () => {
+    mockReq = setupRequest(1);
+
+    const tripData = {
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 500,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: 1,
+    };
+
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+
+    await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({ trip: tripData });
+  });
+
+  it('should return 400 if tripId is invalid', async () => {
+    mockReq = setupRequest(NaN);
+
+    await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 404 if the trip does not exist', async () => {
+    mockReq = setupRequest(999);
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not found' });
+  });
+
+  it('should return 500 if a database error occurs', async () => {
+    mockReq = setupRequest(1);
+    (prisma.trip.findUnique as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+    await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'An unexpected database error occurred.' });
+  });
+})
 
 describe('Trip Controller - deleteTripHandler', () => {
   let mockReq: Partial<AuthenticatedRequest>;
