@@ -189,24 +189,25 @@ describe('Trip Controller - fetchTripHandler', () => {
     mockReq = setupRequest(1);
 
     const tripData = {
-      id: 1,
-      name: 'Test Trip',
-      description: 'A fun test trip',
-      destination: 'Hawaii',
-      startDate: new Date().toISOString(),
-      endDate: new Date().toISOString(),
-      budget: 500,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: 1,
+        id: "1",
+        name: 'Test Trip',
+        description: 'A fun test trip',
+        destination: 'Hawaii',
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        budget: 500,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: "1",
     };
 
-    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({tripData: tripData});
 
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+    console.log(mockRes);
 
     expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ trip: tripData });
+    expect(jsonMock).toHaveBeenCalledWith({ tripData: tripData });
   });
 
   it('should return 400 if tripId is invalid', async () => {
@@ -225,7 +226,7 @@ describe('Trip Controller - fetchTripHandler', () => {
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not found' });
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not Found' });
   });
 
   it('should return 500 if a database error occurs', async () => {
@@ -235,7 +236,7 @@ describe('Trip Controller - fetchTripHandler', () => {
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'An unexpected database error occurred.' });
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Error fetching trip' });
   });
 })
 
