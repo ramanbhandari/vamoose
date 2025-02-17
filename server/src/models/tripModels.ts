@@ -4,7 +4,7 @@ import {
 } from '../interfaces/tripInterface.ts';
 import prisma from '../config/prismaClient.ts';
 import { handlePrismaError } from '../utils/prismaErrorHandler.ts';
-import { NotFoundError } from '../utils/errors.ts';
+import { NotFoundError, ForbiddenError } from '../utils/errors.ts';
 
 // Create a Trip
 export const createTrip = async (tripData: CreateTripInput) => {
@@ -28,15 +28,30 @@ export const createTrip = async (tripData: CreateTripInput) => {
 };
 
 //Fetch (get) a trip
-export const fetchTrip = async (tripId: number) => {
-  return await prisma.trip.findUnique({
-    where: {id: tripId},
-    include: {
-      creator: true,
-      members: true,
+export const fetchTrip = async (userId: string, tripId: number) => {
+  try {
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        creator: true,
+        members: { where: { userId }, select: { userId: true } },
+      },
+    });
+
+    if (!trip) return null;
+
+    // Check if the user is either the creator or a member
+    if (trip.createdBy !== userId && trip.members.length === 0) {
+      throw new ForbiddenError('You are not authorized to view this trip.');
     }
-  });
+
+    return trip;
+  } catch (error) {
+    console.error('Error fetching trip:', error);
+    throw handlePrismaError(error);
+  }
 };
+
 
 //Update a trip
 export const updateTrip = async (

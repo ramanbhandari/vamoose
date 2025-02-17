@@ -8,7 +8,6 @@ import {
   updateTrip,
 } from '../models/tripModels.ts';
 import { BaseError } from '../utils/errors';
-import { error } from 'console';
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -87,15 +86,23 @@ export const createTripHandler = async (req: Request, res: Response) => {
 
 export const fetchTripHandler = async (req: Request, res: Response) => {
   try{
+    const userId = req.query.userId as string;
     const tripId = parseInt(req.params.tripId, 10);
+
     if (isNaN(tripId)){
       res.status(400).json({ error: 'Invalid trip ID'});
       return;
     }
 
-    const trip = await fetchTrip(tripId);
+    const trip = await fetchTrip(userId, tripId);
+
     if (!trip){
       res.status(404).json({ error: 'Trip not Found'});
+      return;
+    }
+
+    if (!trip.members || !trip.members.some((member) => member.userId === userId) && trip.createdBy !== userId) {
+      res.status(403).json({ error: 'You are not authorized to view this trip' });
       return;
     }
 
@@ -103,8 +110,12 @@ export const fetchTripHandler = async (req: Request, res: Response) => {
     return;
     
   } catch(error){
-    console.error('Error updating trip:', error);
-    res.status(500).json({ error: 'Error fetching trip'});
+    if (error instanceof BaseError){
+      res.status(error.statusCode).json({ error: error.message});
+    } else {
+      console.error('Error updating trip:', error);
+      res.status(500).json({ error: 'Internal Server Error'});
+    }
   }
 };
 
