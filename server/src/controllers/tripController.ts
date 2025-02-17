@@ -131,6 +131,19 @@ export const fetchTripByDatesHandler = async (req: Request, res: Response) => {
       return;
     }
 
+    // Check the date format
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+    if (startDate && (!isoDateRegex.test(startDate) || isNaN(Date.parse(startDate)))) {
+      res.status(400).json({ error: 'Invalid dates' });
+      return;
+    }
+
+    if (endDate && (!isoDateRegex.test(endDate) || isNaN(Date.parse(endDate)))) {
+      res.status(400).json({ error: 'Invalid dates' });
+      return;
+    }
+
     // Fetch trips based on optional date filters.
     const trips = await fetchTripByDates(userId, startDate, endDate);
 
