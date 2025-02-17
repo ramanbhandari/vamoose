@@ -8,8 +8,8 @@ export async function middleware(request: NextRequest) {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-
-  const protectedRoutes = ["/dashboard"];
+  // add all the routes here that needs to be protected, we won't need to individually check in any route user's authentication
+  const protectedRoutes = ["/dashboard", "/trips"];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
 
   return supabaseResponse;
 }
-// add all the routes here that needs to be protected, we won't need to individually check in any route user's authentication
+
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/trips/:path*"],
 };
