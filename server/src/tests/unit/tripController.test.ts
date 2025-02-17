@@ -4,9 +4,10 @@ import {
   deleteMultipleTripsHandler,
   updateTripHandler,
   fetchTripHandler,
+  fetchTripByDatesHandler,
 } from '../../controllers/tripController';
 import prisma from '../../config/prismaClient';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../interfaces/authInterface';
 import { NotFoundError } from '../../utils/errors';
 
@@ -270,6 +271,108 @@ describe('Trip Controller - fetchTripHandler', () => {
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Internal Server Error' });
     fetchTripMock.mockRestore();
   });
+});
+
+describe('Trip Controller - fetchTripByDatesHandler', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let jsonMock: jest.Mock;
+  let statusMock: jest.Mock;
+
+  const setupRequest = (overrides = {}) => ({
+    query: {
+      userId: "1",
+      startDate: "2025-03-08T00:00:00.000Z",
+      endDate: "2025-03-15T00:00:00.000Z",
+    },
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  it('should fetch trips successfully when valid dates are provided', async () => {
+    const trips = [
+      {
+        id: 1,
+        name: "Trip 1",
+        description: "A fun trip",
+        destination: "Hawaii",
+        startDate: "2025-03-08T00:00:00.000Z",
+        endDate: "2025-03-15T00:00:00.000Z",
+        budget: 1000,
+        createdAt: "2025-03-01T00:00:00.000Z",
+        updatedAt: "2025-03-01T00:00:00.000Z",
+      },
+    ];
+    const fetchTripByDatesMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTripByDates')
+      .mockResolvedValue(trips);
+
+    mockReq = setupRequest();
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith(trips);
+    fetchTripByDatesMock.mockRestore();
+  });
+
+  it('should return 400 if user ID is missing', async () => {
+    mockReq = setupRequest({ query: { startDate: "2025-03-08T00:00:00.000Z", endDate: "2025-03-15T00:00:00.000Z" } });
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'User ID is required' });
+  });
+
+  it('should return 400 if startDate is invalid', async () => {
+    mockReq = setupRequest({ query: { userId: "1", startDate: "invalid-date", endDate: "2025-03-15T00:00:00.000Z" } });
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid dates' });
+  });
+
+  it('should return 400 if endDate is invalid', async () => {
+    mockReq = setupRequest({ query: { userId: "1", startDate: "2025-03-08T00:00:00.000Z", endDate: "invalid-date" } });
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid dates' });
+  });
+
+  it('should return 404 if no trips are found', async () => {
+    const fetchTripByDatesMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTripByDates')
+      .mockResolvedValue([]);
+
+    mockReq = setupRequest();
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not Found' });
+    fetchTripByDatesMock.mockRestore();
+  });
+
+  it('should return 500 if an unexpected error occurs', async () => {
+    const fetchTripByDatesMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTripByDates')
+      .mockRejectedValue(new Error('Unexpected error'));
+
+    mockReq = setupRequest();
+    await fetchTripByDatesHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Internal Server Error' });
+    fetchTripByDatesMock.mockRestore();
+  });
+
 });
 
 
