@@ -163,56 +163,56 @@ describe('Trip Controller - createTripHandler (with model)', () => {
   });
 });
 
+
 describe('Trip Controller - fetchTripHandler', () => {
   let mockReq: Partial<AuthenticatedRequest>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
-  const setupRequest = (tripId: number, overrides = {}) => ({
+  const setupRequest = (tripId: any, overrides = {}) => ({
     params: { tripId: tripId.toString() },
-    body: { userId: "1" },
+    query: { userId: "1" },
     ...overrides,
   });
 
   beforeEach(() => {
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-
     mockRes = {
       status: statusMock,
       json: jsonMock,
     } as Partial<Response>;
   });
 
-  it('should fetch a trip successfully', async () => {
-    mockReq = setupRequest(1);
-
+  it('should fetch a trip successfully when authorized', async () => {
     const tripData = {
-        id: "1",
-        name: 'Test Trip',
-        description: 'A fun test trip',
-        destination: 'Hawaii',
-        startDate: new Date().toISOString(),
-        endDate: new Date().toISOString(),
-        budget: 500,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: "1",
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 500,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: "1",
+      members: [],
     };
+    const fetchTripMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTrip')
+      .mockResolvedValue(tripData);
 
-    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({tripData: tripData});
-
+    mockReq = setupRequest(1);
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
-    console.log(mockRes);
 
     expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ tripData: tripData });
+    expect(jsonMock).toHaveBeenCalledWith(tripData);
+    fetchTripMock.mockRestore();
   });
 
   it('should return 400 if tripId is invalid', async () => {
-    mockReq = setupRequest(NaN);
-
+    mockReq = setupRequest('invalid');
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(400);
@@ -220,25 +220,58 @@ describe('Trip Controller - fetchTripHandler', () => {
   });
 
   it('should return 404 if the trip does not exist', async () => {
-    mockReq = setupRequest(999);
-    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(null);
+    const fetchTripMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTrip')
+      .mockResolvedValue(null);
 
+    mockReq = setupRequest(999);
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not Found' });
+    fetchTripMock.mockRestore();
   });
 
-  it('should return 500 if a database error occurs', async () => {
-    mockReq = setupRequest(1);
-    (prisma.trip.findUnique as jest.Mock).mockRejectedValue(new Error('Database error'));
+  it('should return 403 if user is not authorized to view the trip', async () => {
+    const tripData = {
+      id: 2,
+      name: 'Another Trip',
+      description: 'Unauthorized trip',
+      destination: 'Unknown',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 300,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: "2",
+      members: [{ tripId: 2, userId: "3", role: 'member' }],
+    };
+    const fetchTripMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTrip')
+      .mockResolvedValue(tripData);
 
+    mockReq = setupRequest(2);
+    await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'You are not authorized to view this trip' });
+    fetchTripMock.mockRestore();
+  });
+
+  it('should return 500 if an unexpected error occurs', async () => {
+    const fetchTripMock = jest
+      .spyOn(require('../../models/tripModels.ts'), 'fetchTrip')
+      .mockRejectedValue(new Error('Unexpected error'));
+
+    mockReq = setupRequest(1);
     await fetchTripHandler(mockReq as AuthenticatedRequest, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Error fetching trip' });
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Internal Server Error' });
+    fetchTripMock.mockRestore();
   });
-})
+});
+
 
 describe('Trip Controller - deleteTripHandler', () => {
   let mockReq: Partial<AuthenticatedRequest>;
