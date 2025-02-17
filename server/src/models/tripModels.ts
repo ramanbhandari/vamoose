@@ -28,7 +28,7 @@ export const createTrip = async (tripData: CreateTripInput) => {
 };
 
 //Fetch (get) a trip
-export const fetchTrip = async (userId: string, tripId: number) => {
+export const fetchTrip = async (userId: string, tripId: number, startDate?: string, endDate?: string) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
@@ -51,6 +51,47 @@ export const fetchTrip = async (userId: string, tripId: number) => {
     throw handlePrismaError(error);
   }
 };
+
+//Fetch trips based on dates
+export const fetchTripByDates = async (userId: string, startDate?: string, endDate?: string) => {
+  try {
+    const today = new Date();
+    const conditions: any = {
+      OR: [
+        { createdBy: userId },
+        { members: { some: { userId } } },
+      ],
+    };
+
+    // Upcoming trips
+    if (startDate && new Date(startDate) > today) {
+      conditions.startDate = { gt: today };
+    }
+    // Past trips
+    if (endDate && new Date(endDate) < today) {
+      conditions.endDate = { lt: today };
+    }
+
+    if (startDate && endDate) {
+      conditions.startDate = { gte: new Date(startDate) };
+      conditions.endDate = { lte: new Date(endDate) };
+    }
+
+    const trips = await prisma.trip.findMany({
+      where: conditions,
+      include: {
+        creator: true,
+        members: { select: { userId: true } },
+      },
+    });
+
+    return trips;
+  } catch (error) {
+    console.error('Error fetching trips by dates:', error);
+    throw handlePrismaError(error);
+  }
+};
+
 
 
 //Update a trip

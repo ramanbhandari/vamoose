@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../interfaces/authInterface.ts';
 import {
   createTrip,
   fetchTrip,
+  fetchTripByDates,
   deleteTrip,
   deleteMultipleTrips,
   updateTrip,
@@ -113,8 +114,39 @@ export const fetchTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError){
       res.status(error.statusCode).json({ error: error.message});
     } else {
-      console.error('Error updating trip:', error);
+      console.error('Error fetching trip:', error);
       res.status(500).json({ error: 'Internal Server Error'});
+    }
+  }
+};
+
+export const fetchTripByDatesHandler = async (req: Request, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    if (!userId) {
+      res.status(400).json({ error: 'User ID is required' });
+      return;
+    }
+
+    // Fetch trips based on optional date filters.
+    const trips = await fetchTripByDates(userId, startDate, endDate);
+
+    if (!trips || trips.length === 0) {
+      res.status(404).json({ error: 'Trip not Found' });
+      return;
+    }
+
+    res.status(200).json(trips);
+    return;
+  } catch (error) {
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).json({ error: error.message });
+    } else {
+      console.error('Error fetching trips by dates:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 };
