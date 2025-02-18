@@ -8,7 +8,6 @@ import {
 } from '../../controllers/tripController';
 import prisma from '../../config/prismaClient';
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../interfaces/authInterface';
 import { NotFoundError } from '../../utils/errors';
 
 // Mock Prisma client functions
@@ -27,13 +26,15 @@ jest.mock('../../config/prismaClient', () => ({
 }));
 
 describe('Trip Controller - createTripHandler (with model)', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
   // Utility function to create request body
-  const setupRequest = (overrides = {}) => ({
+  const setupRequest = (userIdOverride = {}, bodyOverrides = {}) => ({
+    userId: '1',
+    ...userIdOverride,
     body: {
       name: 'Test Trip',
       description: 'A fun test trip',
@@ -41,8 +42,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       startDate: getXDaysFromToday(0).toISOString(),
       endDate: getXDaysFromToday(7).toISOString(),
       budget: 500,
-      userId: "1", // TODO: cleanup this field after middleware is implemented
-      ...overrides, // Allows customization for different test cases
+      ...bodyOverrides, // Allows customization for different test cases
     },
   });
 
@@ -62,7 +62,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       members: [
         {
           tripId: 1,
-          userId: "1",
+          userId: '1',
           role: 'creator',
         },
       ],
@@ -90,10 +90,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       ...trip,
     });
 
-    await createTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await createTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({ message, trip });
@@ -101,22 +98,26 @@ describe('Trip Controller - createTripHandler (with model)', () => {
 
   it.each([
     {
-      overrides: { userId: undefined },
+      userIdOverride: { userId: undefined },
+      bodyOverrides: {},
       expectedStatus: 401,
       expectedMessage: 'Unauthorized Request',
     },
     {
-      overrides: { name: '' },
+      userIdOverride: {},
+      bodyOverrides: { name: '' },
       expectedStatus: 400,
       expectedMessage: 'Missing required fields',
     },
     {
-      overrides: { startDate: 'invalid-date' },
+      userIdOverride: {},
+      bodyOverrides: { startDate: 'invalid-date' },
       expectedStatus: 400,
       expectedMessage: 'Invalid start date or end date format',
     },
     {
-      overrides: {
+      userIdOverride: {},
+      bodyOverrides: {
         startDate: getXDaysFromToday(-1).toISOString(),
         endDate: getXDaysFromToday(7).toISOString(),
       },
@@ -124,7 +125,8 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       expectedMessage: 'Start date must be today or in the future',
     },
     {
-      overrides: {
+      userIdOverride: {},
+      bodyOverrides: {
         startDate: getXDaysFromToday(8).toISOString(),
         endDate: getXDaysFromToday(7).toISOString(),
       },
@@ -132,14 +134,16 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       expectedMessage: 'Start date must be before end date',
     },
   ])(
-    'when request body is $overrides should return $expectedStatus',
-    async ({ overrides, expectedStatus, expectedMessage }) => {
-      mockReq = setupRequest(overrides);
+    'when request body is $bodyOverrides should return $expectedStatus',
+    async ({
+      userIdOverride,
+      bodyOverrides,
+      expectedStatus,
+      expectedMessage,
+    }) => {
+      mockReq = setupRequest(userIdOverride, bodyOverrides);
 
-      await createTripHandler(
-        mockReq as AuthenticatedRequest,
-        mockRes as Response,
-      );
+      await createTripHandler(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -152,10 +156,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       new Error('Database error'),
     );
 
-    await createTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await createTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -377,15 +378,15 @@ describe('Trip Controller - fetchTripByDatesHandler', () => {
 
 
 describe('Trip Controller - deleteTripHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
   function setupRequest(overrides = {}) {
     return {
+      userId: '1',
       params: { tripId: '1' },
-      body: { userId: "1" }, // TODO: modify this after middleware implementation
       ...overrides,
     };
   }
@@ -407,10 +408,7 @@ describe('Trip Controller - deleteTripHandler', () => {
       name: 'Deleted Trip',
     });
 
-    await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -421,7 +419,7 @@ describe('Trip Controller - deleteTripHandler', () => {
 
   it.each([
     {
-      overrides: { body: { userId: undefined } },
+      overrides: { userId: undefined },
       expectedStatus: 401,
       expectedMessage: 'Unauthorized Request',
     },
@@ -435,10 +433,7 @@ describe('Trip Controller - deleteTripHandler', () => {
     async ({ overrides, expectedStatus, expectedMessage }) => {
       mockReq = setupRequest(overrides);
 
-      await deleteTripHandler(
-        mockReq as AuthenticatedRequest,
-        mockRes as Response,
-      );
+      await deleteTripHandler(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -452,10 +447,7 @@ describe('Trip Controller - deleteTripHandler', () => {
       new NotFoundError('Trip not found'),
     );
 
-    await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not found' });
@@ -468,10 +460,7 @@ describe('Trip Controller - deleteTripHandler', () => {
       new Error('Database error'),
     );
 
-    await deleteTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -481,18 +470,18 @@ describe('Trip Controller - deleteTripHandler', () => {
 });
 
 describe('Trip Controller - deleteMultipleTripsHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
   function setupRequest(overrides = {}) {
     return {
+      userId: '1',
       body: {
-        userId: "1", // TODO: modify this after middleware implementation
         tripIds: [1, 2, 3],
-        ...overrides,
       },
+      ...overrides,
     };
   }
 
@@ -507,16 +496,13 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
   });
 
   it('should delete multiple trips successfully', async () => {
-    mockReq = setupRequest({ tripIds: [1, 2, 3] });
+    mockReq = setupRequest({ body: { tripIds: [1, 2, 3] } });
 
     (prisma.trip.deleteMany as jest.Mock).mockResolvedValue({
       count: 3,
     });
 
-    await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteMultipleTripsHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -527,29 +513,29 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
 
   it.each([
     {
+      scenario: 'missing userId',
       overrides: { userId: undefined },
       expectedStatus: 401,
       expectedMessage: 'Unauthorized Request',
     },
     {
-      overrides: { tripIds: 'invalid' },
+      scenario: 'invalid tripIds format (not an array)',
+      overrides: { body: { tripIds: 'invalid' } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip ID list',
     },
     {
-      overrides: { tripIds: [] },
+      scenario: 'empty tripIds array',
+      overrides: { body: { tripIds: [] } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip ID list',
     },
   ])(
-    'when request is $overrides should return $expectedStatus',
+    '[$scenario] → should return $expectedStatus',
     async ({ overrides, expectedStatus, expectedMessage }) => {
       mockReq = setupRequest(overrides);
 
-      await deleteMultipleTripsHandler(
-        mockReq as AuthenticatedRequest,
-        mockRes as Response,
-      );
+      await deleteMultipleTripsHandler(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -561,10 +547,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
 
     (prisma.trip.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
 
-    await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteMultipleTripsHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -580,10 +563,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
       new Error('Database error'),
     );
 
-    await deleteMultipleTripsHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await deleteMultipleTripsHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -593,22 +573,20 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
 });
 
 describe('Trip Controller - updateTripHandler', () => {
-  let mockReq: Partial<AuthenticatedRequest>;
+  let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
   const setupRequest = (tripId: number, overrides = {}) => ({
+    userId: '1',
     params: { tripId: tripId.toString() },
-    body: Object.fromEntries(
-      Object.entries({
-        userId: "1", // TODO: Modify this after middleware implementation
-        name: 'Trip Name',
-        description: 'Trip description',
-        budget: 800,
-        ...overrides,
-      }).filter(([_, v]) => v !== undefined), // Remove undefined fields
-    ),
+    body: {
+      name: 'Trip Name',
+      description: 'Trip description',
+      budget: 800,
+    },
+    ...overrides,
   });
 
   beforeEach(() => {
@@ -632,10 +610,7 @@ describe('Trip Controller - updateTripHandler', () => {
       createdBy: 1,
     });
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -652,15 +627,10 @@ describe('Trip Controller - updateTripHandler', () => {
 
   it('should return 400 if no fields are provided for update', async () => {
     mockReq = setupRequest(1, {
-      name: undefined,
-      description: undefined,
-      budget: undefined,
+      body: {},
     }); // No update fields
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(400);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -671,10 +641,7 @@ describe('Trip Controller - updateTripHandler', () => {
   it('should return 400 if tripId is invalid', async () => {
     mockReq = setupRequest(NaN);
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(400);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
@@ -683,10 +650,7 @@ describe('Trip Controller - updateTripHandler', () => {
   it('should return 401 if user is not authenticated', async () => {
     mockReq = setupRequest(1, { userId: undefined });
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(401);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
@@ -699,10 +663,7 @@ describe('Trip Controller - updateTripHandler', () => {
       new NotFoundError('Record not found.'),
     );
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Record not found.' });
@@ -715,10 +676,7 @@ describe('Trip Controller - updateTripHandler', () => {
       new Error('Database failure'),
     );
 
-    await updateTripHandler(
-      mockReq as AuthenticatedRequest,
-      mockRes as Response,
-    );
+    await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({

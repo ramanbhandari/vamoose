@@ -8,9 +8,10 @@ import tripRoutes from './routes/tripRoutes.ts';
 
 dotenv.config();
 
-//connectMongoDB();
 
-const port: number | string = process.env.PORT || 3000;
+// connectMongoDB();
+
+const port: number | string = process.env.PORT || 8000;
 
 const app = express();
 
@@ -22,9 +23,9 @@ app.use(express.urlencoded({ extended: true }));
 //Routes
 app.use('/api', appRouter);
 
-// Handle non-exisiting routes 
+// Handle non-exisiting routes
 app.use((_req: Request, res: Response, _next: NextFunction) => {
-  res.status(404).send("Route not found");
+  res.status(404).send('Route not found');
 });
 
 //Start server
