@@ -8,6 +8,7 @@ import {
 } from '../../controllers/tripController';
 import prisma from '../../config/prismaClient';
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../../interfaces/interfaces';
 import { NotFoundError } from '../../utils/errors';
 
 // Mock Prisma client functions

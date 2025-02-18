@@ -19,7 +19,7 @@ export const createTrip = async (tripData: CreateTripInput) => {
       include: { members: true },
     });
   } catch (error) {
-    console.error('Error creating trip:', error);
+    //console.error('Error creating trip:', error);
     throw handlePrismaError(error);
   }
 };
@@ -44,7 +44,7 @@ export const fetchTrip = async (userId: string, tripId: number, startDate?: stri
 
     return trip;
   } catch (error) {
-    console.error('Error fetching trip:', error);
+    //console.error('Error fetching trip:', error);
     throw handlePrismaError(error);
   }
 };
@@ -84,7 +84,7 @@ export const fetchTripByDates = async (userId: string, startDate?: string, endDa
 
     return trips;
   } catch (error) {
-    console.error('Error fetching trips by dates:', error);
+    //console.error('Error fetching trips by dates:', error);
     throw handlePrismaError(error);
   }
 };
@@ -108,7 +108,7 @@ export const updateTrip = async (
       },
     });
   } catch (error) {
-    console.error('Error updating trip:', error);
+    //console.error('Error updating trip:', error);
     throw handlePrismaError(error);
   }
 };
@@ -123,7 +123,7 @@ export const deleteTrip = async (userId: string, tripId: number) => {
       },
     });
   } catch (error) {
-    console.error('Error deleting trip from DB:', error);
+    //console.error('Error deleting trip from DB:', error);
     throw handlePrismaError(error);
   }
 };
@@ -154,7 +154,7 @@ export const deleteMultipleTrips = async (
       deletedCount: result.count,
     };
   } catch (error) {
-    console.error('Error deleting trip from DB:', error);
+    //console.error('Error deleting trip from DB:', error);
     throw handlePrismaError(error);
   }
 };

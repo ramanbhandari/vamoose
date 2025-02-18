@@ -46,6 +46,14 @@ router
     validationErrorHandler,
     authMiddleware,
     deleteMultipleTripsHandler,
+  )
+  .get(
+    '/:tripId',
+    fetchTripHandler
+  )
+  .get(
+    '/',
+    fetchTripByDatesHandler
   );
 
 

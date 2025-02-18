@@ -74,7 +74,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      console.error('Error updating trip:', error);
+      //console.error('Error updating trip:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
@@ -109,7 +109,7 @@ export const fetchTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError){
       res.status(error.statusCode).json({ error: error.message});
     } else {
-      console.error('Error fetching trip:', error);
+      //console.error('Error fetching trip:', error);
       res.status(500).json({ error: 'Internal Server Error'});
     }
   }
@@ -153,7 +153,7 @@ export const fetchTripByDatesHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      console.error('Error fetching trips by dates:', error);
+      //console.error('Error fetching trips by dates:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
@@ -184,7 +184,7 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      console.error('Error updating trip:', error);
+      //console.error('Error updating trip:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
@@ -221,7 +221,7 @@ export const deleteMultipleTripsHandler = async (
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      console.error('Error updating trip:', error);
+      //console.error('Error updating trip:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
@@ -260,7 +260,7 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     if (error instanceof BaseError) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      console.error('Error updating trip:', error);
+      //console.error('Error updating trip:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
