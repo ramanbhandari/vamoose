@@ -9,7 +9,7 @@ import { supabase } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { logout } from "@/app/dashboard/actions";
 import { usePathname, useRouter } from "next/navigation";
-import AnimatedMenuIcon from "../util/hamAnim";
+import AnimatedMenuIcon from "./hamAnimIcon";
 
 export default function Navbar() {
   const [user, setUser ] = useState<User | null>(null);
@@ -74,9 +74,6 @@ export default function Navbar() {
           {user && (
             <div>
               <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
                 aria-label="menu"
                 sx={{ mr: 2 }}
                 onClick={handleMenuOpen}
