@@ -75,7 +75,6 @@ export default function Navbar() {
             <div>
               <IconButton
                 aria-label="menu"
-                sx={{ mr: 2 }}
                 onClick={handleMenuOpen}
               >
                 <AnimatedMenuIcon isOpen={open} onClick={handleMenuOpen} />
