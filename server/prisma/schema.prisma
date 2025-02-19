@@ -78,13 +78,15 @@ model TripMember {
 
 // ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
 model TripInvitee {
-  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  tripId Int
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-  status String @default("pending")
-
-  @@id([tripId, userId])
+  invitetoken String  @id @default(uuid())
+  tripId      Int          
+  trip        Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  email       String  
+  createdBy   String 
+  creator     User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  status      String  @default("pending") // Status: pending, accepted, expired
+  expiresAt   DateTime?
+  @@unique([tripId, email])
 }
 
 // ─── STAY MODEL ───────────────────────────────────────────────────────────
