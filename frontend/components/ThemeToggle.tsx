@@ -1,7 +1,8 @@
 "use client";
 
 import { IconButton, useTheme, Tooltip } from "@mui/material";
-import { Brightness4, Brightness7 } from "@mui/icons-material";
+import NightlightIcon from '@mui/icons-material/Nightlight';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
@@ -39,7 +40,7 @@ export default function ThemeToggle() {
           "&:hover": { color: theme.palette.secondary.main },
         }}
       >
-        {isDarkMode ? <Brightness7 /> : <Brightness4 />}
+        {isDarkMode ? <WbSunnyIcon /> : <NightlightIcon />}
       </IconButton>
     </Tooltip>
   );
