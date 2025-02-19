@@ -223,7 +223,6 @@ const PollPreviewCard = ({ poll }: { poll: Poll }) => (
 
 function TripHeader({ trip }: { trip: TripData }) {
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === "dark";
 
   const BudgetRing = styled(motion.div)({
     position: "relative",
@@ -397,6 +396,7 @@ export default function TripOverview() {
   const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.9]);
   const [activeSection, setActiveSection] = useState("overview");
 
+  console.log(activeSection);
   const [trip] = useState<TripData>({
     name: "Asian Adventure 2024",
     status: "upcoming",

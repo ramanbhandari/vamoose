@@ -1,16 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import {
-  Box,
-  Typography,
-  Container,
-  IconButton,
-  useMediaQuery,
-  useTheme,
-  Paper,
-} from "@mui/material";
+// import { useParams, useRouter } from "next/navigation";
+import { Box, Container, useTheme } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventIcon from "@mui/icons-material/Event";
@@ -21,6 +13,7 @@ import PollIcon from "@mui/icons-material/Poll";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import WorkIcon from "@mui/icons-material/Work";
 import GroupIcon from "@mui/icons-material/Group";
+import CalculateIcon from "@mui/icons-material/Calculate";
 
 // Section Components
 import Overview from "./sections/Overview";
@@ -32,6 +25,7 @@ import Polls from "./sections/Polls";
 import Itinerary from "./sections/Itinerary";
 import PackingList from "./sections/PackingList";
 import TripMembers from "./sections/TripMembers";
+import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 
@@ -48,6 +42,11 @@ const sections = [
     icon: <PlaceIcon fontSize="medium" />,
   },
   { id: "stays", label: "Stays", icon: <HotelIcon fontSize="medium" /> },
+  {
+    id: "expenses",
+    label: "Expenses",
+    icon: <CalculateIcon fontSize="medium" />,
+  },
   {
     id: "activities",
     label: "Activities",
@@ -72,10 +71,10 @@ const sections = [
 ];
 
 export default function TripSummaryPage() {
-  const { tripId } = useParams();
-  const router = useRouter();
+  //   const { tripId } = useParams();
+  //   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  //   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [activeSection, setActiveSection] = useState("overview");
 
@@ -91,8 +90,6 @@ export default function TripSummaryPage() {
         width: "100vw",
         display: "flex",
         flexDirection: "column",
-        // alignItems: "center",
-        // justifyContent: "center",
         overflow: "hidden",
       }}
     >
@@ -142,6 +139,7 @@ export default function TripSummaryPage() {
         {activeSection === "dates" && <Dates />}
         {activeSection === "destinations" && <Destinations />}
         {activeSection === "stays" && <Stays />}
+        {activeSection === "expenses" && <Expenses />}
         {activeSection === "activities" && <Activities />}
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}

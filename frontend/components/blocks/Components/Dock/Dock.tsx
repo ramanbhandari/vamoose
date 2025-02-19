@@ -4,6 +4,7 @@
 	2-16-2025
 */
 
+/* Modified by Raman Bhandari */
 "use client";
 
 import {
@@ -13,7 +14,6 @@ import {
   useSpring,
   useTransform,
   type SpringOptions,
-  AnimatePresence,
 } from "framer-motion";
 import React, {
   Children,
@@ -21,7 +21,6 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 
 // Extend your DockItemData if needed
