@@ -1,4 +1,4 @@
-import { body, checkExact, param } from 'express-validator';
+import { body, checkExact, param, query } from 'express-validator';
 
 // Validation for Creating a Trip
 export const validateCreateTripInput = checkExact([
@@ -63,6 +63,35 @@ export const validateUpdateTripInput = checkExact([
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Budget must be a positive number'),
+]);
+
+// Validate fetching a single trip
+export const validateFetchSingleTrip = checkExact([
+  param('tripId').isInt().withMessage('Trip ID must be a number'),
+]);
+
+// Validate fetching multiple trips with filters
+export const validateFetchTripsWithFilters = checkExact([
+  query('destination')
+    .optional()
+    .isString()
+    .withMessage('Destination must be a string'),
+  query('startDate')
+    .optional()
+    .isISO8601()
+    .withMessage('Invalid start date format'),
+  query('endDate')
+    .optional()
+    .isISO8601()
+    .withMessage('Invalid end date format'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Limit must be a positive number'),
+  query('offset')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Offset must be a non-negative number'),
 ]);
 
 // Validation for Deleting a Trip

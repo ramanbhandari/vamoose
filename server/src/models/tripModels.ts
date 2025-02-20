@@ -19,77 +19,106 @@ export const createTrip = async (tripData: CreateTripInput) => {
       include: { members: true },
     });
   } catch (error) {
-    //console.error('Error creating trip:', error);
+    console.error('Error creating trip:', error);
     throw handlePrismaError(error);
   }
 };
 
-//Fetch (get) a trip
-export const fetchTrip = async (userId: string, tripId: number, startDate?: string, endDate?: string) => {
+// Fetch a single trip by ID
+export const fetchSingleTrip = async (userId: string, tripId: number) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
       include: {
-        creator: true,
-        members: { where: { userId }, select: { userId: true } },
+        members: true,
+        expenses: true,
+        stays: true,
       },
     });
 
-    if (!trip) return null;
+    if (!trip) {
+      throw new NotFoundError('Trip not found');
+    }
 
-    // Check if the user is either the creator or a member
-    if (trip.createdBy !== userId && trip.members.length === 0) {
-      throw new ForbiddenError('You are not authorized to view this trip.');
+    const isAuthorized =
+      trip.createdBy === userId ||
+      trip.members.some((m) => m.userId === userId);
+
+    if (!isAuthorized) {
+      throw new ForbiddenError('You are not authorized to view this trip');
     }
 
     return trip;
   } catch (error) {
-    //console.error('Error fetching trip:', error);
+    console.error('Error fetching trip:', error);
     throw handlePrismaError(error);
   }
 };
 
-//Fetch trips based on dates
-export const fetchTripByDates = async (userId: string, startDate?: string, endDate?: string) => {
+// Fetch trips with optional filters
+export const fetchTripsWithFilters = async (
+  userId: string,
+  filters: any,
+  limit: number,
+  offset: number,
+) => {
   try {
-    const today = new Date();
-    const conditions: any = {
-      OR: [
-        { createdBy: userId },
-        { members: { some: { userId } } },
-      ],
-    };
-
-    // Upcoming trips
-    if (startDate && new Date(startDate) > today) {
-      conditions.startDate = { gt: today };
-    }
-    // Past trips
-    if (endDate && new Date(endDate) < today) {
-      conditions.endDate = { lt: today };
-    }
-
-    if (startDate && endDate) {
-      conditions.startDate = { gte: new Date(startDate) };
-      conditions.endDate = { lte: new Date(endDate) };
-    }
-
-    const trips = await prisma.trip.findMany({
-      where: conditions,
-      include: {
-        creator: true,
-        members: { select: { userId: true } },
+    return await prisma.trip.findMany({
+      where: {
+        AND: [
+          { members: { some: { userId } } }, // User must be a member
+          filters, // Apply optional filters
+        ],
       },
+      take: limit,
+      skip: offset,
+      orderBy: { startDate: 'asc' },
     });
-
-    return trips;
   } catch (error) {
-    //console.error('Error fetching trips by dates:', error);
+    console.error('Error fetching trips by dates:', error);
     throw handlePrismaError(error);
   }
 };
 
+// export const fetchTripByDates = async (
+//   userId: string,
+//   startDate?: string,
+//   endDate?: string,
+// ) => {
+//   try {
+//     const today = new Date();
+//     const conditions: any = {
+//       OR: [{ createdBy: userId }, { members: { some: { userId } } }],
+//     };
 
+//     // Upcoming trips
+//     if (startDate && new Date(startDate) > today) {
+//       conditions.startDate = { gt: today };
+//     }
+//     // Past trips
+//     if (endDate && new Date(endDate) < today) {
+//       conditions.endDate = { lt: today };
+//     }
+
+//     if (startDate && endDate) {
+//       conditions.startDate = { gte: new Date(startDate) };
+//       conditions.endDate = { lte: new Date(endDate) };
+//     }
+
+//     const trips = await prisma.trip.findMany({
+//       where: conditions,
+//       include: {
+//         creator: true,
+//         members: { select: { userId: true } },
+//       },
+//     });
+
+//     return trips;
+//   } catch (error) {
+//     //console.error('Error fetching trips by dates:', error);
+//     throw handlePrismaError(error);
+//   }
+// };
 
 //Update a trip
 export const updateTrip = async (
@@ -108,7 +137,7 @@ export const updateTrip = async (
       },
     });
   } catch (error) {
-    //console.error('Error updating trip:', error);
+    console.error('Error updating trip:', error);
     throw handlePrismaError(error);
   }
 };
@@ -123,7 +152,7 @@ export const deleteTrip = async (userId: string, tripId: number) => {
       },
     });
   } catch (error) {
-    //console.error('Error deleting trip from DB:', error);
+    console.error('Error deleting trip from DB:', error);
     throw handlePrismaError(error);
   }
 };
@@ -154,7 +183,7 @@ export const deleteMultipleTrips = async (
       deletedCount: result.count,
     };
   } catch (error) {
-    //console.error('Error deleting trip from DB:', error);
+    console.error('Error deleting trip from DB:', error);
     throw handlePrismaError(error);
   }
 };
