@@ -25,7 +25,7 @@ import {
 
 import axios from "axios";
 
-import { format } from "date-fns";
+import { formatISO } from "date-fns";
 
 import { MenuItem, Select, InputAdornment } from "@mui/material";
 
@@ -43,6 +43,8 @@ import { FlightTakeoff, Event, CheckCircle } from "@mui/icons-material";
 import Tooltip from "@mui/material/Tooltip";
 
 import Image from "next/image";
+import DestinationField from "./DestinationField";
+import { useRouter } from "next/navigation";
 
 const steps = [
   { label: "Trip Details", icon: <FlightTakeoff fontSize="large" /> },
@@ -54,9 +56,18 @@ const backgroundImage = "/dashboard/dashboard_15.jpg";
 
 export default function CreateTrip() {
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const [activeStep, setActiveStep] = useState(0);
-  const [tripDetails, setTripDetails] = useState({
+  const [tripDetails, setTripDetails] = useState<{
+    name: string;
+    description: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    budget: string;
+    currency: string;
+  }>({
     name: "",
     description: "",
     destination: "",
@@ -65,6 +76,7 @@ export default function CreateTrip() {
     budget: "",
     currency: "CAD",
   });
+
   const [tripId, setTripId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -132,11 +144,12 @@ export default function CreateTrip() {
   };
 
   const handleCreateTrip = async () => {
+    setLoading(true);
     try {
       const payload = {
         name: tripDetails.name.trim(),
-        description: tripDetails.description.trim() || "",
-        destination: tripDetails.destination.trim(),
+        description: tripDetails.description.trim(),
+        destination: tripDetails.destination.trim() || "",
         startDate: tripDetails.startDate,
         endDate: tripDetails.endDate,
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
@@ -144,9 +157,11 @@ export default function CreateTrip() {
 
       const response = await apiClient.post("/trips", payload);
 
-      console.log("Trip created:", response.data);
-      setTripId(response.data.trip.id);
-      setActiveStep(steps.length);
+      if (response.data.trip.id) {
+        setTripId(response.data.trip.id);
+        setActiveStep(steps.length);
+        router.push(`/trips/${tripId}`);
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
@@ -157,6 +172,8 @@ export default function CreateTrip() {
       } else {
         console.error("Unexpected error:", error);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -236,12 +253,7 @@ export default function CreateTrip() {
 
   const handleStartDateChange = (newValue: Date | null) => {
     if (newValue) {
-      const localDate = new Date(
-        newValue.getFullYear(),
-        newValue.getMonth(),
-        newValue.getDate()
-      );
-      const formattedDate = format(localDate, "yyyy-MM-dd");
+      const formattedDate = formatISO(newValue, { representation: "date" });
 
       setTripDetails({ ...tripDetails, startDate: formattedDate });
 
@@ -255,12 +267,7 @@ export default function CreateTrip() {
 
   const handleEndDateChange = (newValue: Date | null) => {
     if (newValue) {
-      const localDate = new Date(
-        newValue.getFullYear(),
-        newValue.getMonth(),
-        newValue.getDate()
-      );
-      const formattedDate = format(localDate, "yyyy-MM-dd");
+      const formattedDate = formatISO(newValue, { representation: "date" });
 
       if (
         tripDetails.startDate &&
@@ -306,13 +313,7 @@ export default function CreateTrip() {
 
     setTripDetails((prev) => ({
       ...prev,
-      budget: new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: prev.currency,
-        minimumFractionDigits: 2,
-      })
-        .format(number)
-        .replace(/[^\d.,]/g, ""),
+      budget: number.toFixed(2),
     }));
   };
 
@@ -650,24 +651,12 @@ export default function CreateTrip() {
                         })
                       }
                     />
-                    <TextField
-                      fullWidth
-                      label="Destination"
-                      margin="normal"
-                      required
-                      value={tripDetails.destination}
-                      onChange={(e) => {
-                        setTripDetails({
-                          ...tripDetails,
-                          destination: e.target.value,
-                        });
-                        if (e.target.value.trim()) {
-                          setErrors((prev) => ({ ...prev, destination: "" }));
-                          setGlobalError(null);
-                        }
-                      }}
-                      error={!!errors.destination}
-                      helperText={errors.destination}
+                    <DestinationField
+                      tripDetails={tripDetails}
+                      setTripDetails={setTripDetails}
+                      errors={errors}
+                      setErrors={setErrors}
+                      setGlobalError={setGlobalError}
                     />
                   </>
                 )}
@@ -801,17 +790,7 @@ export default function CreateTrip() {
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}
               >
-                {activeStep === steps.length ? (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => console.log("Navigate to trip summary")}
-                    disabled={!tripId} // Disable button if tripId is not set
-                    sx={{ width: "50%" }}
-                  >
-                    View Trip
-                  </Button>
-                ) : (
+                {activeStep != steps.length && (
                   <>
                     <Button
                       disabled={activeStep === 0}

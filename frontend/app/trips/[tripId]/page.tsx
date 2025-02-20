@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-// import { useParams, useRouter } from "next/navigation";
-import { Box, Container, useTheme } from "@mui/material";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Box, Container, useTheme, CircularProgress } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventIcon from "@mui/icons-material/Event";
@@ -28,6 +28,7 @@ import TripMembers from "./sections/TripMembers";
 import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
+import apiClient from "@/utils/apiClient";
 
 const sections = [
   {
@@ -70,10 +71,27 @@ const sections = [
   },
 ];
 
+interface TripData {
+  id: number;
+  name: string;
+  description: string;
+  // from: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  members: Array<{ tripId: number; userId: string; role: string }>;
+  expenses: Array<[]>;
+  stays: Array<[]>;
+}
+
 export default function TripSummaryPage() {
-  //   const { tripId } = useParams();
-  //   const router = useRouter();
+  const params = useParams();
+  const tripId = params?.tripId;
+
   const theme = useTheme();
+  const [tripData, setTripData] = useState<TripData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   //   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [activeSection, setActiveSection] = useState("overview");
@@ -81,6 +99,52 @@ export default function TripSummaryPage() {
   const handleSectionChange = (sectionId: string) => {
     setActiveSection(sectionId);
   };
+
+  useEffect(() => {
+    if (!tripId) return;
+    const fetchTrip = async () => {
+      try {
+        const response = await apiClient.get(`/trips/${tripId}`);
+        const trip = response.data.trip;
+
+        setTripData({
+          id: trip.id,
+          name: trip.name,
+          description: trip.description,
+          // from: trip.from || "Not specified",
+          destination: trip.destination,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          budget: trip.budget,
+          members: trip.members,
+          expenses: trip.expenses,
+          stays: trip.stays,
+        });
+        // setTripData(response.data.trip);
+      } catch (error) {
+        console.error("Error fetching trip data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTrip();
+  }, [tripId]);
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -135,7 +199,9 @@ export default function TripSummaryPage() {
       </Box>
 
       <Container sx={{ flex: 1, mt: 20 }}>
-        {activeSection === "overview" && <Overview />}
+        {activeSection === "overview" && (
+          <Overview tripData={tripData} onSectionChange={handleSectionChange} />
+        )}
         {activeSection === "dates" && <Dates />}
         {activeSection === "destinations" && <Destinations />}
         {activeSection === "stays" && <Stays />}
