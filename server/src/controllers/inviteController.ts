@@ -5,105 +5,21 @@ import { BaseError } from "../utils/errors.ts";
 import TripInvite from "../models/TripInvite.ts";
 import { getUserByEmail, getUserById } from "../models/User.ts";
 import { addTripMember, getTripMember } from "../models/TripMember.ts";
-// import { createTrip } from "../models/tripModels.ts";
 
-
-// export const createTripHandler = async (req: Request, res: Response) => {
-//   try {
-//     let {
-//       userId,
-//       body: {
-//         name,
-//         description,
-//         destination,
-//         startDate: start,
-//         endDate: end,
-//         budget,
-//       },
-//     } = req as AuthenticatedRequest;
-
-//     console.log(name, destination, start, end);
-    
-
-//     userId = "344d76da-33cc-4861-874e-26971b493480"
-
-//     if (!userId) {
-//       res.status(401).json({ error: 'Unauthorized Request' });
-//       return;
-//     }
-
-//     if (!name || !destination || !start || !end) {
-//       res.status(400).json({ error: 'Missing required fields' });
-//       return;
-//     }
-
-//     const startDate = new Date(start);
-//     const endDate = new Date(end);
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate comparison
-
-//     // Ensure valid dates
-//     if (isNaN(startDate.getDate()) || isNaN(endDate.getDate())) {
-//       res.status(400).json({ error: 'Invalid start date or end date format' });
-//       return;
-//     }
-
-//     // Ensure start date is today at the earliest or in the future
-//     if (startDate < today) {
-//       res
-//         .status(400)
-//         .json({ error: 'Start date must be today or in the future' });
-//       return;
-//     }
-
-//     if (startDate >= endDate) {
-//       res.status(400).json({ error: 'Start date must be before end date' });
-//       return;
-//     }
-
-//     const trip = await createTrip({
-//       name,
-//       description,
-//       destination,
-//       startDate: startDate,
-//       endDate: endDate,
-//       budget: budget ?? null,
-//       createdBy: userId,
-//     });
-
-//     res.status(201).json({ message: 'Trip created successfully', trip });
-//     return;
-//   } catch (error) {
-//     if (error instanceof BaseError) {
-//       res.status(error.statusCode).json({ error: error.message });
-//     } else {
-//       console.error('Error updating trip:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//     }
-//   }
-// };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ✅ Send Invite & Generate Token
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const createInvite = async (req: Request, res: Response) => {
   try {
-    let {
+    const {
         userId,
         body: {
-            tripId,
             email,
         },
       } = req as AuthenticatedRequest;
 
-    userId = "344d76da-33cc-4861-874e-26971b493480"
-
-    // userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-
-    if (!tripId || !email){
-        res.status(400).json({ error: 'Missing required fields' });
-        return;
+    const tripId = Number(req.body.tripId);
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
     }
 
     if (!userId) {
@@ -183,18 +99,12 @@ export const createInvite = async (req: Request, res: Response) => {
 
 export const validateInvite = async (req: Request, res: Response) => {
   try {
-    //TODO clean up
-    let {
+    const {
         userId,
         params: {
             token,
         },
     } = req as AuthenticatedRequest;
-
-    userId = "344d76da-33cc-4861-874e-26971b493480"
-
-    userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-    // userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
@@ -248,18 +158,12 @@ export const validateInvite = async (req: Request, res: Response) => {
 
 export const acceptInvite = async (req: Request, res: Response) => {
   try {
-    //TODO clean up
-    let {
+    const {
         userId,
         params: {
             token,
         },
     } = req as AuthenticatedRequest;
-
-    userId = "344d76da-33cc-4861-874e-26971b493480"
-
-    userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-    userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
@@ -316,19 +220,13 @@ export const acceptInvite = async (req: Request, res: Response) => {
 
 export const rejectInvite = async (req: Request, res: Response) => {
   try {
-    //TODO clean up
-    let {
+
+    const {
         userId,
         params: {
             token,
         },
     } = req as AuthenticatedRequest;
-
-    userId = "344d76da-33cc-4861-874e-26971b493480"
-
-    userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-    userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
-
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
@@ -343,7 +241,6 @@ export const rejectInvite = async (req: Request, res: Response) => {
         return;
     }
 
-    //TODO model to get user by id
     const user = await getUserById(userId);
 
     // Ensure email matches
@@ -374,18 +271,12 @@ export const rejectInvite = async (req: Request, res: Response) => {
 
 export const deleteInvite = async (req: Request, res: Response) => {
     try {
-        //TODO: clean this 
-        let {
+        const {
             userId,
             params: {
                 token,
             },
         } = req as AuthenticatedRequest;
-    
-        userId = "344d76da-33cc-4861-874e-26971b493480"
-    
-        // userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-
 
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized Request' });
