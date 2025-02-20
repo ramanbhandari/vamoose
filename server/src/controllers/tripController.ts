@@ -75,41 +75,6 @@ export const createTripHandler = async (req: Request, res: Response) => {
   }
 };
 
-// export const fetchTripHandler = async (req: Request, res: Response) => {
-//   try{
-//     const userId = req.query.userId as string;
-//     const tripId = parseInt(req.params.tripId, 10);
-
-//     if (isNaN(tripId)){
-//       res.status(400).json({ error: 'Invalid trip ID'});
-//       return;
-//     }
-
-//     const trip = await fetchTrip(userId, tripId);
-
-//     if (!trip){
-//       res.status(404).json({ error: 'Trip not Found'});
-//       return;
-//     }
-
-//     if (!trip.members || !trip.members.some((member) => member.userId === userId) && trip.createdBy !== userId) {
-//       res.status(403).json({ error: 'You are not authorized to view this trip' });
-//       return;
-//     }
-
-//     res.status(200).json(trip);
-//     return;
-
-//   } catch(error){
-//     if (error instanceof BaseError){
-//       res.status(error.statusCode).json({ error: error.message});
-//     } else {
-//       //console.error('Error fetching trip:', error);
-//       res.status(500).json({ error: 'Internal Server Error'});
-//     }
-//   }
-// };
-
 export const fetchSingleTripHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req as AuthenticatedRequest;
@@ -139,56 +104,6 @@ export const fetchSingleTripHandler = async (req: Request, res: Response) => {
   }
 };
 
-// export const fetchTripByDatesHandler = async (req: Request, res: Response) => {
-//   try {
-//     const userId = req.query.userId as string;
-//     const startDate = req.query.startDate as string | undefined;
-//     const endDate = req.query.endDate as string | undefined;
-
-//     if (!userId) {
-//       res.status(400).json({ error: 'User ID is required' });
-//       return;
-//     }
-
-//     // Check the date format
-//     const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-
-//     if (
-//       startDate &&
-//       (!isoDateRegex.test(startDate) || isNaN(Date.parse(startDate)))
-//     ) {
-//       res.status(400).json({ error: 'Invalid dates' });
-//       return;
-//     }
-
-//     if (
-//       endDate &&
-//       (!isoDateRegex.test(endDate) || isNaN(Date.parse(endDate)))
-//     ) {
-//       res.status(400).json({ error: 'Invalid dates' });
-//       return;
-//     }
-
-//     // Fetch trips based on optional date filters.
-//     const trips = await fetchTripByDates(userId, startDate, endDate);
-
-//     if (!trips || trips.length === 0) {
-//       res.status(404).json({ error: 'Trip not Found' });
-//       return;
-//     }
-
-//     res.status(200).json(trips);
-//     return;
-//   } catch (error) {
-//     if (error instanceof BaseError) {
-//       res.status(error.statusCode).json({ error: error.message });
-//     } else {
-//       //console.error('Error fetching trips by dates:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//     }
-//   }
-// };
-
 export const fetchTripsWithFiltersHandler = async (
   req: Request,
   res: Response,
@@ -211,8 +126,13 @@ export const fetchTripsWithFiltersHandler = async (
 
     // Construct filters object
     const filters: any = {};
-    // Todo: Change the storage pattern of the destination so that the queries are case-insensitive
-    if (destination) filters.destination = destination as string;
+
+    if (destination) {
+      filters.destination = {
+        contains: destination as string,
+        mode: 'insensitive', // Case-insensitive search
+      };
+    }
     if (startDate) filters.startDate = { gte: new Date(startDate as string) };
     if (endDate) filters.endDate = { lte: new Date(endDate as string) };
 
@@ -222,6 +142,7 @@ export const fetchTripsWithFiltersHandler = async (
       Number(limit),
       Number(offset),
     );
+
     res.status(200).json({ trips });
     return;
   } catch (error) {
