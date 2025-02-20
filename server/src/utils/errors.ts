@@ -14,6 +14,12 @@ export class NotFoundError extends BaseError {
   }
 }
 
+export class ForbiddenError extends BaseError {
+  constructor(message = 'Forbidden') {
+    super(message, 403);
+  }
+}
+
 export class ConflictError extends BaseError {
   constructor(message = 'Conflict occurred') {
     super(message, 409);

@@ -5,6 +5,8 @@ import {
   validateCreateTripInput,
   validateDeleteTripInput,
   validateUpdateTripInput,
+  validateFetchSingleTrip,
+  validateFetchTripsWithFilters,
 } from '../middleware/validators.ts';
 
 import {
@@ -12,6 +14,8 @@ import {
   deleteTripHandler,
   deleteMultipleTripsHandler,
   updateTripHandler,
+  fetchSingleTripHandler,
+  fetchTripsWithFiltersHandler,
 } from '../controllers/tripController.ts';
 
 const router = express.Router();
@@ -44,6 +48,20 @@ router
     validationErrorHandler,
     authMiddleware,
     deleteMultipleTripsHandler,
+  )
+  .get(
+    '/:tripId',
+    validateFetchSingleTrip,
+    validationErrorHandler,
+    authMiddleware,
+    fetchSingleTripHandler,
+  )
+  .get(
+    '/',
+    validateFetchTripsWithFilters,
+    validationErrorHandler,
+    authMiddleware,
+    fetchTripsWithFiltersHandler,
   );
 
 export default router;

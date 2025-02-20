@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import {
   createTrip,
+  fetchSingleTrip,
+  fetchTripsWithFilters,
   deleteTrip,
   deleteMultipleTrips,
   updateTrip,
@@ -69,12 +71,82 @@ export const createTripHandler = async (req: Request, res: Response) => {
     res.status(201).json({ message: 'Trip created successfully', trip });
     return;
   } catch (error) {
-    if (error instanceof BaseError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      console.error('Error updating trip:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    handleControllerError(error, res, 'Error creating trip:');
+  }
+};
+
+export const fetchSingleTripHandler = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
     }
+
+    const tripId = Number(req.params.tripId);
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    const trip = await fetchSingleTrip(userId, tripId);
+
+    if (!trip) {
+      res.status(404).json({ error: 'Trip not found or access denied' });
+      return;
+    }
+
+    res.status(200).json({ trip });
+    return;
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching trip:');
+  }
+};
+
+export const fetchTripsWithFiltersHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    const {
+      destination,
+      startDate,
+      endDate,
+      limit = 10,
+      offset = 0,
+    } = req.query;
+
+    // Construct filters object
+    const filters: any = {};
+
+    if (destination) {
+      filters.destination = {
+        contains: destination as string,
+        mode: 'insensitive', // Case-insensitive search
+      };
+    }
+    if (startDate) filters.startDate = { gte: new Date(startDate as string) };
+    if (endDate) filters.endDate = { lte: new Date(endDate as string) };
+
+    const trips = await fetchTripsWithFilters(
+      userId,
+      filters,
+      Number(limit),
+      Number(offset),
+    );
+
+    res.status(200).json({ trips });
+    return;
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching filtered trips:');
   }
 };
 
@@ -100,12 +172,7 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
       .json({ message: 'Trip deleted successfully', trip: deletedTrip });
     return;
   } catch (error) {
-    if (error instanceof BaseError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      console.error('Error updating trip:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+    handleControllerError(error, res, 'Error deleting trip:');
   }
 };
 
@@ -137,12 +204,7 @@ export const deleteMultipleTripsHandler = async (
     });
     return;
   } catch (error) {
-    if (error instanceof BaseError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      console.error('Error updating trip:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+    handleControllerError(error, res, 'Error deleting multiple trips:');
   }
 };
 
@@ -176,11 +238,18 @@ export const updateTripHandler = async (req: Request, res: Response) => {
       .json({ message: 'Trip updated successfully', trip: updatedTrip });
     return;
   } catch (error) {
-    if (error instanceof BaseError) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      console.error('Error updating trip:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+    handleControllerError(error, res, 'Error updating trip:');
   }
 };
+function handleControllerError(
+  error: unknown,
+  res: Response,
+  logString: string,
+) {
+  if (error instanceof BaseError) {
+    res.status(error.statusCode).json({ error: error.message });
+  } else {
+    console.error(logString, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}

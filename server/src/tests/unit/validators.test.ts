@@ -2,6 +2,8 @@ import {
   validateCreateTripInput,
   validateUpdateTripInput,
   validateDeleteTripInput,
+  validateFetchSingleTrip,
+  validateFetchTripsWithFilters,
 } from '../../middleware/validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
@@ -101,6 +103,115 @@ describe('Validators Middleware', () => {
     expect(result.array()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ msg: 'Trip ID must be a number' }),
+      ]),
+    );
+  });
+
+  // Fetch Single Trip Validation Tests
+  it('should pass validation for valid fetchSingleTrip input', async () => {
+    mockReq = { params: { tripId: '1' } };
+
+    const result = await runValidation(mockReq, validateFetchSingleTrip);
+
+    expect(result.isEmpty()).toBe(true);
+  });
+
+  it('should fail validation if tripId is not a number for fetchSingleTrip', async () => {
+    mockReq = { params: { tripId: 'abc' } };
+
+    const result = await runValidation(mockReq, validateFetchSingleTrip);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: 'Trip ID must be a number' }),
+      ]),
+    );
+  });
+
+  // Fetch Multiple Trips with Filters Validation Tests
+  it('should pass validation for valid fetchTripsWithFilters input', async () => {
+    mockReq = {
+      query: {
+        destination: 'Paris',
+        startDate: '2025-05-01',
+        endDate: '2025-05-10',
+        limit: '10',
+        offset: '0',
+      },
+    };
+
+    const result = await runValidation(mockReq, validateFetchTripsWithFilters);
+
+    expect(result.isEmpty()).toBe(true);
+  });
+
+  it('should fail validation if startDate is invalid', async () => {
+    mockReq = {
+      query: {
+        startDate: 'invalid-date',
+      },
+    };
+
+    const result = await runValidation(mockReq, validateFetchTripsWithFilters);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: 'Invalid start date format' }),
+      ]),
+    );
+  });
+
+  it('should fail validation if endDate is invalid', async () => {
+    mockReq = {
+      query: {
+        endDate: 'invalid-date',
+      },
+    };
+
+    const result = await runValidation(mockReq, validateFetchTripsWithFilters);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: 'Invalid end date format' }),
+      ]),
+    );
+  });
+
+  it('should fail validation if limit is not a positive integer', async () => {
+    mockReq = {
+      query: {
+        limit: '-1',
+      },
+    };
+
+    const result = await runValidation(mockReq, validateFetchTripsWithFilters);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: 'Limit must be a positive number' }),
+      ]),
+    );
+  });
+
+  it('should fail validation if offset is negative', async () => {
+    mockReq = {
+      query: {
+        offset: '-5',
+      },
+    };
+
+    const result = await runValidation(mockReq, validateFetchTripsWithFilters);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          msg: 'Offset must be a non-negative number',
+        }),
       ]),
     );
   });
