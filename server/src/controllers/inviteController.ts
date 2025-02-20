@@ -3,6 +3,8 @@ import prisma from "../config/prismaClient";
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { BaseError } from "../utils/errors.ts";
 import TripInvite from "../models/TripInvite.ts";
+import { getUserByEmail, getUserById } from "../models/User.ts";
+import { addTripMember, getTripMember } from "../models/TripMember.ts";
 // import { createTrip } from "../models/tripModels.ts";
 
 
@@ -109,17 +111,11 @@ export const createInvite = async (req: Request, res: Response) => {
         return;
     }
 
-    //TODO Check if the trip exists
+    //TODO get trip using Model when its complete
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
       include: { members: true },
     });
-
-    //TODO define user model to get user by email
-    const invitedUser = await prisma.user.findUnique({
-        where: {email}
-    })
-
 
     if (!trip) {
         res.status(404).json({ error: "Trip not found." });
@@ -128,7 +124,7 @@ export const createInvite = async (req: Request, res: Response) => {
 
     // Check if the user sending the invite is the trip creator/admin
     const isAdmin = trip.members.some(
-      (member) => member.userId === userId && member.role === "creator"
+      (member) => member.userId === userId && (member.role === "creator" || member.role === "admin")
     );
 
     if (!isAdmin) {
@@ -136,21 +132,19 @@ export const createInvite = async (req: Request, res: Response) => {
         return;
     }
 
+    const invitedUser = await getUserByEmail(email);
+
     //if invited user exists check if they are part of the trip already
     if(invitedUser)
     {
-        //TODO define model for tripMember
         // Check if the invitee is already a trip member
-        const existingMember = await prisma.tripMember.findUnique({
-          where: { tripId_userId: { tripId, userId: invitedUser.id } },
-        });
+        const existingMember = await getTripMember(tripId, invitedUser.id);
 
         if (existingMember) {
           res.status(400).json({ error: "User is already a member of this trip." });
           return;
         }
     
-
     }
 
     const existingInvite = await TripInvite.getExistingInvite(tripId,email);
@@ -200,7 +194,7 @@ export const validateInvite = async (req: Request, res: Response) => {
     userId = "344d76da-33cc-4861-874e-26971b493480"
 
     userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
-    userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
+    // userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
@@ -217,10 +211,7 @@ export const validateInvite = async (req: Request, res: Response) => {
 
     // console.log(invite);
     
-    //TODO model to get user by id
-    const user = await prisma.user.findUnique({
-        where: {id: userId}
-    })
+    const user = await getUserById(userId);
 
     // Ensure the logged-in user matches the invitee email
     if (invite.email !== user?.email) {
@@ -235,7 +226,7 @@ export const validateInvite = async (req: Request, res: Response) => {
         
     }
 
-    //TODO Fetch trip details
+    //TODO Fetch trip details using Model when done
     const trip = await prisma.trip.findUnique({
         where: { id: invite.tripId },
         include: { members: true },
@@ -268,6 +259,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
     userId = "344d76da-33cc-4861-874e-26971b493480"
 
     userId = "aaa53077-b6b8-4b5e-9361-49a6e759aa86" //not admin
+    userId = "af0098b8-b4b9-4817-8038-87494dba4045" //not admin
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
@@ -282,10 +274,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
         return;
     }
 
-    //TODO model to get user by id
-    const user = await prisma.user.findUnique({
-        where: {id: userId}
-    })
+    const user = await getUserById(userId);
 
     // Ensure email matches
     if (invite.email !== user?.email) {
@@ -302,22 +291,14 @@ export const acceptInvite = async (req: Request, res: Response) => {
     }
 
     const result = await prisma.$transaction([
-        //TODO create Model clean up
-        // Add user to trip members
-        prisma.tripMember.create({
-          data: {
-            tripId: invite.tripId,
-            userId: user.id,
-            role: "member",
-          },
-        }),
+        // add user to trip
+        addTripMember(invite.tripId, userId, 'member', true),
 
         // Update invite status to "accepted"
         TripInvite.updateInviteStatus(token, "accepted", true)
       ]);
       
-      // If the transaction succeeds, the result will contain the responses from both queries
-      console.log("Transaction successful:", result);
+    //   console.log("Transaction successful:", result);
 
     res.status(200).json({ message: "Invite accepted" });
     return;
@@ -363,9 +344,7 @@ export const rejectInvite = async (req: Request, res: Response) => {
     }
 
     //TODO model to get user by id
-    const user = await prisma.user.findUnique({
-        where: {id: userId}
-    })
+    const user = await getUserById(userId);
 
     // Ensure email matches
     if (invite.email !== user?.email) {
@@ -421,19 +400,11 @@ export const deleteInvite = async (req: Request, res: Response) => {
             return;
         }
 
-        //TODO make model
-        // Ensure the delete is called by the admin
-        const tripMember = await prisma.tripMember.findUnique({
-            where: {
-              tripId_userId: {
-                tripId: invite.tripId, 
-                userId
-              },
-            },
-        });
+        // to get the role of this user in the trip 
+        const tripMember = await getTripMember(invite.tripId, userId);
 
-        //any admin of the trip can delete an invite
-        if (!tripMember || tripMember.role !== 'creator') {
+        // ensure the delete is called by the admin
+        if (!tripMember || !(tripMember.role === 'creator' || tripMember.role === "admin")) {
             res.status(403).json({ error: "Only admin can delete invites." });
             return;
         }
