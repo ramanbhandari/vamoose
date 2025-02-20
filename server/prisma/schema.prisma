@@ -27,7 +27,8 @@ model User {
 
   createdTrips Trip[]
   tripMembers  TripMember[]
-  tripInvites  TripInvitee[]
+  tripInvites  TripInvitee[] @relation("CreatorRelation")
+  invitedTrips TripInvitee[] @relation("InvitedUserRelation")
 
   expenses     Expense[]
   messages     Message[]
@@ -83,9 +84,14 @@ model TripInvitee {
   trip        Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
   email       String  
   createdBy   String 
-  creator     User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  creator     User    @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
   status      String  @default("pending") // Status: pending, accepted, expired
   expiresAt   DateTime?
+
+  // Optional link to the User model if they exist
+  invitedUserId String?
+  invitedUser   User?     @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
   @@unique([tripId, email])
 }
 
