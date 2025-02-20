@@ -1,25 +1,24 @@
 import express from "express";
 import {
-    // createTripHandler,
     createInvite,
     deleteInvite,
     validateInvite,
     acceptInvite,
     rejectInvite,
 } from "../controllers/inviteController.ts";
+
 import { authMiddleware } from '../middleware/authMiddleware.ts';
+import { validateCreateInviteInput, validateTokenInput } from "../middleware/validators.ts";
+import validationErrorHandler from "../middleware/validationErrorHandler.ts";
 
 const router = express.Router();
 
-// creating a trip for test
-// router.post("/createTrip", createTripHandler);
-
 //TODO: Add authentication middleware
 
-router.post("/create", createInvite);
-router.get("/validate/:token", validateInvite); 
-router.post("/accept/:token", acceptInvite); 
-router.post("/reject/:token", rejectInvite); 
-router.delete('/delete/:token', deleteInvite);
+router.post("/create", validateCreateInviteInput, validationErrorHandler, createInvite);
+router.get("/validate/:token", validateTokenInput, validationErrorHandler, validateInvite); 
+router.post("/accept/:token", validateTokenInput, validationErrorHandler, acceptInvite); 
+router.post("/reject/:token", validateTokenInput, validationErrorHandler, rejectInvite); 
+router.delete('/delete/:token', validateTokenInput, validationErrorHandler, deleteInvite);
 
 export default router;
