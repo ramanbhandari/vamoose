@@ -23,7 +23,7 @@ export const createAppTheme = () => {
         default: getCSSVariable("--background") || "#ffffff",
         paper: getCSSVariable("--background-paper") || "#ffffff",
       },
-      text: { primary: getCSSVariable("--foreground") || "#171717" },
+      text: { primary: getCSSVariable("--text") || "#171717" },
       error: { main: getCSSVariable("--error") || "#e63946" },
     },
     typography: {
