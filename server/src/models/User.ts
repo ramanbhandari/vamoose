@@ -24,3 +24,5 @@ export const getUserById = async (id: string) => {
       throw handlePrismaError(error);
     }
 };
+
+export default {getUserByEmail, getUserById}
