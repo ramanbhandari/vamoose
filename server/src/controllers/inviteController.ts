@@ -15,16 +15,21 @@ export const createInvite = async (req: Request, res: Response) => {
             email,
         },
       } = req as AuthenticatedRequest;
-
-    const tripId = Number(req.body.tripId);
-    if (isNaN(tripId)) {
-      res.status(400).json({ error: 'Invalid trip ID' });
-      return;
-    }
+      const tripId = Number(req.body.tripId);
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
         return;
+    }
+
+    if (!email || !tripId) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
     }
 
     //TODO get trip using Model when its complete
