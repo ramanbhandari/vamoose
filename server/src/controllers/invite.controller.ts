@@ -5,6 +5,9 @@ import { BaseError } from "../utils/errors.ts";
 import TripInvite from "../models/TripInvite.ts";
 import { getUserByEmail, getUserById } from "../models/User.ts";
 import { addTripMember, getTripMember } from "../models/TripMember.ts";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
 export const createInvite = async (req: Request, res: Response) => {

@@ -1,11 +1,16 @@
 "use client";
 
 import { Card, Typography, Button, CardMedia, Box } from "@mui/material";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface TripCardProps {
+  tripId: number;
   title: string;
-  description: string;
-  date: string;
+  startDate: string;
+  endDate: string;
+  destination: string;
   imageUrl?: string;
 }
 
@@ -40,13 +45,53 @@ const getRandomImage = () => {
   return defaultImages[randomIndex];
 };
 
+const fetchDestinationImage = async (
+  destination: string
+): Promise<string | null> => {
+  try {
+    const cityName = destination.split(",")[0].trim();
+
+    const wikiResponse = await axios.get(
+      `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&titles=${cityName}&pithumbsize=600`
+    );
+
+    const pages = wikiResponse.data.query.pages;
+    const firstPage = Object.keys(pages)[0];
+    const wikiImage = pages[firstPage]?.thumbnail?.source;
+
+    if (wikiImage) return wikiImage;
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching destination image:", error);
+    return null;
+  }
+};
+
 export default function TripCard({
+  tripId,
   title,
-  description,
-  date,
-  imageUrl,
+  startDate,
+  endDate,
+  destination,
 }: TripCardProps) {
-  const card_image = imageUrl || getRandomImage();
+  const router = useRouter();
+  const [cardImage, setCardImage] = useState<string>(getRandomImage());
+
+  useEffect(() => {
+    const loadImage = async () => {
+      if (destination) {
+        const fetchedImage = await fetchDestinationImage(destination);
+        if (fetchedImage) setCardImage(fetchedImage);
+      }
+    };
+    loadImage();
+  }, [destination]);
+
+  const handleViewTrip = () => {
+    router.push(`/trips/${tripId}`);
+  };
+
   return (
     <Card
       sx={{
@@ -64,7 +109,7 @@ export default function TripCard({
     >
       <CardMedia
         component="img"
-        image={card_image}
+        image={cardImage}
         alt={title}
         sx={{
           position: "absolute",
@@ -94,10 +139,10 @@ export default function TripCard({
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
-        <Typography variant="body2" sx={{ my: 1 }}>
-          {description}
+        <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
+          {destination}
         </Typography>
-        <Typography variant="caption">{date}</Typography>
+        <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
         <Button
           variant="contained"
           sx={{
@@ -109,6 +154,7 @@ export default function TripCard({
             },
           }}
           fullWidth
+          onClick={handleViewTrip}
         >
           View Trip
         </Button>

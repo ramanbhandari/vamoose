@@ -113,7 +113,7 @@ model Stay {
 model Expense {
   id          Int      @id @default(autoincrement())
   amount      Float
-  category    String
+  category    String // "food", "travel", "accommodation", "other"
   description String?
   createdAt   DateTime @default(now())
 
@@ -131,8 +131,8 @@ model ExpenseShare {
   expenseId Int
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  share     Float
-  settled   Boolean @default(false)
+  share     Float // Amount this user owes
+  settled   Boolean @default(false) // True if payment is completed
 
   @@id([expenseId, userId])
 }

@@ -1,5 +1,5 @@
 import prisma from '../config/prismaClient.ts';
-import { handlePrismaError } from '../utils/prismaErrorHandler.ts';
+import { handlePrismaError } from '../utils/errorHandlers.ts';
 import { CreateInviteInput } from '../interfaces/interfaces.ts';
 import { PrismaPromise } from '@prisma/client';
 

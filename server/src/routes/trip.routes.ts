@@ -7,7 +7,7 @@ import {
   validateUpdateTripInput,
   validateFetchSingleTrip,
   validateFetchTripsWithFilters,
-} from '../middleware/validators.ts';
+} from '../middleware/trip.validators.ts';
 
 import {
   createTripHandler,
@@ -16,11 +16,12 @@ import {
   updateTripHandler,
   fetchSingleTripHandler,
   fetchTripsWithFiltersHandler,
-} from '../controllers/tripController.ts';
+} from '../controllers/trip.controller.ts';
 
 const router = express.Router();
 
 router
+  // Trip CRUD routes
   .post(
     '/',
     validateCreateTripInput,

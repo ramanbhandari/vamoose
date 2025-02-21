@@ -13,10 +13,10 @@ import {
   Theme,
   Typography,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 
 import {
-  Flight,
   Hotel,
   GroupAdd,
   Explore,
@@ -27,20 +27,42 @@ import {
   Poll as PollIcon,
   Work,
   Group,
-  ArrowForward,
+  Calculate,
+  // ArrowForward,
 } from "@mui/icons-material";
 import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
 
+import { format, parseISO } from "date-fns";
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "No date provided";
+
+  const date = parseISO(dateString); // Convert string to Date
+  const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000); // Adjust for timezone
+
+  return format(localDate, "MMM dd, yyyy"); // Format to "Feb 22, 2025"
+};
+
 interface TripData {
+  id: number;
   name: string;
-  status: "upcoming" | "in-progress" | "completed";
-  from: string;
-  to: string;
-  start: string;
-  end: string;
-  members: string[];
+  destination: string;
+  startDate: string;
+  endDate: string;
   budget: number;
+  members: Array<{ tripId: number; userId: string; role: string }>;
+  expenses: Array<[]>;
+  stays: Array<[]>;
+}
+
+interface TripOverviewProps {
+  tripData: TripData | null;
+  onSectionChange: (sectionId: string) => void;
+}
+
+interface TripHeaderProps {
+  tripData: TripData | null;
 }
 
 interface AdventureCardProps {
@@ -50,10 +72,11 @@ interface AdventureCardProps {
   onClick?: () => void;
 }
 
-interface Poll {
+interface PollProps {
   id: string;
   question: string;
   votes: number;
+  onClick?: () => void;
 }
 
 const GradientHeader = styled(Box)(({ theme }) => ({
@@ -90,20 +113,13 @@ const SectionContainer = styled(Paper)(({ theme }: { theme: Theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
-const LocationPill = ({
-  label,
-  color,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  color: string;
-}) => (
+const LocationPill = ({ label }: { label: string }) => (
   <motion.div whileHover={{ y: -3 }}>
     <Chip
       label={label}
+      icon={<FlightLand />}
+      color="secondary"
       sx={{
-        background: color,
-        color: "text.primary",
         px: 3,
         py: 1.5,
         fontSize: "1.1rem",
@@ -192,7 +208,7 @@ const AdventureCard = ({
   </motion.div>
 );
 
-const PollPreviewCard = ({ poll }: { poll: Poll }) => (
+const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
   <motion.div whileHover={{ y: -5 }}>
     <Paper
       sx={{
@@ -205,15 +221,16 @@ const PollPreviewCard = ({ poll }: { poll: Poll }) => (
           boxShadow: 6,
         },
       }}
+      onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <PollIcon color="primary" />
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {poll.question}
+            {question}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {poll.votes} votes received
+            {votes} votes received
           </Typography>
         </Box>
       </Box>
@@ -221,7 +238,7 @@ const PollPreviewCard = ({ poll }: { poll: Poll }) => (
   </motion.div>
 );
 
-function TripHeader({ trip }: { trip: TripData }) {
+function TripHeader({ tripData }: TripHeaderProps) {
   const theme = useTheme();
 
   const BudgetRing = styled(motion.div)({
@@ -235,6 +252,31 @@ function TripHeader({ trip }: { trip: TripData }) {
     filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
     background: theme.palette.primary.main,
   });
+
+  const getTripStatus = (startDate: string, endDate: string) => {
+    const today = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (today < start) return "Upcoming"; // If today is before the start date
+    if (today >= start && today <= end) return "Current"; // If today is within the trip dates
+    return "Past"; // If today is after the end date
+  };
+
+  if (!tripData) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <GradientHeader theme={theme}>
@@ -252,10 +294,10 @@ function TripHeader({ trip }: { trip: TripData }) {
                   mb: 2,
                 }}
               >
-                {trip.name}
+                {tripData.name}
               </Typography>
               <Chip
-                label={trip.status.toUpperCase()}
+                label={getTripStatus(tripData.startDate, tripData.endDate)}
                 color="secondary"
                 sx={{
                   borderRadius: 2,
@@ -282,7 +324,7 @@ function TripHeader({ trip }: { trip: TripData }) {
                       Departure Date
                     </Typography>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {trip.start}
+                      {formatDate(tripData.startDate)}
                     </Typography>
                   </Box>
                 </Box>
@@ -302,7 +344,7 @@ function TripHeader({ trip }: { trip: TripData }) {
                       Return Date
                     </Typography>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      {trip.end}
+                      {formatDate(tripData.endDate)}
                     </Typography>
                   </Box>
                 </Box>
@@ -320,24 +362,13 @@ function TripHeader({ trip }: { trip: TripData }) {
                 },
               }}
             >
-              <LocationPill
+              {/* <LocationPill
                 icon={<Flight sx={{ fontSize: "1.2rem" }} />}
-                label={trip.from}
+                label={tripData?.from}
                 color={theme.palette.background.paper}
-              />
-              {/* <Box
-                sx={{
-                  width: 40,
-                  height: 2,
-                  background: theme.palette.background.default,
-                }}
               /> */}
-              <ArrowForward />
-              <LocationPill
-                icon={<FlightLand sx={{ fontSize: "1.2rem" }} />}
-                label={trip.to}
-                color={theme.palette.background.paper}
-              />
+              {/* <ArrowForward /> */}
+              <LocationPill label={tripData.destination} />
             </Box>
           </Grid>
 
@@ -370,7 +401,7 @@ function TripHeader({ trip }: { trip: TripData }) {
                       color={theme.palette.text.primary}
                       sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
                     >
-                      ${trip.budget.toLocaleString()}
+                      ${tripData.budget?.toLocaleString()}
                     </Typography>
                     <Typography
                       variant="body2"
@@ -390,33 +421,38 @@ function TripHeader({ trip }: { trip: TripData }) {
   );
 }
 
-export default function TripOverview() {
+export default function TripOverview({
+  tripData,
+  onSectionChange,
+}: TripOverviewProps) {
   const theme = useTheme();
   const { scrollYProgress } = useScroll();
   const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.9]);
-  const [activeSection, setActiveSection] = useState("overview");
 
-  console.log(activeSection);
-  const [trip] = useState<TripData>({
-    name: "Asian Adventure 2024",
-    status: "upcoming",
-    from: "New York",
-    to: "Tokyo",
-    start: "Mar 15, 2024",
-    end: "Apr 2, 2024",
-    members: ["JD", "AR", "SP", "MG", "TP"],
-    budget: 5000,
-  });
-
-  const [polls] = useState<Poll[]>([
+  const [polls] = useState([
     { id: "1", question: "Which activities should we prioritize?", votes: 3 },
     { id: "2", question: "Preferred departure time?", votes: 5 },
   ]);
 
+  if (!tripData) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <motion.div style={{ scale }}>
       <Container maxWidth="xl" disableGutters>
-        <TripHeader trip={trip} />
+        <TripHeader tripData={tripData} />
 
         <Container sx={{ pt: 4 }}>
           <Grid container spacing={4}>
@@ -447,7 +483,7 @@ export default function TripOverview() {
                       id: "stays",
                       icon: <Hotel />,
                       title: "Stays",
-                      status: "3 Booked",
+                      status: `${tripData?.stays ? tripData.stays.length : 0} Booked`,
                     },
                     {
                       id: "activities",
@@ -471,7 +507,7 @@ export default function TripOverview() {
                     <Grid item xs={12} sm={6} key={index}>
                       <AdventureCard
                         {...item}
-                        onClick={() => setActiveSection(item.id)}
+                        onClick={() => onSectionChange(item.id)}
                       />
                     </Grid>
                   ))}
@@ -495,13 +531,13 @@ export default function TripOverview() {
                     Travel Squad
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    {trip.members.length} adventurers joining the journey
+                    {tripData?.members.length} adventurers joining the journey
                   </Typography>
                 </Box>
 
                 <Box display="flex" flexWrap="wrap" gap={3} mb={3}>
-                  {trip.members.map((member, index) => (
-                    <MemberAvatar key={index} member={member} />
+                  {tripData?.members.map((member, index) => (
+                    <MemberAvatar key={index} member={member.role} />
                   ))}
                 </Box>
 
@@ -516,6 +552,7 @@ export default function TripOverview() {
                       py: 1.5,
                       fontSize: "1.1rem",
                     }}
+                    onClick={() => onSectionChange("members")}
                   >
                     Invite More Explorers
                   </Button>
@@ -523,6 +560,42 @@ export default function TripOverview() {
               </SectionContainer>
             </Grid>
           </Grid>
+          <SectionContainer theme={theme}>
+            <Box mb={3}>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
+                <Calculate fontSize="large" />
+                Expenses
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {tripData.expenses.length} expenses
+              </Typography>
+            </Box>
+
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="secondary"
+                sx={{
+                  borderRadius: 3,
+                  py: 1.5,
+                  fontSize: "1.1rem",
+                }}
+                onClick={() => onSectionChange("expenses")}
+              >
+                Manage Expenses
+              </Button>
+            </motion.div>
+          </SectionContainer>
 
           <SectionContainer theme={theme}>
             <Box mb={3}>
@@ -547,7 +620,12 @@ export default function TripOverview() {
             <Grid container spacing={3}>
               {polls.map((poll, index) => (
                 <Grid item xs={12} md={6} key={index}>
-                  <PollPreviewCard poll={poll} />
+                  <PollPreviewCard
+                    id={poll.id}
+                    question={poll.question}
+                    votes={poll.votes}
+                    onClick={() => onSectionChange("polls")}
+                  />
                 </Grid>
               ))}
             </Grid>

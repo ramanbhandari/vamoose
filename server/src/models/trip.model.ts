@@ -1,6 +1,6 @@
 import { CreateTripInput, UpdateTripInput } from '../interfaces/interfaces.ts';
 import prisma from '../config/prismaClient.ts';
-import { handlePrismaError } from '../utils/prismaErrorHandler.ts';
+import { handlePrismaError } from '../utils/errorHandlers.ts';
 import { NotFoundError, ForbiddenError } from '../utils/errors.ts';
 
 // Create a Trip

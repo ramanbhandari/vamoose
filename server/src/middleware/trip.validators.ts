@@ -33,7 +33,7 @@ export const validateCreateTripInput = checkExact([
 
 // Validation for Updating a Trip
 export const validateUpdateTripInput = checkExact([
-  param('tripId').isInt().withMessage('Trip ID must be a number'),
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
   body('name').optional().isString().withMessage('Name must be a string'),
   body('description')
     .optional()
@@ -67,7 +67,7 @@ export const validateUpdateTripInput = checkExact([
 
 // Validate fetching a single trip
 export const validateFetchSingleTrip = checkExact([
-  param('tripId').isInt().withMessage('Trip ID must be a number'),
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
 ]);
 
 // Validate fetching multiple trips with filters
@@ -96,7 +96,7 @@ export const validateFetchTripsWithFilters = checkExact([
 
 // Validation for Deleting a Trip
 export const validateDeleteTripInput = checkExact([
-  param('tripId').isInt().withMessage('Trip ID must be a number'),
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
 ]);
 
 // Validation for Creating an Invite

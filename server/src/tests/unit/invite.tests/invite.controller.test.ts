@@ -1,8 +1,11 @@
-import { createInvite, validateInvite, acceptInvite, rejectInvite, deleteInvite } from "../../controllers/inviteController";
-import prisma from "../../config/prismaClient";
+import { createInvite, validateInvite, acceptInvite, rejectInvite, deleteInvite } from "../../../controllers/invite.controller.ts";
+import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from "express";
+import dotenv from 'dotenv';
 
-jest.mock("../../config/prismaClient", () => ({
+dotenv.config();
+
+jest.mock("../../../config/prismaClient", () => ({
   __esModule: true,
   default: {
     trip: { findUnique: jest.fn() },

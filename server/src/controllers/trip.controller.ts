@@ -6,9 +6,9 @@ import {
   deleteTrip,
   deleteMultipleTrips,
   updateTrip,
-} from '../models/tripModels.ts';
-import { BaseError } from '../utils/errors';
+} from '../models/trip.model.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
+import { handleControllerError } from '../utils/errorHandlers.ts';
 
 export const createTripHandler = async (req: Request, res: Response) => {
   try {
@@ -241,15 +241,3 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     handleControllerError(error, res, 'Error updating trip:');
   }
 };
-function handleControllerError(
-  error: unknown,
-  res: Response,
-  logString: string,
-) {
-  if (error instanceof BaseError) {
-    res.status(error.statusCode).json({ error: error.message });
-  } else {
-    console.error(logString, error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
