@@ -6,6 +6,8 @@ import TripInvite from "../models/TripInvite.ts";
 import { getUserByEmail, getUserById } from "../models/User.ts";
 import { addTripMember, getTripMember } from "../models/TripMember.ts";
 import dotenv from 'dotenv';
+import { fetchSingleTrip } from "../models/trip.model.ts";
+import { handleControllerError } from "../utils/errorHandlers.ts";
 
 dotenv.config();
 
@@ -18,29 +20,25 @@ export const createInvite = async (req: Request, res: Response) => {
             email,
         },
       } = req as AuthenticatedRequest;
-      let tripId = req.body.tripId;
+      const tripId = Number(req.params.tripId);
 
     if (!userId) {
         res.status(401).json({ error: 'Unauthorized Request' });
         return;
     }
 
-    if (!email || !tripId) {
+    if (!email) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
     }
     
-    tripId = Number(req.body.tripId);
     if (isNaN(tripId)) {
       res.status(400).json({ error: 'Invalid trip ID' });
       return;
     }
-
+   
     //TODO get trip using Model when its complete
-    const trip = await prisma.trip.findUnique({
-      where: { id: tripId },
-      include: { members: true },
-    });
+    const trip = await fetchSingleTrip(userId, tripId);
 
     if (!trip) {
         res.status(404).json({ error: "Trip not found." });
@@ -87,22 +85,13 @@ export const createInvite = async (req: Request, res: Response) => {
     }
     // Create invite
     const invite = await TripInvite.createTripInvite(inviteData);
-
-    // console.log(invite);
     
     // Return invite URL
     res.status(200).json({inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.invitetoken}`});
     return;
 
   } catch (error) {
-    if (error instanceof BaseError) {
-        res.status(error.statusCode).json({ error: error.message });
-    }
-    else{
-        console.error("Error sending invite:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
-
+    handleControllerError(error, res, "Error sending invite:");
   }
 };
 
@@ -127,8 +116,6 @@ export const validateInvite = async (req: Request, res: Response) => {
         res.status(400).json({ error: "Invite not found" });
         return;
     }
-
-    // console.log(invite);
     
     const user = await getUserById(userId);
 
@@ -141,27 +128,16 @@ export const validateInvite = async (req: Request, res: Response) => {
     //attach the user to the invite if not already attached
     if(!invite.invitedUserId){
         invite = await TripInvite.updateInvitedUser(invite.invitetoken, userId);
-        // console.log("attaching userID", invite);
-        
     }
 
     //TODO Fetch trip details using Model when done
-    const trip = await prisma.trip.findUnique({
-        where: { id: invite.tripId },
-        include: { members: true },
-    });
+    const trip = await fetchSingleTrip(userId, invite.tripId, true);
 
     // Return trip details
     res.status(200).json({trip});
 
   } catch (error) {
-    if (error instanceof BaseError) {
-        res.status(error.statusCode).json({ error: error.message });
-    }
-    else{
-        console.error("Error validating invite:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
+    handleControllerError(error, res, "Error validating invite:");
   }
 };
 
@@ -211,19 +187,12 @@ export const acceptInvite = async (req: Request, res: Response) => {
         TripInvite.updateInviteStatus(token, "accepted", true)
       ]);
       
-    //   console.log("Transaction successful:", result);
 
     res.status(200).json({ message: "Invite accepted" });
     return;
 
   } catch (error) {
-    if (error instanceof BaseError) {
-        res.status(error.statusCode).json({ error: error.message });
-    }
-    else{
-        console.error("Error accepting invite:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
+    handleControllerError(error, res, "Error accepting invite:");
   }
 };
 
@@ -273,8 +242,7 @@ export const rejectInvite = async (req: Request, res: Response) => {
     return;
 
   } catch (error) {
-    console.error("Error rejecting invite:", error);
-    res.status(500).json({ error: "Internal server error." });
+    handleControllerError(error, res, "Error rejecting invite:");
   }
 };
 
@@ -315,12 +283,6 @@ export const deleteInvite = async (req: Request, res: Response) => {
         res.status(200).json({ message: 'Invite deleted successfully' });
 
     } catch (error) {
-        if (error instanceof BaseError) {
-            res.status(error.statusCode).json({ error: error.message });
-        }
-        else{
-            console.error("Error deleting invite:", error);
-            res.status(500).json({ error: "Internal server error." });
-        }
+        handleControllerError(error, res, "Error deleting invite:");
     }
 };

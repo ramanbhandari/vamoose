@@ -25,7 +25,7 @@ export const createTrip = async (tripData: CreateTripInput) => {
 };
 
 // Fetch a single trip by ID
-export const fetchSingleTrip = async (userId: string, tripId: number) => {
+export const fetchSingleTrip = async (userId: string, tripId: number, auth: boolean = false) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
@@ -40,7 +40,7 @@ export const fetchSingleTrip = async (userId: string, tripId: number) => {
       throw new NotFoundError('Trip not found');
     }
 
-    const isAuthorized =
+    const isAuthorized = auth ||
       trip.createdBy === userId ||
       trip.members.some((m) => m.userId === userId);
 
