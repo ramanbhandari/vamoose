@@ -5,6 +5,6 @@ import expenseRouter from './expense.routes.ts';
 const router = express.Router();
 
 router.use('/trips', tripRouter);
-router.use('/trips/:tripId/:expenseId', expenseRouter);
+router.use('/trips/:tripId/expenses/', expenseRouter);
 
 export default router;

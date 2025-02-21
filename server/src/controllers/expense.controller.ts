@@ -138,7 +138,7 @@ export const fetchSingleExpenseHandler = async (
   res: Response,
 ): Promise<void> => {
   const tripId = Number(req.params.tripId);
-  const expenseId = Number(req.params.expenseId);
+  const expenseId = Number(req.params.id);
 
   try {
     if (isNaN(tripId) || isNaN(expenseId)) {

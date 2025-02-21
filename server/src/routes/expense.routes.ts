@@ -27,7 +27,7 @@ router
 
   // Fetch a single Expense from the Trip
   .get(
-    '/:tripId/:expenseId',
+    '/:id',
     validateFetchExpense,
     validationErrorHandler,
     authMiddleware,
