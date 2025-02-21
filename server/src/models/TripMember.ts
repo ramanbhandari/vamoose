@@ -9,7 +9,7 @@ export const getTripMember = async (tripId: number, userId: string) => {
         where: { tripId_userId: { tripId, userId } },
       });
     } catch (error) {
-      console.error('Error getting the existing invite:', error);
+      console.error('Error getting the existing trip member:', error);
       throw handlePrismaError(error);
     }
   
