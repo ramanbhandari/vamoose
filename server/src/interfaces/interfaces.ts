@@ -14,12 +14,13 @@ export interface CreateTripInput {
   createdBy: string;
 }
 
+export interface UpdateTripInput
+  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
+
+  
 export interface CreateInviteInput {
   tripId: number; 
   email: string;
   createdBy: string; 
   invitedUserId?: string;
 }
-
-export interface UpdateTripInput
-  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
