@@ -206,7 +206,7 @@ describe('Expense API - Add Expense', () => {
     });
   });
 
-  it('should return 500 on an unexpected database error', async () => {
+  it('should return 500 on an Internal Server Error', async () => {
     mockReq = setupRequest();
     (prisma.tripMember.findFirst as jest.Mock).mockRejectedValue(
       new Error('Database error'),
@@ -216,7 +216,7 @@ describe('Expense API - Add Expense', () => {
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'An unexpected database error occurred.',
+      error: 'Internal Server Error',
     });
   });
 });
