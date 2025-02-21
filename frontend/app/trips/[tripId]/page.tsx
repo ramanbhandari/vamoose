@@ -75,7 +75,6 @@ interface TripData {
   id: number;
   name: string;
   description: string;
-  // from: string;
   destination: string;
   startDate: string;
   endDate: string;
@@ -111,7 +110,6 @@ export default function TripSummaryPage() {
           id: trip.id,
           name: trip.name,
           description: trip.description,
-          // from: trip.from || "Not specified",
           destination: trip.destination,
           startDate: trip.startDate,
           endDate: trip.endDate,
@@ -120,7 +118,6 @@ export default function TripSummaryPage() {
           expenses: trip.expenses,
           stays: trip.stays,
         });
-        // setTripData(response.data.trip);
       } catch (error) {
         console.error("Error fetching trip data:", error);
       } finally {

@@ -47,7 +47,6 @@ const formatDate = (dateString?: string) => {
 interface TripData {
   id: number;
   name: string;
-  // from: string;
   destination: string;
   startDate: string;
   endDate: string;

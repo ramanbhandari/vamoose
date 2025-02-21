@@ -71,16 +71,21 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDataAndPreload = async () => {
       try {
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const formattedToday = today.toISOString().split("T")[0];
+        const formattedYesterday = yesterday.toISOString().split("T")[0];
 
         // API call for upcoming trips (trips with startDate >= today)
         const upcomingResponse = await apiClient.get(`/trips`, {
-          params: { startDate: today },
+          params: { startDate: formattedToday },
         });
 
         // API call for past trips (trips with endDate < today)
         const pastResponse = await apiClient.get(`/trips`, {
-          params: { endDate: today },
+          params: { endDate: formattedYesterday },
         });
 
         setUpcomingTrips(upcomingResponse.data.trips || []);

@@ -149,7 +149,7 @@ export default function CreateTrip() {
       const payload = {
         name: tripDetails.name.trim(),
         description: tripDetails.description.trim(),
-        destination: tripDetails.destination.trim() || "",
+        destination: tripDetails.destination.trim(),
         startDate: tripDetails.startDate,
         endDate: tripDetails.endDate,
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
