@@ -52,7 +52,11 @@ describe('Expense API - Add Expense', () => {
     mockReq = setupRequest();
     const fakeExpense = { id: 1, ...mockReq.body };
 
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true); // mock that User is a member
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true); // mock that User and payer are members of the trip
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'user1-id' },
+      { userId: 'user2-id' },
+    ]); // mock valid split members
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'payer-id' }); // mock valid payer
     (prisma.user.findMany as jest.Mock).mockResolvedValue([
       { id: 'user1-id' },
@@ -150,15 +154,21 @@ describe('Expense API - Add Expense', () => {
   it('should return 403 if some split members are invalid', async () => {
     mockReq = setupRequest();
     (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true);
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'payer-id' });
-    (prisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 'user1-id' }]); // Missing user2
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'user1-id' },
+      { userId: 'user2-id' },
+    ]); // mock valid split members
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user1-id' });
+    (prisma.user.findMany as jest.Mock).mockResolvedValue([
+      { id: 'user1-id' },
+      { id: 'invlid-user-id' },
+    ]); // trying to split with a user not part of the trip
 
     await addExpenseHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'Some provided emails are not for users who are part of this trip.',
+      error: 'Some users included in the split are not members of this trip.',
     });
   });
 

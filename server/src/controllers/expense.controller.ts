@@ -21,15 +21,17 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
     } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized request' });
+      res.status(401).json({ error: 'Unauthorized request' });
+      return;
     }
 
     if (isNaN(tripId)) {
-      return res.status(400).json({ error: 'Invalid trip ID' });
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
     }
 
     if (!amount || !category) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Validate that the user is a trip member
