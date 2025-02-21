@@ -13,47 +13,17 @@ import {
 } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
+import apiClient from "@/utils/apiClient";
+import { format, parseISO } from "date-fns";
 
-const upcomingTrips = [
-  {
-    title: "Trip to Tokyo",
-    description: "Cherry blossoms & sushi!",
-    date: "2025-03-15",
-  },
-  {
-    title: "Weekend in Rome",
-    description: "Pizza, pasta & Colosseum!",
-    date: "2025-04-28",
-  },
-  {
-    title: "New York Adventure",
-    description: "City lights & Broadway",
-    date: "2025-08-21",
-  },
-  {
-    title: "New York Adventure",
-    description: "City lights & Broadway",
-    date: "2025-08-21",
-  },
-  {
-    title: "New York Adventure",
-    description: "City lights & Broadway",
-    date: "2025-08-21",
-  },
-];
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "No date provided";
 
-const pastTrips = [
-  {
-    title: "Hiking in Swiss Alps",
-    description: "Breathtaking views!",
-    date: "2025-08-21",
-  },
-  {
-    title: "Paris Getaway",
-    description: "Eiffel Tower & croissants",
-    date: "2025-08-21",
-  },
-];
+  const date = parseISO(dateString);
+  const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+
+  return format(localDate, "MMM dd, yyyy");
+};
 
 const items = [
   "/dashboard/dashboard_1.jpg",
@@ -81,17 +51,46 @@ const items = [
   "/dashboard/dashboard_23.jpg",
 ];
 
+interface Trip {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  destination: string;
+}
+
 export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   // set loading true so we can first load everything before we show the whole page
   const [loading, setLoading] = useState(true);
+  const [upcomingTrips, setUpcomingTrips] = useState<Trip[]>([]);
+  const [pastTrips, setPastTrips] = useState<Trip[]>([]);
 
-  // this useEffect fetches images [ TODO - add API calls to fetch user's trip data later]
+  // this useEffect fetches Trips data and images
   useEffect(() => {
     const fetchDataAndPreload = async () => {
       try {
-        // TODO API calls here for trip data
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const formattedToday = today.toISOString().split("T")[0];
+        const formattedYesterday = yesterday.toISOString().split("T")[0];
+
+        // API call for upcoming trips (trips with startDate >= today)
+        const upcomingResponse = await apiClient.get(`/trips`, {
+          params: { startDate: formattedToday },
+        });
+
+        // API call for past trips (trips with endDate < today)
+        const pastResponse = await apiClient.get(`/trips`, {
+          params: { endDate: formattedYesterday },
+        });
+
+        setUpcomingTrips(upcomingResponse.data.trips || []);
+        setPastTrips(pastResponse.data.trips || []);
+
         await preloadImages(items);
         setLoading(false);
       } catch (error) {
@@ -100,7 +99,8 @@ export default function Dashboard() {
     };
 
     fetchDataAndPreload();
-  }, []);
+  }, [upcomingTrips, pastTrips]);
+
   // preload images since we have quite a lot
   const preloadImages = (urls: string[]): Promise<void[]> => {
     return Promise.all(
@@ -291,34 +291,50 @@ export default function Dashboard() {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Upcoming Trips
           </Typography>
-          <Grid container spacing={3}>
-            {upcomingTrips.map((trip, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <TripCard
-                  title={trip.title}
-                  description={trip.description}
-                  date={trip.date}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          {upcomingTrips.length > 0 ? (
+            <Grid container spacing={3}>
+              {upcomingTrips.map((trip, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <TripCard
+                    tripId={trip.id}
+                    title={trip.name}
+                    startDate={formatDate(trip.startDate)}
+                    endDate={formatDate(trip.endDate)}
+                    destination={trip.destination}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+              No upcoming trips found.
+            </Typography>
+          )}
         </Box>
 
-        <Box>
+        <Box sx={{ mb: 5 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Past Trips
           </Typography>
-          <Grid container spacing={3}>
-            {pastTrips.map((trip, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <TripCard
-                  title={trip.title}
-                  description={trip.description}
-                  date={trip.date}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          {pastTrips.length > 0 ? (
+            <Grid container spacing={3}>
+              {pastTrips.map((trip, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <TripCard
+                    tripId={trip.id}
+                    title={trip.name}
+                    startDate={formatDate(trip.startDate)}
+                    endDate={formatDate(trip.endDate)}
+                    destination={trip.destination}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+              No past trips found.
+            </Typography>
+          )}
         </Box>
       </Box>
     </Box>
