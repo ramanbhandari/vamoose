@@ -2,13 +2,13 @@ version: '3.8'
 
 services:
   mongo:
-    image: mongo:latest           # Use the latest MongoDB image
-    container_name: mongodb       # Name the MongoDB container
-    restart: always               # Always restart unless manually stopped
+    image: mongo:latest # Use the latest MongoDB image
+    container_name: mongodb # Name the MongoDB container
+    restart: always # Always restart unless manually stopped
     ports:
-      - "27017:27017"             # Expose MongoDB on the default port 27017
+      - '27017:27017' # Expose MongoDB on the default port 27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}   # Load root username from .env
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}   # Load root password from .env
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME} # Load root username from .env
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD} # Load root password from .env
     env_file:
-      - .env                      # Load variables from the .env file
+      - .env # Load variables from the .env file
