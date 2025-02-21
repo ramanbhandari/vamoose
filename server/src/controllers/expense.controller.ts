@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { addExpense } from '../models/expense.model';
+import { addExpense, fetchSingleExpense } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
@@ -130,5 +130,35 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
     });
   } catch (error) {
     handleControllerError(error, res, 'Error adding expense:');
+  }
+};
+
+export const fetchSingleExpenseHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const tripId = Number(req.params.tripId);
+  const expenseId = Number(req.params.expenseId);
+
+  try {
+    if (isNaN(tripId) || isNaN(expenseId)) {
+      res.status(400).json({ error: 'Invalid trip or expense ID' });
+      return;
+    }
+
+    // Fetch the expense using the model function
+    const expense = await fetchSingleExpense(tripId, expenseId);
+
+    if (!expense) {
+      res.status(404).json({ error: 'Expense not found for this trip' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Expense fetched successfully',
+      expense,
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching expense:');
   }
 };

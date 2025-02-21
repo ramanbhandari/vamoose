@@ -47,3 +47,28 @@ export const addExpense = async ({
     throw handlePrismaError(error);
   }
 };
+
+// Fetch Expense by trip and expense ID
+export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
+  try {
+    const expense = await prisma.expense.findUnique({
+      where: {
+        id: expenseId,
+      },
+    });
+
+    if (!expense) {
+      throw new Error('Expense not found');
+    }
+
+    // Ensures that expense belongs to the correct trip
+    if (expense.tripId !== tripId) {
+      throw new Error('Expense does not belong to the specified trip');
+    }
+
+    return expense;
+  } catch (error) {
+    console.error('Error fetching expense:', error);
+    throw handlePrismaError(error);
+  }
+};

@@ -23,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', appRouter);
 
 // Handle non-exisiting routes
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((_req: Request, res: Response, _next: NextFunction) => {
   res.status(404).send('Route not found');
 });
