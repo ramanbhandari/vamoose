@@ -17,10 +17,9 @@ export interface CreateTripInput {
 export interface UpdateTripInput
   extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
 
-  
 export interface CreateInviteInput {
-  tripId: number; 
+  tripId: number;
   email: string;
-  createdBy: string; 
+  createdBy: string;
   invitedUserId?: string;
 }

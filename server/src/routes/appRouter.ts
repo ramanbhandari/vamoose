@@ -1,7 +1,7 @@
 import express from 'express';
 import tripRouter from './trip.routes.ts';
 import expenseRouter from './expense.routes.ts';
-import inviteRouter from './invitee.routes.ts'
+import inviteRouter from './invitee.routes.ts';
 
 const router = express.Router();
 

@@ -3,7 +3,6 @@ import { handlePrismaError } from '../utils/errorHandlers.ts';
 import { CreateInviteInput } from '../interfaces/interfaces.ts';
 import { PrismaPromise } from '@prisma/client';
 
-
 // to create a new invite
 export const createTripInvite = async (inviteData: CreateInviteInput) => {
   try {
@@ -28,12 +27,15 @@ export const getInviteByToken = async (inviteToken: string) => {
     console.error('Error getting invite from token:', error);
     throw handlePrismaError(error);
   }
-
 };
 
 // to update invite status (accepted, rejected, pending)
 // needs the PrismaPromise for prisma transactions
-export const updateInviteStatus = (inviteToken: string, status: string, inTransaction: boolean = false):PrismaPromise<any> => {
+export const updateInviteStatus = (
+  inviteToken: string,
+  status: string,
+  inTransaction: boolean = false,
+): PrismaPromise<any> => {
   const updateOperation = prisma.tripInvitee.update({
     where: { inviteToken },
     data: { status },
@@ -41,20 +43,21 @@ export const updateInviteStatus = (inviteToken: string, status: string, inTransa
 
   if (inTransaction) {
     return updateOperation;
-  }
-  else{
+  } else {
     return updateOperation.catch((error) => {
       console.error('Error updating invite status:', error);
       throw handlePrismaError(error);
     }) as PrismaPromise<any>;
   }
-
 };
 
-// to attach a user to an invite 
-export const updateInvitedUser = async (inviteToken: string, invitedUserId: string) => {
+// to attach a user to an invite
+export const updateInvitedUser = async (
+  inviteToken: string,
+  invitedUserId: string,
+) => {
   try {
-      return await prisma.tripInvitee.update({
+    return await prisma.tripInvitee.update({
       where: { inviteToken },
       data: { invitedUserId },
     });
@@ -74,10 +77,9 @@ export const getExistingInvite = async (tripId: number, email: string) => {
     console.error('Error getting the existing invite:', error);
     throw handlePrismaError(error);
   }
-
 };
 
-// delete an invite 
+// delete an invite
 export const deleteInvite = async (inviteToken: string) => {
   try {
     return await prisma.tripInvitee.delete({
@@ -89,5 +91,11 @@ export const deleteInvite = async (inviteToken: string) => {
   }
 };
 
-
-export default {createTripInvite, getInviteByToken, updateInviteStatus, getExistingInvite, deleteInvite, updateInvitedUser}
+export default {
+  createTripInvite,
+  getInviteByToken,
+  updateInviteStatus,
+  getExistingInvite,
+  deleteInvite,
+  updateInvitedUser,
+};

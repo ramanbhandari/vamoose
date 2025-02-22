@@ -25,7 +25,11 @@ export const createTrip = async (tripData: CreateTripInput) => {
 };
 
 // Fetch a single trip by ID
-export const fetchSingleTrip = async (userId: string, tripId: number, allowNonMembersToView: boolean = false) => {
+export const fetchSingleTrip = async (
+  userId: string,
+  tripId: number,
+  allowNonMembersToView: boolean = false,
+) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
@@ -40,7 +44,8 @@ export const fetchSingleTrip = async (userId: string, tripId: number, allowNonMe
       throw new NotFoundError('Trip not found');
     }
 
-    const isAuthorized = allowNonMembersToView ||
+    const isAuthorized =
+      allowNonMembersToView ||
       trip.createdBy === userId ||
       trip.members.some((m) => m.userId === userId);
 
