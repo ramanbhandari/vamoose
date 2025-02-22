@@ -79,7 +79,7 @@ interface PollProps {
   onClick?: () => void;
 }
 
-const GradientHeader = styled(Box)(({ theme }) => ({
+const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   padding: "3rem 2rem",
   color: "white",
@@ -98,7 +98,7 @@ const GradientHeader = styled(Box)(({ theme }) => ({
   },
 }));
 
-const HeaderGrid = styled(Grid)(({ theme }) => ({
+const HeaderGrid = styled(Grid)(({ theme }: { theme: Theme }) => ({
   [theme.breakpoints.down("md")]: {
     // gap: "2rem",
     // textAlign: "center",
@@ -281,7 +281,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
   return (
     <GradientHeader theme={theme}>
       <Container sx={{ maxHeight: "100vh" }}>
-        <HeaderGrid container alignItems="center">
+        <HeaderGrid container alignItems="center" theme={theme}>
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
               <Typography

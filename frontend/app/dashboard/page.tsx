@@ -99,7 +99,7 @@ export default function Dashboard() {
     };
 
     fetchDataAndPreload();
-  }, [upcomingTrips, pastTrips]);
+  }, []);
 
   // preload images since we have quite a lot
   const preloadImages = (urls: string[]): Promise<void[]> => {
