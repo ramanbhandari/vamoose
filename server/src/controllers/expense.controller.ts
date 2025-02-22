@@ -124,7 +124,7 @@ export const fetchSingleExpenseHandler = async (
   res: Response,
 ): Promise<void> => {
   const tripId = Number(req.params.tripId);
-  const expenseId = Number(req.params.id);
+  const expenseId = Number(req.params.expenseId);
   const paidById = req.params.paidById;
 
   try {
@@ -157,7 +157,6 @@ export const fetchSingleExpenseHandler = async (
       expense,
     });
   } catch (error) {
-    console.error('Error fetching expense:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

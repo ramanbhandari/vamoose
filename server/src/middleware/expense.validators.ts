@@ -37,7 +37,7 @@ export const validateFetchExpense = checkExact([
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a valid number'),
 
-  param('id')
+  param('expenseId')
     .isInt({ min: 1 })
     .withMessage('Expense ID must be a valid number'),
 ]);

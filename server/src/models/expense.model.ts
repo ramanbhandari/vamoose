@@ -51,7 +51,7 @@ export const addExpense = async ({
 // Fetch Expense by trip and expense ID
 export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
   try {
-    const expense = prisma.expense.findFirst({
+    const expense = prisma.expense.findUnique({
       where: {
         id: expenseId,
         tripId: tripId,

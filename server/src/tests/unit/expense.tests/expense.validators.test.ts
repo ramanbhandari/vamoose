@@ -209,7 +209,7 @@ describe('Expense Validators Middleware', () => {
    *  ─────────────────────────────────────────────────────── */
   describe('Fetch Single Expense Validation', () => {
     it('should pass validation for valid fetchSingleExpense input', async () => {
-      mockReq = { params: { tripId: '1', id: '4' } };
+      mockReq = { params: { tripId: '1', expenseId: '4' } };
 
       const result = await runValidation(mockReq, validateFetchExpense);
 
@@ -217,7 +217,7 @@ describe('Expense Validators Middleware', () => {
     });
 
     it('should fail validation if tripId is not a number for fetchSingleExpense', async () => {
-      mockReq = { params: { tripId: 'abc', id: '10' } };
+      mockReq = { params: { tripId: 'abc', expenseId: '10' } };
 
       const result = await runValidation(mockReq, validateFetchExpense);
 
@@ -230,7 +230,7 @@ describe('Expense Validators Middleware', () => {
     });
 
     it('should fail validation if expense id is not a number', async () => {
-      mockReq = { params: { tripId: '1', id: 'xyz' } };
+      mockReq = { params: { tripId: '1', expenseId: 'xyz' } };
 
       const result = await runValidation(mockReq, validateFetchExpense);
 
@@ -243,7 +243,7 @@ describe('Expense Validators Middleware', () => {
     });
 
     it('should fail validation if both tripId and expense id are not numbers', async () => {
-      mockReq = { params: { tripId: 'abc', id: 'xyz' } };
+      mockReq = { params: { tripId: 'abc', expenseId: 'xyz' } };
 
       const result = await runValidation(mockReq, validateFetchExpense);
 
