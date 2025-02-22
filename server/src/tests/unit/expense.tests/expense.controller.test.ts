@@ -252,13 +252,13 @@ describe('Expense API - Fetch Single Expense', () => {
     } as Partial<Response>;
   });
 
-  const setupRequest = (overrides = {}) => ({
-    params: { tripId: '1', id: '9' }, // Parameters for tripId and expense ID
-    ...overrides, // Additional overrides if provided
+  const setupRequest = (tripId: any, id: any, overrides = {}) => ({
+    params: { tripId: tripId.toString(), id: id.toString() },
+    userId: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
+    ...overrides,
   });
 
   it('should fetch an expense successfully', async () => {
-    // Fake expense data to be returned by the mock
     const fakeExpense = {
       id: 9,
       amount: 100,
@@ -268,16 +268,12 @@ describe('Expense API - Fetch Single Expense', () => {
       tripId: 1,
       paidById: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
     };
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true);
+    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(fakeExpense);
 
-    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(fakeExpense); // Expense exists
-
-    // Set up the mock request using the setupRequest function
-    mockReq = setupRequest();
-
-    // Call the handler function for fetching a single expense
+    mockReq = setupRequest(1, 9);
     await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
 
-    // Assert that the correct status and response were sent back
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expense fetched successfully',
@@ -288,32 +284,38 @@ describe('Expense API - Fetch Single Expense', () => {
   it.each([
     {
       scenario: 'Invalid expenseId',
-      overrides: { params: { tripId: '1', id: 'invalid' } },
+      overrides: { params: { tripId: 1, id: 'invalid' } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip or expense ID',
     },
     {
-      scenario: 'Invalid expenseId',
-      overrides: { params: { tripId: 'invalid', id: '1' } },
+      scenario: 'Invalid tripId',
+      overrides: { params: { tripId: 'invalid', id: 1 } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip or expense ID',
     },
     {
-      scenario: 'Invalid expenseId',
+      scenario: 'Invalid expenseId and tripId',
       overrides: { params: { tripId: 'invalid', id: 'invalid' } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip or expense ID',
     },
     {
+      scenario: 'Missing tripId',
+      overrides: { params: { id: 4 } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip or expense ID',
+    },
+    {
       scenario: 'Missing expenseId',
-      overrides: { params: {} },
+      overrides: { params: { tripId: 1 } },
       expectedStatus: 400,
       expectedMessage: 'Invalid trip or expense ID',
     },
   ])(
     '[$scenario] → should return $expectedStatus',
     async ({ overrides, expectedStatus, expectedMessage }) => {
-      mockReq = setupRequest(overrides);
+      mockReq = setupRequest(1, 9, overrides);
 
       await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
 
@@ -323,7 +325,7 @@ describe('Expense API - Fetch Single Expense', () => {
   );
 
   it('should return 403 if the user is not part of the trip', async () => {
-    mockReq = setupRequest();
+    mockReq = setupRequest(1, 9);
     (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(null); // User is not a member
 
     await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
@@ -335,7 +337,7 @@ describe('Expense API - Fetch Single Expense', () => {
   });
 
   it('should return 500 on an Internal Server Error', async () => {
-    mockReq = setupRequest();
+    mockReq = setupRequest(1, 9);
     (prisma.tripMember.findFirst as jest.Mock).mockRejectedValue(
       new Error('Database error'),
     );

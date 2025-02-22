@@ -142,13 +142,11 @@ export const fetchSingleExpenseHandler = async (
   const paidById = req.params.paidById;
 
   try {
-    // Validate tripId and expenseId
     if (isNaN(tripId) || isNaN(expenseId)) {
       res.status(400).json({ error: 'Invalid trip or expense ID' });
       return;
     }
 
-    // Check if the user is a member of the trip
     const isTripMember = await prisma.tripMember.findFirst({
       where: {
         tripId: tripId,
@@ -173,7 +171,6 @@ export const fetchSingleExpenseHandler = async (
       expense,
     });
   } catch (error) {
-    // Ensure the error handler returns a 500 status code
     console.error('Error fetching expense:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
