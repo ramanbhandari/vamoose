@@ -1,4 +1,4 @@
-import { createInvite, validateInvite, acceptInvite, rejectInvite, deleteInvite } from "../../../controllers/invite.controller.ts";
+import { createInvite, validateInvite, acceptInvite, rejectInvite, deleteInvite } from "../../../controllers/invitee.controller.ts";
 import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from "express";
 import dotenv from 'dotenv';
@@ -90,7 +90,7 @@ describe("Create Invite Handler", () => {
       mockReq = setupRequest();
       (prisma.trip.findUnique as jest.Mock).mockResolvedValue({ id: 1, members: [{ userId: "1", role: "creator" }] });
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({ invitetoken: "existing-token" });
+      (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({ inviteToken: "existing-token" });
   
       await createInvite(mockReq as Request, mockRes as Response);
   
@@ -103,7 +103,7 @@ describe("Create Invite Handler", () => {
   
     it("should create an invite successfully", async () => {
       mockReq = setupRequest();
-      const invite = { invitetoken: "valid-token", email: "test@example.com", tripId: 1, status: "pending" };
+      const invite = { inviteToken: "valid-token", email: "test@example.com", tripId: 1, status: "pending" };
       (prisma.tripInvitee.create as jest.Mock).mockResolvedValue(invite);
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(null);
@@ -112,7 +112,7 @@ describe("Create Invite Handler", () => {
       await createInvite(mockReq as Request, mockRes as Response);
   
       expect(statusMock).toHaveBeenCalledWith(200);
-      expect(jsonMock).toHaveBeenCalledWith({ inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.invitetoken}` });
+      expect(jsonMock).toHaveBeenCalledWith({ inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}` });
     });
   });
 
@@ -150,7 +150,7 @@ describe("Validate Invite Handler", () => {
 
   it("should return 403 if user email does not match with invite", async () => {
     mockReq = setupRequest();
-    const inviteData = { invitetoken: "token", email: "test@example.com", tripId: 1, invitedUserId:"2" };
+    const inviteData = { inviteToken: "token", email: "test@example.com", tripId: 1, invitedUserId:"2" };
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(inviteData);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example1.com" });
 
@@ -162,7 +162,7 @@ describe("Validate Invite Handler", () => {
 
   it("should validate invite successfully", async () => {
     mockReq = setupRequest();
-    const inviteData = { invitetoken: "token", email: "test@example.com", tripId: 1, invitedUserId:"2" };
+    const inviteData = { inviteToken: "token", email: "test@example.com", tripId: 1, invitedUserId:"2" };
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(inviteData);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example.com" });
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({ id: 1, members: [] });
@@ -209,7 +209,7 @@ describe("Accept Invite Handler", () => {
 
   it("should return 403 if user email does not match with invite", async () => {
     mockReq = setupRequest();
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending" , invitedUserId:"1"};
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending" , invitedUserId:"1"};
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example1.com" });
 
@@ -222,7 +222,7 @@ describe("Accept Invite Handler", () => {
 
   it("should return 400 if invite is already accepted", async () => {
     mockReq = setupRequest();
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "accepted" , invitedUserId:"1"};
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "accepted" , invitedUserId:"1"};
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example.com" });
 
@@ -235,7 +235,7 @@ describe("Accept Invite Handler", () => {
 
   it("should accept invite successfully", async () => {
     mockReq = setupRequest();
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending" , invitedUserId:"1"};
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending" , invitedUserId:"1"};
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example.com" });
     prisma.$transaction = jest.fn().mockResolvedValue([
@@ -284,7 +284,7 @@ describe("Reject Invite Handler", () => {
 
   it("should return 403 if user email does not match with invite", async () => {
     mockReq = setupRequest()
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1" };
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1" };
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example1.com" });
 
@@ -296,7 +296,7 @@ describe("Reject Invite Handler", () => {
 
   it("should return 400 if invite is not pending", async () => {
     mockReq = setupRequest()
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "accepted", invitedUserId:"1" };
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "accepted", invitedUserId:"1" };
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example.com" });
 
@@ -308,7 +308,7 @@ describe("Reject Invite Handler", () => {
 
   it("should reject invite successfully", async () => {
     mockReq = setupRequest()
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1" };
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1" };
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "1", email: "test@example.com" });
     (prisma.tripInvitee.update as jest.Mock).mockResolvedValue({});
@@ -354,7 +354,7 @@ describe("Delete Invite Handler", () => {
 
   it("should return 403 if user is not a admin", async () => {
     mockReq = setupRequest();
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1"};
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1"};
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({ tripId: 1, userId: "1", role: "member" });
     (prisma.tripInvitee.delete as jest.Mock).mockResolvedValue({});
@@ -367,7 +367,7 @@ describe("Delete Invite Handler", () => {
 
   it("should delete invite successfully", async () => {
     mockReq = setupRequest();
-    const invite = { invitetoken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1"};
+    const invite = { inviteToken: "token", email: "test@example.com", tripId: 1, status: "pending", invitedUserId:"1"};
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({ tripId: 1, userId: "1", role: "creator" });
     (prisma.tripInvitee.delete as jest.Mock).mockResolvedValue({});

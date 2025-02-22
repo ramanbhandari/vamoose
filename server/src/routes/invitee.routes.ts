@@ -5,10 +5,10 @@ import {
     validateInvite,
     acceptInvite,
     rejectInvite,
-} from "../controllers/invite.controller.ts"
+} from "../controllers/invitee.controller.ts"
 
 import { authMiddleware } from '../middleware/authMiddleware.ts';
-import { validateCreateInviteInput, validateInviteParams } from "../middleware/invite.validators.ts";
+import { validateCreateInviteInput, validateInviteParams } from "../middleware/invitee.validators.ts";
 import validationErrorHandler from "../middleware/validationErrorHandler.ts";
 
 const router = express.Router({ mergeParams: true });

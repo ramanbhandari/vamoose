@@ -2,7 +2,6 @@ import { body, checkExact, param, query } from 'express-validator';
 
 // Validation for Creating an Invite
 export const validateCreateInviteInput = checkExact([
-    body('tripId').isInt().withMessage('Trip ID must be a number'),
     body('email').isEmail().withMessage('Email must be a valid email address'),
     param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
 ]);

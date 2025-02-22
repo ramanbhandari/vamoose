@@ -6,7 +6,7 @@
   - A unique constraint covering the columns `[tripId,email]` on the table `TripInvitee` will be added. If there are existing duplicate values, this will fail.
   - Added the required column `createdBy` to the `TripInvitee` table without a default value. This is not possible if the table is not empty.
   - Added the required column `email` to the `TripInvitee` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `invitetoken` to the `TripInvitee` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `inviteToken` to the `TripInvitee` table without a default value. This is not possible if the table is not empty.
 
 */
 -- DropForeignKey
@@ -18,8 +18,8 @@ DROP COLUMN "userId",
 ADD COLUMN     "createdBy" TEXT NOT NULL,
 ADD COLUMN     "email" TEXT NOT NULL,
 ADD COLUMN     "expiresAt" TIMESTAMP(3),
-ADD COLUMN     "invitetoken" TEXT NOT NULL,
-ADD CONSTRAINT "TripInvitee_pkey" PRIMARY KEY ("invitetoken");
+ADD COLUMN     "inviteToken" TEXT NOT NULL,
+ADD CONSTRAINT "TripInvitee_pkey" PRIMARY KEY ("inviteToken");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "TripInvitee_tripId_email_key" ON "TripInvitee"("tripId", "email");

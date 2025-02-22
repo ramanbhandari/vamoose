@@ -19,10 +19,10 @@ export const createTripInvite = async (inviteData: CreateInviteInput) => {
 };
 
 // to get an invite by token
-export const getInviteByToken = async (invitetoken: string) => {
+export const getInviteByToken = async (inviteToken: string) => {
   try {
     return await prisma.tripInvitee.findUnique({
-      where: { invitetoken },
+      where: { inviteToken },
     });
   } catch (error) {
     console.error('Error getting invite from token:', error);
@@ -33,9 +33,9 @@ export const getInviteByToken = async (invitetoken: string) => {
 
 // to update invite status (accepted, rejected, pending)
 // needs the PrismaPromise for prisma transactions
-export const updateInviteStatus = (invitetoken: string, status: string, inTransaction: boolean = false):PrismaPromise<any> => {
+export const updateInviteStatus = (inviteToken: string, status: string, inTransaction: boolean = false):PrismaPromise<any> => {
   const updateOperation = prisma.tripInvitee.update({
-    where: { invitetoken },
+    where: { inviteToken },
     data: { status },
   });
 
@@ -52,10 +52,10 @@ export const updateInviteStatus = (invitetoken: string, status: string, inTransa
 };
 
 // to attach a user to an invite 
-export const updateInvitedUser = async (invitetoken: string, invitedUserId: string) => {
+export const updateInvitedUser = async (inviteToken: string, invitedUserId: string) => {
   try {
       return await prisma.tripInvitee.update({
-      where: { invitetoken },
+      where: { inviteToken },
       data: { invitedUserId },
     });
   } catch (error) {
@@ -78,10 +78,10 @@ export const getExistingInvite = async (tripId: number, email: string) => {
 };
 
 // delete an invite 
-export const deleteInvite = async (invitetoken: string) => {
+export const deleteInvite = async (inviteToken: string) => {
   try {
     return await prisma.tripInvitee.delete({
-      where: { invitetoken },
+      where: { inviteToken },
     });
   } catch (error) {
     console.error('Error deleting invite:', error);

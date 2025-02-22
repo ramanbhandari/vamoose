@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import prisma from "../config/prismaClient";
+import prisma from "../config/prismaClient.ts";
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { BaseError } from "../utils/errors.ts";
-import TripInvite from "../models/TripInvite.ts";
-import { getUserByEmail, getUserById } from "../models/User.ts";
-import { addTripMember, getTripMember } from "../models/TripMember.ts";
+import TripInvite from "../models/invitee.model.ts";
+import { getUserByEmail, getUserById } from "../models/user.model.ts";
+import { addTripMember, getTripMember } from "../models/member.model.ts";
 import dotenv from 'dotenv';
 import { fetchSingleTrip } from "../models/trip.model.ts";
 import { handleControllerError } from "../utils/errorHandlers.ts";
@@ -36,8 +36,7 @@ export const createInvite = async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid trip ID' });
       return;
     }
-   
-    //TODO get trip using Model when its complete
+
     const trip = await fetchSingleTrip(userId, tripId);
 
     if (!trip) {
@@ -73,7 +72,7 @@ export const createInvite = async (req: Request, res: Response) => {
     const existingInvite = await TripInvite.getExistingInvite(tripId,email);
 
     if (existingInvite) {
-       res.status(400).json({ error: "Invite already exists.",  inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.invitetoken}`});
+       res.status(400).json({ error: "Invite already exists.",  inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.inviteToken}`});
        return;
     }
 
@@ -87,7 +86,7 @@ export const createInvite = async (req: Request, res: Response) => {
     const invite = await TripInvite.createTripInvite(inviteData);
     
     // Return invite URL
-    res.status(200).json({inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.invitetoken}`});
+    res.status(200).json({inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`});
     return;
 
   } catch (error) {
@@ -127,10 +126,9 @@ export const validateInvite = async (req: Request, res: Response) => {
 
     //attach the user to the invite if not already attached
     if(!invite.invitedUserId){
-        invite = await TripInvite.updateInvitedUser(invite.invitetoken, userId);
+        invite = await TripInvite.updateInvitedUser(invite.inviteToken, userId);
     }
 
-    //TODO Fetch trip details using Model when done
     const trip = await fetchSingleTrip(userId, invite.tripId, true);
 
     // Return trip details
@@ -236,7 +234,7 @@ export const rejectInvite = async (req: Request, res: Response) => {
     }
     
     // Update invite status to "rejected"
-    await TripInvite.updateInviteStatus(invite.invitetoken, 'rejected');
+    await TripInvite.updateInviteStatus(invite.inviteToken, 'rejected');
 
     res.status(200).json({ message: "Invite rejected." });
     return;
@@ -274,6 +272,12 @@ export const deleteInvite = async (req: Request, res: Response) => {
         // ensure the delete is called by the admin
         if (!tripMember || !(tripMember.role === 'creator' || tripMember.role === "admin")) {
             res.status(403).json({ error: "Only admin can delete invites." });
+            return;
+        }
+
+        if (invite.status === 'accepted')
+          {
+            res.status(400).json({ error: "Invite already accepted" });
             return;
         }
 

@@ -79,7 +79,7 @@ model TripMember {
 
 // ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
 model TripInvitee {
-  invitetoken String  @id @default(uuid())
+  inviteToken String  @id @default(uuid())
   tripId      Int          
   trip        Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
   email       String  
