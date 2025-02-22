@@ -49,6 +49,8 @@ model Trip {
   endDate     DateTime
   budget      Float?
 
+  imageUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -72,25 +74,25 @@ model TripMember {
   tripId Int
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  role   String @default("member")
+  role   String @default("member") // Possible values: "creator", "admin", "member"
 
   @@id([tripId, userId])
 }
 
 // ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
 model TripInvitee {
-  inviteToken String  @id @default(uuid())
-  tripId      Int          
-  trip        Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  email       String  
-  createdBy   String 
-  creator     User    @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
-  status      String  @default("pending") // Status: pending, accepted, expired
+  inviteToken String    @id @default(uuid())
+  tripId      Int
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  email       String
+  createdBy   String
+  creator     User      @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
+  status      String    @default("pending") // Status: pending, accepted, expired
   expiresAt   DateTime?
 
   // Optional link to the User model if they exist
   invitedUserId String?
-  invitedUser   User?     @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedUser   User?   @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
 
   @@unique([tripId, email])
 }
