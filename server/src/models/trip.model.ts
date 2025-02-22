@@ -25,7 +25,11 @@ export const createTrip = async (tripData: CreateTripInput) => {
 };
 
 // Fetch a single trip by ID
-export const fetchSingleTrip = async (userId: string, tripId: number, allowNonMembersToView: boolean = false) => {
+export const fetchSingleTrip = async (
+  userId: string,
+  tripId: number,
+  allowNonMembersToView: boolean = false,
+) => {
   try {
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
@@ -40,7 +44,8 @@ export const fetchSingleTrip = async (userId: string, tripId: number, allowNonMe
       throw new NotFoundError('Trip not found');
     }
 
-    const isAuthorized = allowNonMembersToView ||
+    const isAuthorized =
+      allowNonMembersToView ||
       trip.createdBy === userId ||
       trip.members.some((m) => m.userId === userId);
 
@@ -79,46 +84,6 @@ export const fetchTripsWithFilters = async (
     throw handlePrismaError(error);
   }
 };
-
-// export const fetchTripByDates = async (
-//   userId: string,
-//   startDate?: string,
-//   endDate?: string,
-// ) => {
-//   try {
-//     const today = new Date();
-//     const conditions: any = {
-//       OR: [{ createdBy: userId }, { members: { some: { userId } } }],
-//     };
-
-//     // Upcoming trips
-//     if (startDate && new Date(startDate) > today) {
-//       conditions.startDate = { gt: today };
-//     }
-//     // Past trips
-//     if (endDate && new Date(endDate) < today) {
-//       conditions.endDate = { lt: today };
-//     }
-
-//     if (startDate && endDate) {
-//       conditions.startDate = { gte: new Date(startDate) };
-//       conditions.endDate = { lte: new Date(endDate) };
-//     }
-
-//     const trips = await prisma.trip.findMany({
-//       where: conditions,
-//       include: {
-//         creator: true,
-//         members: { select: { userId: true } },
-//       },
-//     });
-
-//     return trips;
-//   } catch (error) {
-//     //console.error('Error fetching trips by dates:', error);
-//     throw handlePrismaError(error);
-//   }
-// };
 
 //Update a trip
 export const updateTrip = async (

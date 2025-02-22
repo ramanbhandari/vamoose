@@ -29,6 +29,7 @@ export const validateCreateTripInput = checkExact([
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Budget must be a positive number'),
+  body('imageUrl').optional().isURL().withMessage('Invalid image URL format'),
 ]);
 
 // Validation for Updating a Trip
@@ -63,6 +64,7 @@ export const validateUpdateTripInput = checkExact([
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Budget must be a positive number'),
+  body('imageUrl').optional().isURL().withMessage('Invalid image URL format'),
 ]);
 
 // Validate fetching a single trip
