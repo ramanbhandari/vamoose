@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { addExpense, fetchSingleExpense } from '../models/expense.model.ts';
-import { getTripMember} from '../models/member.model.ts';
+import { getTripMember } from '../models/member.model.ts';
 import {
   getTripMember,
   getManyTripMembers,
