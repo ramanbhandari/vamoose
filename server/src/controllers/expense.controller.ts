@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { addExpense, fetchSingleExpense } from '../models/expense.model';
+import { addExpense, fetchSingleExpense } from '../models/expense.model.ts';
+import { getTripMember} from '../models/member.model.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
@@ -142,17 +143,17 @@ export const fetchSingleExpenseHandler = async (
   const paidById = req.params.paidById;
 
   try {
-    if (isNaN(tripId) || isNaN(expenseId)) {
-      res.status(400).json({ error: 'Invalid trip or expense ID' });
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
       return;
     }
 
-    const isTripMember = await prisma.tripMember.findFirst({
-      where: {
-        tripId: tripId,
-        userId: paidById,
-      },
-    });
+    if (isNaN(expenseId)) {
+      res.status(400).json({ error: 'Invalid expense ID' });
+      return;
+    }
+
+    const isTripMember = await getTripMember(tripId, paidById);
 
     if (!isTripMember) {
       res.status(403).json({ error: 'You are not a member of this trip.' });

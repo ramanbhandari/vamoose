@@ -4,12 +4,13 @@ import {
 } from '../../../controllers/expense.controller.ts';
 import { Request, Response } from 'express';
 import prisma from '../../../config/prismaClient.ts';
+import { getTripMember } from '../../../models/member.model.ts';
 
 jest.mock('../../../config/prismaClient.ts', () => ({
   __esModule: true,
   default: {
     tripMember: {
-      findFirst: jest.fn(),
+      findUnique: jest.fn(),
       findMany: jest.fn(),
     },
     user: {
@@ -19,7 +20,6 @@ jest.mock('../../../config/prismaClient.ts', () => ({
     expense: {
       create: jest.fn(),
       findUnique: jest.fn(),
-      findFirst: jest.fn(),
     },
   },
 }));
@@ -57,7 +57,7 @@ describe('Expense API - Add Expense', () => {
     mockReq = setupRequest();
     const fakeExpense = { id: 1, ...mockReq.body };
 
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true); // mock that User and payer are members of the trip
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true); // mock that User and payer are members of the trip
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
       { userId: 'user1-id' },
       { userId: 'user2-id' },
@@ -117,7 +117,7 @@ describe('Expense API - Add Expense', () => {
 
   it('should return 403 if the paidBy user is not a trip member', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findFirst as jest.Mock)
+    (prisma.tripMember.findUnique as jest.Mock)
       .mockResolvedValueOnce(true) // Requesting user is a member
       .mockResolvedValueOnce(null); // PaidBy user is NOT a member
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'payer-id' }); // PaidBy user exists
@@ -132,7 +132,7 @@ describe('Expense API - Add Expense', () => {
 
   it('should return 403 if request user is not a member of the trip', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(null);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
 
     await addExpenseHandler(mockReq as Request, mockRes as Response);
 
@@ -145,7 +145,7 @@ describe('Expense API - Add Expense', () => {
   it('should return 404 if paidBy user is not found', async () => {
     mockReq = setupRequest();
 
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
     await addExpenseHandler(mockReq as Request, mockRes as Response);
@@ -158,7 +158,7 @@ describe('Expense API - Add Expense', () => {
 
   it('should return 403 if some split members are invalid', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
       { userId: 'user1-id' },
       { userId: 'user2-id' },
@@ -181,7 +181,7 @@ describe('Expense API - Add Expense', () => {
     mockReq = setupRequest();
     mockReq.body.splitAmongEmails = [];
 
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true); // User is a member
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true); // User is a member
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'payer-id' }); // PaidBy user is valid
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
       { userId: 'member1' },
@@ -223,7 +223,7 @@ describe('Expense API - Add Expense', () => {
 
   it('should return 500 on an Internal Server Error', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findFirst as jest.Mock).mockRejectedValue(
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
       new Error('Database error'),
     );
 
@@ -268,7 +268,7 @@ describe('Expense API - Fetch Single Expense', () => {
       tripId: 1,
       paidById: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
     };
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(true);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.expense.findUnique as jest.Mock).mockResolvedValue(fakeExpense);
 
     mockReq = setupRequest(1, 9);
@@ -286,31 +286,25 @@ describe('Expense API - Fetch Single Expense', () => {
       scenario: 'Invalid expenseId',
       overrides: { params: { tripId: 1, id: 'invalid' } },
       expectedStatus: 400,
-      expectedMessage: 'Invalid trip or expense ID',
+      expectedMessage: 'Invalid expense ID',
     },
     {
       scenario: 'Invalid tripId',
       overrides: { params: { tripId: 'invalid', id: 1 } },
       expectedStatus: 400,
-      expectedMessage: 'Invalid trip or expense ID',
-    },
-    {
-      scenario: 'Invalid expenseId and tripId',
-      overrides: { params: { tripId: 'invalid', id: 'invalid' } },
-      expectedStatus: 400,
-      expectedMessage: 'Invalid trip or expense ID',
+      expectedMessage: 'Invalid trip ID',
     },
     {
       scenario: 'Missing tripId',
       overrides: { params: { id: 4 } },
       expectedStatus: 400,
-      expectedMessage: 'Invalid trip or expense ID',
+      expectedMessage: 'Invalid trip ID',
     },
     {
       scenario: 'Missing expenseId',
       overrides: { params: { tripId: 1 } },
       expectedStatus: 400,
-      expectedMessage: 'Invalid trip or expense ID',
+      expectedMessage: 'Invalid expense ID',
     },
   ])(
     '[$scenario] → should return $expectedStatus',
@@ -326,7 +320,7 @@ describe('Expense API - Fetch Single Expense', () => {
 
   it('should return 403 if the user is not part of the trip', async () => {
     mockReq = setupRequest(1, 9);
-    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(null); // User is not a member
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
 
     await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
 
@@ -338,7 +332,7 @@ describe('Expense API - Fetch Single Expense', () => {
 
   it('should return 500 on an Internal Server Error', async () => {
     mockReq = setupRequest(1, 9);
-    (prisma.tripMember.findFirst as jest.Mock).mockRejectedValue(
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
       new Error('Database error'),
     );
 

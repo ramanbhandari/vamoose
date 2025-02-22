@@ -51,20 +51,12 @@ export const addExpense = async ({
 // Fetch Expense by trip and expense ID
 export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
   try {
-    const expense = await prisma.expense.findUnique({
+    const expense = prisma.expense.findFirst({
       where: {
         id: expenseId,
+        tripId: tripId,
       },
     });
-
-    if (!expense) {
-      throw new Error('Expense not found');
-    }
-
-    // Ensure that expense belongs to the correct trip
-    if (expense.tripId !== tripId) {
-      throw new Error('Expense does not belong to the specified trip');
-    }
 
     return expense;
   } catch (error) {
