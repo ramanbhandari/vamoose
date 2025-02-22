@@ -21,6 +21,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
         startDate: start,
         endDate: end,
         budget,
+        imageUrl,
       },
     } = req as AuthenticatedRequest;
 
@@ -66,6 +67,7 @@ export const createTripHandler = async (req: Request, res: Response) => {
       endDate: endDate,
       budget: budget ?? null,
       createdBy: userId,
+      imageUrl: imageUrl ?? null,
     });
 
     res.status(201).json({ message: 'Trip created successfully', trip });

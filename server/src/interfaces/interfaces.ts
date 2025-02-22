@@ -11,16 +11,16 @@ export interface CreateTripInput {
   startDate: Date;
   endDate: Date;
   budget?: number | null;
+  imageUrl?: string | null;
   createdBy: string;
 }
 
 export interface UpdateTripInput
   extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
 
-  
 export interface CreateInviteInput {
-  tripId: number; 
+  tripId: number;
   email: string;
-  createdBy: string; 
+  createdBy: string;
   invitedUserId?: string;
 }
