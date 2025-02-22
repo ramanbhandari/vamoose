@@ -71,12 +71,10 @@ export const createInvite = async (req: Request, res: Response) => {
     const existingInvite = await TripInvite.getExistingInvite(tripId, email);
 
     if (existingInvite) {
-      res
-        .status(400)
-        .json({
-          error: 'Invite already exists.',
-          inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.inviteToken}`,
-        });
+      res.status(400).json({
+        error: 'Invite already exists.',
+        inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.inviteToken}`,
+      });
       return;
     }
 
@@ -90,11 +88,9 @@ export const createInvite = async (req: Request, res: Response) => {
     const invite = await TripInvite.createTripInvite(inviteData);
 
     // Return invite URL
-    res
-      .status(200)
-      .json({
-        inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
-      });
+    res.status(200).json({
+      inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
+    });
     return;
   } catch (error) {
     handleControllerError(error, res, 'Error sending invite:');
@@ -125,11 +121,9 @@ export const validateInvite = async (req: Request, res: Response) => {
 
     // Ensure the logged-in user matches the invitee email
     if (invite.email !== user?.email) {
-      res
-        .status(403)
-        .json({
-          error: `This invite is for ${invite.email}. Please log in with that email.`,
-        });
+      res.status(403).json({
+        error: `This invite is for ${invite.email}. Please log in with that email.`,
+      });
       return;
     }
 

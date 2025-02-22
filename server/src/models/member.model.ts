@@ -69,10 +69,3 @@ export const addTripMember = (
     }) as PrismaPromise<any>;
   }
 };
-
-export default {
-  getTripMember,
-  getManyTripMembers,
-  getManyTripMembersFilteredByUserId,
-  addTripMember,
-};

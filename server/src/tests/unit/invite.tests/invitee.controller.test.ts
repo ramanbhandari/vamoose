@@ -373,19 +373,17 @@ describe('Accept Invite Handler', () => {
       id: '1',
       email: 'test@example.com',
     });
-    prisma.$transaction = jest
-      .fn()
-      .mockResolvedValue([
-        (prisma.tripMember.create as jest.Mock).mockResolvedValue({
-          tripId: 1,
-          userId: '1',
-          role: 'member',
-        }),
-        (prisma.tripInvitee.update as jest.Mock).mockResolvedValue({
-          ...invite,
-          status: 'accepted',
-        }),
-      ]);
+    prisma.$transaction = jest.fn().mockResolvedValue([
+      (prisma.tripMember.create as jest.Mock).mockResolvedValue({
+        tripId: 1,
+        userId: '1',
+        role: 'member',
+      }),
+      (prisma.tripInvitee.update as jest.Mock).mockResolvedValue({
+        ...invite,
+        status: 'accepted',
+      }),
+    ]);
 
     await acceptInvite(mockReq as Request, mockRes as Response);
 
