@@ -159,10 +159,9 @@ describe('Expense API - Add Expense', () => {
   it('should return 403 if some split members are invalid', async () => {
     mockReq = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
-    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValueOnce([
       { userId: 'user1-id' },
-      { userId: 'user2-id' },
-    ]); // mock valid split members
+    ]);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user1-id' });
     (prisma.user.findMany as jest.Mock).mockResolvedValue([
       { id: 'user1-id' },
@@ -173,7 +172,8 @@ describe('Expense API - Add Expense', () => {
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Some users included in the split are not members of this trip.',
+      error:
+        'Some provided emails included in the split are not members of this trip.',
     });
   });
 
@@ -203,9 +203,7 @@ describe('Expense API - Add Expense', () => {
 
     expect(prisma.tripMember.findMany).toHaveBeenCalledWith({
       where: { tripId: 1 },
-      select: { userId: true },
     });
-
     expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expense added successfully',
@@ -221,7 +219,7 @@ describe('Expense API - Add Expense', () => {
     });
   });
 
-  it('should return 500 on an Internal Server Error', async () => {
+  it('should return 500 on unexpected database error', async () => {
     mockReq = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
       new Error('Database error'),
@@ -231,7 +229,116 @@ describe('Expense API - Add Expense', () => {
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Internal Server Error',
+      error: 'An unexpected database error occurred.',
+    });
+  });
+});
+
+describe('Expense API - Fetch Single Expense', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (tripId: any, id: any, overrides = {}) => ({
+    params: { tripId: tripId.toString(), id: id.toString() },
+    userId: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
+    ...overrides,
+  });
+
+  it('should fetch an expense successfully', async () => {
+    const fakeExpense = {
+      id: 9,
+      amount: 100,
+      category: 'Food',
+      description: 'Lunch at a restaurant',
+      createdAt: '2025-02-21T01:22:44.505Z',
+      tripId: 1,
+      paidById: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
+    };
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(fakeExpense);
+
+    mockReq = setupRequest(1, 9);
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Expense fetched successfully',
+      expense: fakeExpense,
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'Invalid expenseId',
+      overrides: { params: { tripId: 1, id: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid expense ID',
+    },
+    {
+      scenario: 'Invalid tripId',
+      overrides: { params: { tripId: 'invalid', id: 1 } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip ID',
+    },
+    {
+      scenario: 'Missing tripId',
+      overrides: { params: { id: 4 } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip ID',
+    },
+    {
+      scenario: 'Missing expenseId',
+      overrides: { params: { tripId: 1 } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid expense ID',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest(1, 9, overrides);
+
+      await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
+
+  it('should return 403 if the user is not part of the trip', async () => {
+    mockReq = setupRequest(1, 9);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip.',
+    });
+  });
+
+  it('should return 500 on an Internal Server Error', async () => {
+    mockReq = setupRequest(1, 9);
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'An unexpected database error occurred.',
     });
   });
 });

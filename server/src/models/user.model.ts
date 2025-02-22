@@ -1,7 +1,7 @@
 import prisma from '../config/prismaClient.ts';
 import { handlePrismaError } from '../utils/errorHandlers.ts';
 
-// get user by email
+// Get user by email
 export const getUserByEmail = async (email: string) => {
   try {
     return await prisma.user.findUnique({
@@ -13,7 +13,7 @@ export const getUserByEmail = async (email: string) => {
   }
 };
 
-// get user by id
+// Get user by ID
 export const getUserById = async (id: string) => {
   try {
     return await prisma.user.findUnique({
@@ -25,4 +25,28 @@ export const getUserById = async (id: string) => {
   }
 };
 
-export default { getUserByEmail, getUserById };
+// Get multiple users by IDs
+export const getUsersByIds = async (ids: string[]) => {
+  try {
+    return await prisma.user.findMany({
+      where: { id: { in: ids } },
+    });
+  } catch (error) {
+    console.error('Error getting users by IDs:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Get multiple users by emails
+export const getUsersByEmails = async (emails: string[]) => {
+  try {
+    return await prisma.user.findMany({
+      where: { email: { in: emails } },
+    });
+  } catch (error) {
+    console.error('Error getting users by emails:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export default { getUserByEmail, getUserById, getUsersByIds, getUsersByEmails };
