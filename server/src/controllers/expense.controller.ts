@@ -123,9 +123,11 @@ export const fetchSingleExpenseHandler = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const { userId } = req as AuthenticatedRequest;
+
   const tripId = Number(req.params.tripId);
   const expenseId = Number(req.params.expenseId);
-  const paidById = req.params.paidById;
+  const paidById = userId;
 
   try {
     if (isNaN(tripId)) {
