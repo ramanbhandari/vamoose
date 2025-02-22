@@ -1,9 +1,14 @@
 import { Request, Response } from 'express';
+import {
+  getTripMember,
+  getManyTripMembers,
+  getManyTripMembersFilteredByUserId,
+} from '../models/member.model.ts';
+import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import { addExpense, fetchSingleExpense } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
-import prisma from '../config/prismaClient.ts';
 
 /**
  * Add an expense to a trip
@@ -35,9 +40,7 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
     }
 
     // Validate that the user is a trip member
-    const isMember = await prisma.tripMember.findFirst({
-      where: { tripId, userId },
-    });
+    const isMember = await getTripMember(tripId, userId);
 
     if (!isMember) {
       throw new ForbiddenError('You are not a member of this trip.');
@@ -46,19 +49,14 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
     // Convert `paidByEmail` to user ID
     let paidByUserId = userId; // Default to authenticated user
     if (paidByEmail) {
-      const paidByUser = await prisma.user.findUnique({
-        where: { email: paidByEmail },
-        select: { id: true },
-      });
+      const paidByUser = await getUserByEmail(paidByEmail);
 
       if (!paidByUser) {
         throw new NotFoundError('The user who paid is not found.');
       }
 
       // Ensure the paidBy user is a trip member
-      const paidByMember = await prisma.tripMember.findFirst({
-        where: { tripId, userId: paidByUser.id },
-      });
+      const paidByMember = await getTripMember(tripId, paidByUser.id);
 
       if (!paidByMember) {
         throw new ForbiddenError(
@@ -74,18 +72,12 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
 
     if (splitAmongEmails.length === 0) {
       // If no specific splitAmong is provided, use all trip members
-      const allMembers = await prisma.tripMember.findMany({
-        where: { tripId },
-        select: { userId: true },
-      });
+      const allMembers = await getManyTripMembers(tripId);
 
       splitAmongUserIds = allMembers.map((member) => member.userId);
     } else {
       // Fetch users from provided emails and validate existence
-      const userRecords = await prisma.user.findMany({
-        where: { email: { in: splitAmongEmails } },
-        select: { id: true },
-      });
+      const userRecords = await getUsersByEmails(splitAmongEmails);
 
       splitAmongUserIds = userRecords.map((user) => user.id);
 
@@ -96,20 +88,14 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
       }
 
       // Validate that all split users are trip members
-      const tripMemberIds = await prisma.tripMember
-        .findMany({
-          where: { tripId, userId: { in: splitAmongUserIds } },
-          select: { userId: true },
-        })
-        .then((members) => members.map((m) => m.userId));
-
-      const nonMembers = splitAmongUserIds.filter(
-        (id) => !tripMemberIds.includes(id),
+      const validTripMembers = await getManyTripMembersFilteredByUserId(
+        tripId,
+        splitAmongUserIds,
       );
 
-      if (nonMembers.length) {
+      if (validTripMembers.length !== splitAmongUserIds.length) {
         throw new ForbiddenError(
-          'Some users included in the split are not members of this trip.',
+          'Some provided emails included in the split are not members of this trip.',
         );
       }
     }
