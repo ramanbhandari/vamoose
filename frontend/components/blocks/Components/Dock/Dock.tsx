@@ -139,7 +139,7 @@ const DockItem = React.forwardRef<HTMLDivElement, DockItemProps>(
         aria-haspopup="true"
       >
         {Children.map(children, (child) =>
-          cloneElement(child as React.ReactElement, { isHovered })
+          cloneElement(child as React.ReactElement)
         )}
       </motion.div>
     );
@@ -238,11 +238,7 @@ export default function Dock({
 
   // When activeIndex changes, scroll the corresponding item into view.
   useEffect(() => {
-    if (
-      activeIndex !== undefined &&
-      itemsRef.current[activeIndex] &&
-      itemsRef.current[activeIndex]!.scrollIntoView
-    ) {
+    if (activeIndex !== undefined && itemsRef.current[activeIndex]) {
       itemsRef.current[activeIndex]!.scrollIntoView({
         behavior: "smooth",
         inline: "center",
@@ -254,11 +250,7 @@ export default function Dock({
   // NEW: Listen for window resize and re-scroll the active item into view.
   useEffect(() => {
     const handleResize = () => {
-      if (
-        activeIndex !== undefined &&
-        itemsRef.current[activeIndex] &&
-        itemsRef.current[activeIndex]!.scrollIntoView
-      ) {
+      if (activeIndex !== undefined && itemsRef.current[activeIndex]) {
         itemsRef.current[activeIndex]!.scrollIntoView({
           behavior: "smooth",
           inline: "center",
@@ -322,7 +314,9 @@ export default function Dock({
               baseItemSize={baseItemSize}
               isDarkMode={isDarkMode}
               // Pass a ref callback to capture the element reference.
-              ref={(el) => (itemsRef.current[index] = el)}
+              ref={(el) => {
+                if (el) itemsRef.current[index] = el;
+              }}
             >
               <DockIcon
                 isActive={index === activeIndex}

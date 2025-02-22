@@ -77,8 +77,6 @@ export default function CreateTrip() {
     currency: "CAD",
   });
 
-  const [tripId, setTripId] = useState<string | null>(null);
-
   useEffect(() => {
     const preloadAssets = async () => {
       // following timeout is added purposely since there's a snap of black screen so we will show skeleton for timeout time
@@ -158,9 +156,8 @@ export default function CreateTrip() {
       const response = await apiClient.post("/trips", payload);
 
       if (response.data.trip.id) {
-        setTripId(response.data.trip.id);
         setActiveStep(steps.length);
-        router.push(`/trips/${tripId}`);
+        router.push(`/trips/${response.data.trip.id}`);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
