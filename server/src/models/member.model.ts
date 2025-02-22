@@ -73,6 +73,6 @@ export const addTripMember = (
 export default {
   getTripMember,
   getManyTripMembers,
-  getManyTripMembersFiltered: getManyTripMembersFilteredByUserId,
+  getManyTripMembersFilteredByUserId,
   addTripMember,
 };
