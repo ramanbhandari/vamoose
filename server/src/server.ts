@@ -4,7 +4,6 @@ import appRouter from './routes/appRouter.ts';
 import prisma from './config/prismaClient.ts';
 import cors from 'cors';
 import connectMongoDB from './db/mongo.js';
-import tripRoutes from './routes/trip.routes.ts';
 
 dotenv.config();
 
