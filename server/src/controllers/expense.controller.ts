@@ -139,14 +139,28 @@ export const fetchSingleExpenseHandler = async (
 ): Promise<void> => {
   const tripId = Number(req.params.tripId);
   const expenseId = Number(req.params.id);
+  const paidById = req.params.paidById;
 
   try {
+    // Validate tripId and expenseId
     if (isNaN(tripId) || isNaN(expenseId)) {
       res.status(400).json({ error: 'Invalid trip or expense ID' });
       return;
     }
 
-    // Fetch the expense using the model function
+    // Check if the user is a member of the trip
+    const isTripMember = await prisma.tripMember.findFirst({
+      where: {
+        tripId: tripId,
+        userId: paidById,
+      },
+    });
+
+    if (!isTripMember) {
+      res.status(403).json({ error: 'You are not a member of this trip.' });
+      return;
+    }
+
     const expense = await fetchSingleExpense(tripId, expenseId);
 
     if (!expense) {
@@ -159,6 +173,8 @@ export const fetchSingleExpenseHandler = async (
       expense,
     });
   } catch (error) {
-    handleControllerError(error, res, 'Error fetching expense:');
+    // Ensure the error handler returns a 500 status code
+    console.error('Error fetching expense:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

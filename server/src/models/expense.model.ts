@@ -61,7 +61,7 @@ export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
       throw new Error('Expense not found');
     }
 
-    // Ensures that expense belongs to the correct trip
+    // Ensure that expense belongs to the correct trip
     if (expense.tripId !== tripId) {
       throw new Error('Expense does not belong to the specified trip');
     }

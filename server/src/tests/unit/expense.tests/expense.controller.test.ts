@@ -1,4 +1,7 @@
-import { addExpenseHandler } from '../../../controllers/expense.controller.ts';
+import {
+  addExpenseHandler,
+  fetchSingleExpenseHandler,
+} from '../../../controllers/expense.controller.ts';
 import { Request, Response } from 'express';
 import prisma from '../../../config/prismaClient.ts';
 
@@ -15,6 +18,8 @@ jest.mock('../../../config/prismaClient.ts', () => ({
     },
     expense: {
       create: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
     },
   },
 }));
@@ -223,6 +228,119 @@ describe('Expense API - Add Expense', () => {
     );
 
     await addExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Internal Server Error',
+    });
+  });
+});
+
+describe('Expense API - Fetch Single Expense', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    params: { tripId: '1', id: '9' }, // Parameters for tripId and expense ID
+    ...overrides, // Additional overrides if provided
+  });
+
+  it('should fetch an expense successfully', async () => {
+    // Fake expense data to be returned by the mock
+    const fakeExpense = {
+      id: 9,
+      amount: 100,
+      category: 'Food',
+      description: 'Lunch at a restaurant',
+      createdAt: '2025-02-21T01:22:44.505Z',
+      tripId: 1,
+      paidById: 'aaa53077-b6b8-4b5e-9361-49a6e759aa86',
+    };
+
+    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(fakeExpense); // Expense exists
+
+    // Set up the mock request using the setupRequest function
+    mockReq = setupRequest();
+
+    // Call the handler function for fetching a single expense
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    // Assert that the correct status and response were sent back
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Expense fetched successfully',
+      expense: fakeExpense,
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'Invalid expenseId',
+      overrides: { params: { tripId: '1', id: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip or expense ID',
+    },
+    {
+      scenario: 'Invalid expenseId',
+      overrides: { params: { tripId: 'invalid', id: '1' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip or expense ID',
+    },
+    {
+      scenario: 'Invalid expenseId',
+      overrides: { params: { tripId: 'invalid', id: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip or expense ID',
+    },
+    {
+      scenario: 'Missing expenseId',
+      overrides: { params: {} },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip or expense ID',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest(overrides);
+
+      await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
+
+  it('should return 403 if the user is not part of the trip', async () => {
+    mockReq = setupRequest();
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue(null); // User is not a member
+
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip.',
+    });
+  });
+
+  it('should return 500 on an Internal Server Error', async () => {
+    mockReq = setupRequest();
+    (prisma.tripMember.findFirst as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
