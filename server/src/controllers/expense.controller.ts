@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { addExpense, fetchSingleExpense } from '../models/expense.model.ts';
-import { getTripMember } from '../models/member.model.ts';
 import {
   getTripMember,
   getManyTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
+import { addExpense, fetchSingleExpense } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
