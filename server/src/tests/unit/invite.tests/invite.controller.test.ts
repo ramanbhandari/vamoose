@@ -27,24 +27,27 @@ describe("Create Invite Handler", () => {
       mockRes = { status: statusMock, json: jsonMock } as Partial<Response>;
     });
   
-    const setupRequest = (userIdOverride = {}, bodyOverrides = {}) => ({
+    const setupRequest = (userIdOverride = {}, bodyOverrides = {}, paramOverride = {}) => ({
       userId: "1",
       ...userIdOverride,
       body: {
         email: "test@example.com",
-        tripId: 1,
         ...bodyOverrides,
+      },
+      params: { 
+        tripId: '1' ,
+      ...paramOverride,
       },
     });
   
     it.each([
       { userIdOverride: { userId: undefined }, bodyOverrides: {}, expectedStatus: 401, expectedMessage: "Unauthorized Request" },
       { userIdOverride: {}, bodyOverrides: { email: "" }, expectedStatus: 400, expectedMessage: "Missing required fields" },
-      { userIdOverride: {}, bodyOverrides: { email:"test@test.com", tripId: "invalid" }, expectedStatus: 400, expectedMessage: "Invalid trip ID" },
+      { userIdOverride: {}, bodyOverrides: {}, paramOverride: { tripId: "invalid" } , expectedStatus: 400, expectedMessage: "Invalid trip ID" },
     ])(
       "should return $expectedStatus when request body is $bodyOverrides",
-      async ({ userIdOverride, bodyOverrides, expectedStatus, expectedMessage }) => {
-        mockReq = setupRequest(userIdOverride, bodyOverrides);
+      async ({ userIdOverride, bodyOverrides, paramOverride, expectedStatus, expectedMessage }) => {
+        mockReq = setupRequest(userIdOverride, bodyOverrides, paramOverride);
         await createInvite(mockReq as Request, mockRes as Response);
         expect(statusMock).toHaveBeenCalledWith(expectedStatus);
         expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -58,12 +61,12 @@ describe("Create Invite Handler", () => {
       await createInvite(mockReq as Request, mockRes as Response);
   
       expect(statusMock).toHaveBeenCalledWith(404);
-      expect(jsonMock).toHaveBeenCalledWith({ error: "Trip not found." });
+      expect(jsonMock).toHaveBeenCalledWith({ error: "Trip not found" });
     });
   
     it("should return 403 if user is not an admin", async () => {
       mockReq = setupRequest();
-      (prisma.trip.findUnique as jest.Mock).mockResolvedValue({ id: 1, members: [{ userId: "2", role: "member" }] });
+      (prisma.trip.findUnique as jest.Mock).mockResolvedValue({ id: 1, createdBy: "1" ,members: [{ userId: "2", role: "member" }] });
   
       await createInvite(mockReq as Request, mockRes as Response);
   
@@ -166,8 +169,8 @@ describe("Validate Invite Handler", () => {
 
     await validateInvite(mockReq as Request, mockRes as Response);
 
-    expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({ trip: { id: 1, members: [] } });
+    expect(statusMock).toHaveBeenCalledWith(200);
   });
 });
 
