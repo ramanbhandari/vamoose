@@ -31,3 +31,13 @@ export const validateAddExpenseInput = checkExact([
     .isEmail()
     .withMessage('Each email in splitAmongEmails must be a valid email'),
 ]);
+
+export const validateFetchExpense = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a valid number'),
+
+  param('expenseId')
+    .isInt({ min: 1 })
+    .withMessage('Expense ID must be a valid number'),
+]);
