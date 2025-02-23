@@ -123,3 +123,17 @@ export const updateTripMember = async (
     throw handlePrismaError(error);
   }
 };
+
+/**
+ * Removes a member from a trip (except the creator)
+ */
+export const deleteTripMember = async (tripId: number, userId: string) => {
+  try {
+    return await prisma.tripMember.delete({
+      where: { tripId_userId: { tripId, userId } },
+    });
+  } catch (error) {
+    console.error('Error removing trip member:', error);
+    throw handlePrismaError(error);
+  }
+};
