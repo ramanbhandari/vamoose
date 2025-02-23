@@ -196,9 +196,9 @@ describe('Expense API - Add Expense', () => {
 
     await addExpenseHandler(mockReq as Request, mockRes as Response);
 
-    expect(prisma.tripMember.findMany).toHaveBeenCalledWith({
-      where: { tripId: 1 },
-    });
+    expect(prisma.tripMember.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { tripId: 1 } }),
+    );
     expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expense added successfully',

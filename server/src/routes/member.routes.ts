@@ -1,13 +1,34 @@
 import express from 'express';
 import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 import { authMiddleware } from '../middleware/authMiddleware.ts';
-import { validateUpdateTripMemberInput } from '../middleware/member.validators.ts';
-import { updateTripMemberHandler } from '../controllers/member.controller.ts';
+import {
+  validateUpdateTripMemberInput,
+  validateFetchSingleTripMember,
+  validateFetchTripMembers,
+} from '../middleware/member.validators.ts';
+import {
+  updateTripMemberHandler,
+  getTripMemberHandler,
+  getTripMembersHandler,
+} from '../controllers/member.controller.ts';
 
 const router = express.Router({ mergeParams: true });
 
 router
-  //  Trip Expense CRUD routes
+  .get(
+    '/',
+    validateFetchTripMembers,
+    validationErrorHandler,
+    authMiddleware,
+    getTripMembersHandler,
+  )
+  .get(
+    '/:userId',
+    validateFetchSingleTripMember,
+    validationErrorHandler,
+    authMiddleware,
+    getTripMemberHandler,
+  )
   .patch(
     '/:userId',
     validateUpdateTripMemberInput,
