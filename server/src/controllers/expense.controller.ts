@@ -127,7 +127,7 @@ export const fetchSingleExpenseHandler = async (
 
   const tripId = Number(req.params.tripId);
   const expenseId = Number(req.params.expenseId);
-  const paidById = userId;
+  const userId = userId;
 
   try {
     if (isNaN(tripId)) {
@@ -140,7 +140,7 @@ export const fetchSingleExpenseHandler = async (
       return;
     }
 
-    const isTripMember = await getTripMember(tripId, paidById);
+    const isTripMember = await getTripMember(tripId, userId);
 
     if (!isTripMember) {
       res.status(403).json({ error: 'You are not a member of this trip.' });
