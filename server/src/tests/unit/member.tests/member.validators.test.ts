@@ -3,6 +3,8 @@ import {
   validateFetchTripMembers,
   validateFetchSingleTripMember,
   validateLeaveTripInput,
+  validateRemoveTripMemberInput,
+  validateBatchRemoveTripMembersInput,
 } from '../../../middleware/member.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
@@ -261,6 +263,208 @@ describe('TripMember Validators Middleware', () => {
         expect.arrayContaining([
           expect.objectContaining({
             msg: 'Trip ID must be a valid positive number',
+          }),
+        ]),
+      );
+    });
+  });
+
+  // validateRemoveTripMemberInput
+  describe('validateRemoveTripMemberInput', () => {
+    it('should pass validation for valid tripId and userId', async () => {
+      mockReq = { params: { tripId: '1', userId: 'user-123' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateRemoveTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail if tripId is missing', async () => {
+      mockReq = { params: { userId: 'user-123' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateRemoveTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a positive number' }),
+        ]),
+      );
+    });
+
+    it('should fail if tripId is not a number', async () => {
+      mockReq = { params: { tripId: 'abc', userId: 'user-123' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateRemoveTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a positive number' }),
+        ]),
+      );
+    });
+
+    it('should fail if userId is missing', async () => {
+      mockReq = { params: { tripId: '1' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateRemoveTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Member user ID is required' }),
+        ]),
+      );
+    });
+
+    it('should fail if userId is empty', async () => {
+      mockReq = { params: { tripId: '1', userId: '' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateRemoveTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Member user ID is required' }),
+        ]),
+      );
+    });
+  });
+
+  // validateBatchRemoveTripMembersInput
+  describe('validateBatchRemoveTripMembersInput', () => {
+    let mockReq: Partial<Request>;
+
+    it('should pass validation for a valid memberUserIds array', async () => {
+      mockReq = { body: { memberUserIds: ['user-123', 'user-456'] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail if memberUserIds is missing', async () => {
+      mockReq = { body: {} };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'memberUserIds must be a non-empty array',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if memberUserIds is not an array', async () => {
+      mockReq = { body: { memberUserIds: 'not-an-array' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'memberUserIds must be a non-empty array',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if memberUserIds array is empty', async () => {
+      mockReq = { body: { memberUserIds: [] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'memberUserIds must be a non-empty array',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if any memberUserId is not a string', async () => {
+      mockReq = { body: { memberUserIds: ['user-123', 123, 'user-456'] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Each memberUserId must be a non-empty string',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if any memberUserId is an empty string', async () => {
+      mockReq = { body: { memberUserIds: ['user-123', '', 'user-456'] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Each memberUserId must be a non-empty string',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if any memberUserId contains only spaces', async () => {
+      mockReq = { body: { memberUserIds: ['user-123', '   ', 'user-456'] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchRemoveTripMembersInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Each memberUserId must be a non-empty string',
           }),
         ]),
       );

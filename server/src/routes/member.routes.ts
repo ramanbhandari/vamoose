@@ -5,12 +5,16 @@ import {
   validateFetchSingleTripMember,
   validateFetchTripMembers,
   validateLeaveTripInput,
+  validateRemoveTripMemberInput,
+  validateBatchRemoveTripMembersInput,
 } from '../middleware/member.validators.ts';
 import {
   updateTripMemberHandler,
   getTripMemberHandler,
   getTripMembersHandler,
   leaveTripHandler,
+  removeTripMemberHandler,
+  batchRemoveTripMembersHandler,
 } from '../controllers/member.controller.ts';
 
 const router = express.Router({ mergeParams: true });
@@ -39,6 +43,18 @@ router
     validateLeaveTripInput,
     validationErrorHandler,
     leaveTripHandler,
+  )
+  .delete(
+    '/:userId',
+    validateRemoveTripMemberInput,
+    validationErrorHandler,
+    removeTripMemberHandler,
+  )
+  .delete(
+    '/',
+    validateBatchRemoveTripMembersInput,
+    validationErrorHandler,
+    batchRemoveTripMembersHandler,
   );
 
 export default router;
