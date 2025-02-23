@@ -7,7 +7,16 @@ import { UpdateTripMemberInput } from '../interfaces/interfaces.ts';
 export const getTripMember = async (tripId: number, userId: string) => {
   try {
     return await prisma.tripMember.findUnique({
-      where: { tripId_userId: { tripId, userId } },
+      where: {
+        tripId_userId: { tripId, userId },
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
   } catch (error) {
     console.error('Error getting the existing trip member:', error);
@@ -16,13 +25,20 @@ export const getTripMember = async (tripId: number, userId: string) => {
 };
 
 // Get multiple trip members by tripId
-export const getManyTripMembers = async (tripId: number) => {
+export const getAllTripMembers = async (tripId: number) => {
   try {
     return await prisma.tripMember.findMany({
       where: { tripId },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
   } catch (error) {
-    console.error('Error getting trip members:', error);
+    console.error('Error fetching trip members:', error);
     throw handlePrismaError(error);
   }
 };
@@ -37,6 +53,13 @@ export const getManyTripMembersFilteredByUserId = async (
       where: {
         tripId,
         userId: { in: userIds }, // Only return trip members that match the provided userIds
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -59,6 +82,13 @@ export const addTripMember = (
       userId,
       role,
     },
+    include: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
   });
 
   if (inTransaction) {
@@ -80,6 +110,13 @@ export const updateTripMember = async (
     return await prisma.tripMember.update({
       where: { tripId_userId: { tripId, userId } },
       data: updateData,
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
   } catch (error) {
     console.error('Error updating trip member:', error);
