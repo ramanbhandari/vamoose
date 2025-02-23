@@ -16,19 +16,13 @@ const router = express.Router({ mergeParams: true });
 
 router
   //  Trip Expense CRUD routes
-  .post(
-    '/',
-    validateAddExpenseInput,
-    validationErrorHandler,
-    addExpenseHandler,
-  )
+  .post('/', validateAddExpenseInput, validationErrorHandler, addExpenseHandler)
 
   // Fetch a single Expense from the Trip
   .get(
     '/:expenseId',
     validateFetchExpense,
     validationErrorHandler,
-    authMiddleware,
     fetchSingleExpenseHandler,
   );
 
