@@ -127,7 +127,6 @@ export const fetchSingleExpenseHandler = async (
 
   const tripId = Number(req.params.tripId);
   const expenseId = Number(req.params.expenseId);
-  const userId = userId;
 
   try {
     if (isNaN(tripId)) {
