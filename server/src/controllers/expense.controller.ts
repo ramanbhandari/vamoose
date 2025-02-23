@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import {
   getTripMember,
-  getManyTripMembers,
+  getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
@@ -72,7 +72,7 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
 
     if (splitAmongEmails.length === 0) {
       // If no specific splitAmong is provided, use all trip members
-      const allMembers = await getManyTripMembers(tripId);
+      const allMembers = await getAllTripMembers(tripId);
 
       splitAmongUserIds = allMembers.map((member) => member.userId);
     } else {

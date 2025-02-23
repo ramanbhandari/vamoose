@@ -1,4 +1,8 @@
-import { validateUpdateTripMemberInput } from '../../../middleware/member.validators.ts';
+import {
+  validateUpdateTripMemberInput,
+  validateFetchTripMembers,
+  validateFetchSingleTripMember,
+} from '../../../middleware/member.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
 
@@ -20,6 +24,7 @@ describe('TripMember Validators Middleware', () => {
     return validationResult(req);
   };
 
+  // Validate Updating a Trip Member Role
   describe('validateUpdateTripMemberRole', () => {
     it('should pass validation for a valid request', async () => {
       mockReq = {
@@ -110,6 +115,88 @@ describe('TripMember Validators Middleware', () => {
         expect.arrayContaining([
           expect.objectContaining({
             msg: 'Role must be either "admin" or "member"',
+          }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Fetching All Trip Members
+  describe('validateFetchTripMembers', () => {
+    it('should pass validation for a valid tripId', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+      };
+
+      const result = await runValidation(mockReq, validateFetchTripMembers);
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: { tripId: 'invalid' },
+      };
+
+      const result = await runValidation(mockReq, validateFetchTripMembers);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a positive number' }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Fetching a Single Trip Member
+  describe('validateFetchSingleTripMember', () => {
+    it('should pass validation for a valid tripId and userId', async () => {
+      mockReq = {
+        params: { tripId: '1', userId: 'user-id' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateFetchSingleTripMember,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: { tripId: 'invalid', userId: 'member-id' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateFetchSingleTripMember,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a positive number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if userId is missing', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateFetchSingleTripMember,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: "Member's User ID must be a valid string",
           }),
         ]),
       );

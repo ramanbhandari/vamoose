@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { updateTripMember, getTripMember } from '../models/member.model.ts';
+import {
+  updateTripMember,
+  getTripMember,
+  getAllTripMembers,
+} from '../models/member.model.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 
@@ -70,5 +74,77 @@ export const updateTripMemberHandler = async (req: Request, res: Response) => {
     });
   } catch (error) {
     handleControllerError(error, res, 'Error updating trip member:');
+  }
+};
+
+/**
+ * Fetch a single trip member
+ */
+export const getTripMemberHandler = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const memberUserId = req.params.userId; // ID of the member to fetch
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({ error: 'You are not a member of this trip' });
+      return;
+    }
+
+    const member = await getTripMember(tripId, memberUserId);
+
+    if (!member) {
+      res.status(404).json({ error: 'Trip member not found' });
+      return;
+    }
+
+    res.status(200).json({ member });
+    return;
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching trip member:');
+  }
+};
+
+/**
+ * Fetch all members of a trip
+ */
+export const getTripMembersHandler = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({ error: 'You are not a member of this trip' });
+      return;
+    }
+
+    const members = await getAllTripMembers(tripId);
+
+    res.status(200).json({ members });
+    return;
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching trip members:');
   }
 };

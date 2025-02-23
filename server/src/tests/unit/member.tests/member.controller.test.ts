@@ -1,4 +1,8 @@
-import { updateTripMemberHandler } from '../../../controllers/member.controller.ts';
+import {
+  updateTripMemberHandler,
+  getTripMemberHandler,
+  getTripMembersHandler,
+} from '../../../controllers/member.controller.ts';
 import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from 'express';
 
@@ -6,6 +10,7 @@ jest.mock('../../../config/prismaClient', () => ({
   __esModule: true,
   default: {
     tripMember: {
+      findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
     },
@@ -127,5 +132,112 @@ describe('Trip Member API - Update Role', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'An unexpected database error occurred.',
     });
+  });
+});
+
+describe('Trip Member API - Fetch Members', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1' },
+    ...overrides,
+  });
+
+  it('should return a single trip member successfully if requester is a member', async () => {
+    mockReq = setupRequest({ params: { tripId: '1', userId: '1' } });
+
+    // Mock trip membership check
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        userId: 'test-user-id',
+        tripId: 1,
+        role: 'member',
+      }) // Requester is a member
+      .mockResolvedValueOnce({ userId: '1', tripId: 1, role: 'admin' }); // Requested user exists
+
+    await getTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      member: { userId: '1', tripId: 1, role: 'admin' },
+    });
+  });
+
+  it('should return 403 if requester is not a member of the trip', async () => {
+    mockReq = setupRequest({ params: { tripId: '1', userId: '1' } });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce(null); // Requester is NOT a member
+
+    await getTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return all members of a trip successfully if requester is a member', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'test-user-id',
+      tripId: 1,
+      role: 'member',
+    });
+
+    const fakeMembers = [
+      { userId: '1', role: 'admin' },
+      { userId: '2', role: 'member' },
+    ];
+
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue(fakeMembers);
+
+    await getTripMembersHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({ members: fakeMembers });
+  });
+
+  it('should return 403 if requester is not a member of the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null); // Requester is NOT a member
+
+    await getTripMembersHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return 404 if a trip member is not found', async () => {
+    mockReq = setupRequest({ params: { tripId: '1', userId: '999' } });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      userId: 'test-user-id',
+      tripId: 1,
+      role: 'member',
+    }); // Requester is a member
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce(null); // Requested member not found
+
+    await getTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip member not found' });
   });
 });
