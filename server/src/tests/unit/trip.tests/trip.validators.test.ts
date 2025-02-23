@@ -4,6 +4,7 @@ import {
   validateDeleteTripInput,
   validateFetchSingleTrip,
   validateFetchTripsWithFilters,
+  validateDeleteMultipleTripsInput,
 } from '../../../middleware/trip.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
@@ -120,6 +121,55 @@ describe('Trip Validators Middleware', () => {
         ]),
       );
     });
+  });
+
+  /** ───────────────────────────────────────────────────────
+   *  DELETE Multiple TRIP VALIDATION TESTS
+   *  ─────────────────────────────────────────────────────── */
+  describe('Delete Trip Validation', () => {
+    it('should pass validation for valid DeleteMultipleTrip input', async () => {
+      mockReq = { body: { tripIds: [1, 2, 3] } };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleTripsInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it.each([
+      {
+        tripIds: 'not-an-array',
+        errorMsg: 'tripIds must be a non-empty array',
+      },
+      { tripIds: [], errorMsg: 'tripIds must be a non-empty array' },
+      {
+        tripIds: [1, 'invalid', 3],
+        errorMsg: 'Each trip ID must be a positive integer',
+      },
+      {
+        tripIds: [0, -1, 5],
+        errorMsg: 'Each trip ID must be a positive integer',
+      },
+      {
+        tripIds: ['1', '2', '3'],
+        errorMsg: 'Each trip ID must be a positive integer',
+      },
+    ])(
+      'should fail validation for invalid input',
+      async ({ tripIds, errorMsg }) => {
+        const result = await runValidation(
+          { body: { tripIds } },
+          validateDeleteMultipleTripsInput,
+        );
+
+        expect(result.isEmpty()).toBe(false);
+        expect(result.array()).toEqual(
+          expect.arrayContaining([expect.objectContaining({ msg: errorMsg })]),
+        );
+      },
+    );
   });
 
   /** ───────────────────────────────────────────────────────

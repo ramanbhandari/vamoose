@@ -23,6 +23,9 @@ jest.mock('../../../config/prismaClient', () => ({
       deleteMany: jest.fn(),
       update: jest.fn(),
     },
+    tripMember: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -114,7 +117,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       userIdOverride: {},
       bodyOverrides: { startDate: 'invalid-date' },
       expectedStatus: 400,
-      expectedMessage: 'Invalid start date or end date format',
+      expectedMessage: 'Invalid start or end date format',
     },
     {
       userIdOverride: {},
@@ -372,6 +375,18 @@ describe('Trip Controller - deleteTripHandler', () => {
 
   it('should delete a trip successfully', async () => {
     mockReq = setupRequest();
+    const tripData = {
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 500,
+      createdBy: '1',
+      members: [{ userId: '1', role: 'creator' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
 
     (prisma.trip.delete as jest.Mock).mockResolvedValue({
       id: 1,
@@ -384,6 +399,29 @@ describe('Trip Controller - deleteTripHandler', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Trip deleted successfully',
       trip: { id: 1, name: 'Deleted Trip' },
+    });
+  });
+
+  it('should return 403 if non-creator tries to delete', async () => {
+    const tripData = {
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 500,
+      createdBy: 'creator-id',
+      members: [{ userId: 'admin-id', role: 'admin' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    mockReq = setupRequest({ userId: 'admin-id' });
+
+    await deleteTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Only the creator can delete this trip',
     });
   });
 
@@ -413,6 +451,9 @@ describe('Trip Controller - deleteTripHandler', () => {
   it('should return 404 if trip is not found', async () => {
     mockReq = setupRequest();
 
+    (prisma.trip.findUnique as jest.Mock).mockRejectedValue(
+      new NotFoundError('Trip not found'),
+    );
     (prisma.trip.delete as jest.Mock).mockRejectedValue(
       new NotFoundError('Trip not found'),
     );
@@ -424,7 +465,19 @@ describe('Trip Controller - deleteTripHandler', () => {
   });
 
   it('should return 500 if database error occurs', async () => {
-    mockReq = setupRequest();
+    mockReq = setupRequest({ userId: 'creator-id' });
+    const tripData = {
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 500,
+      createdBy: 'creator-id',
+      members: [{ userId: 'creator-id', role: 'creator' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
 
     (prisma.trip.delete as jest.Mock).mockRejectedValue(
       new Error('Database error'),
@@ -522,7 +575,7 @@ describe('Trip Controller - deleteMultipleTripsHandler', () => {
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
       error:
-        'No trips deleted. Either they do not exist or you are not authorized.',
+        'No trips deleted. Either they do not exist or you are not authorized to delete them.',
     });
   });
 
@@ -549,7 +602,7 @@ describe('Trip Controller - updateTripHandler', () => {
   let statusMock: jest.Mock;
 
   const setupRequest = (tripId: number, overrides = {}) => ({
-    userId: '1',
+    userId: 'creator-id',
     params: { tripId: tripId.toString() },
     body: {
       name: 'Trip Name',
@@ -571,13 +624,29 @@ describe('Trip Controller - updateTripHandler', () => {
 
   it('should update a trip successfully', async () => {
     mockReq = setupRequest(1);
-
+    const tripData = {
+      id: 1,
+      name: 'Test Trip',
+      description: 'A fun test trip',
+      destination: 'Hawaii',
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+      budget: 800,
+      createdBy: 'creator-id',
+      members: [{ userId: 'creator-id', role: 'creator' }],
+    };
     (prisma.trip.update as jest.Mock).mockResolvedValue({
       id: 1,
       name: 'Updated Trip Name',
       description: 'Updated description',
       budget: 800,
-      createdBy: 1,
+      createdBy: 'creator-id',
+    });
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      createdBy: 'creator-id',
+      tripId: 1,
+      role: 'creator',
     });
 
     await updateTripHandler(mockReq as Request, mockRes as Response);
@@ -590,8 +659,57 @@ describe('Trip Controller - updateTripHandler', () => {
         name: 'Updated Trip Name',
         description: 'Updated description',
         budget: 800,
-        createdBy: 1,
+        createdBy: 'creator-id',
       },
+    });
+  });
+
+  it('should allow admin to update a trip', async () => {
+    const tripData = {
+      id: 1,
+      createdBy: 'creator-id',
+      members: [{ userId: 'admin-id', role: 'admin' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      createdBy: 'admin-id',
+      tripId: 1,
+      role: 'admin',
+    });
+    (prisma.trip.update as jest.Mock).mockResolvedValue({
+      ...tripData,
+      budget: 700,
+    });
+
+    mockReq = setupRequest(1, { userId: 'admin-id' });
+    await updateTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Trip updated successfully',
+      trip: { ...tripData, budget: 700 },
+    });
+  });
+
+  it('should return 403 if member tries to update', async () => {
+    const tripData = {
+      id: 1,
+      createdBy: 'creator-id',
+      members: [{ userId: 'member-id', role: 'member' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      createdBy: 'member-id',
+      tripId: 1,
+      role: 'member',
+    });
+
+    mockReq = setupRequest(1, { userId: 'member-id' });
+    await updateTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Only the creator or an admin can update this trip',
     });
   });
 
@@ -630,17 +748,28 @@ describe('Trip Controller - updateTripHandler', () => {
     mockReq = setupRequest(999); // Non-existent trip ID
 
     (prisma.trip.update as jest.Mock).mockRejectedValue(
-      new NotFoundError('Record not found.'),
+      new NotFoundError('Trip not found'),
     );
 
     await updateTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Record not found.' });
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip not found' });
   });
 
   it('should return 500 if a generic database error occurs', async () => {
     mockReq = setupRequest(1);
+    const tripData = {
+      id: 1,
+      createdBy: 'creator-id',
+      members: [{ userId: 'admin-id', role: 'admin' }],
+    };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      createdBy: 'admin-id',
+      tripId: 1,
+      role: 'admin',
+    });
 
     (prisma.trip.update as jest.Mock).mockRejectedValue(
       new Error('Database failure'),
