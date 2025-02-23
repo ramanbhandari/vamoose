@@ -2,6 +2,7 @@ import {
   updateTripMemberHandler,
   getTripMemberHandler,
   getTripMembersHandler,
+  leaveTripHandler,
 } from '../../../controllers/member.controller.ts';
 import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from 'express';
@@ -13,6 +14,7 @@ jest.mock('../../../config/prismaClient', () => ({
       findMany: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
     },
   },
 }));
@@ -239,5 +241,101 @@ describe('Trip Member API - Fetch Members', () => {
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Trip member not found' });
+  });
+});
+
+describe('Trip Member API - Leave Trip', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'user-id',
+    params: { tripId: '1' },
+    ...overrides,
+  });
+
+  it('should allow a member to leave the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-id',
+      tripId: 1,
+      role: 'member',
+    });
+
+    (prisma.tripMember.delete as jest.Mock).mockResolvedValue({});
+
+    await leaveTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'You have left the trip successfully',
+    });
+  });
+
+  it('should prevent the creator from leaving', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'creator-id',
+      tripId: 1,
+      role: 'creator',
+    });
+
+    await leaveTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Creators cannot leave a trip. Delete the trip instead.',
+    });
+  });
+
+  it('should return 404 if user is not in the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await leaveTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return 400 for invalid trip ID', async () => {
+    mockReq = setupRequest({ params: { tripId: 'invalid' } });
+
+    await leaveTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 500 on a database error', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await leaveTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'An unexpected database error occurred.',
+    });
   });
 });

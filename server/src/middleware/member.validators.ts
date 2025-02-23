@@ -28,3 +28,9 @@ export const validateFetchTripMembers = checkExact([
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a positive number'),
 ]);
+
+export const validateLeaveTripInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a valid positive number'),
+]);

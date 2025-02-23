@@ -5,11 +5,13 @@ import {
   validateUpdateTripMemberInput,
   validateFetchSingleTripMember,
   validateFetchTripMembers,
+  validateLeaveTripInput,
 } from '../middleware/member.validators.ts';
 import {
   updateTripMemberHandler,
   getTripMemberHandler,
   getTripMembersHandler,
+  leaveTripHandler,
 } from '../controllers/member.controller.ts';
 
 const router = express.Router({ mergeParams: true });
@@ -35,6 +37,13 @@ router
     validationErrorHandler,
     authMiddleware,
     updateTripMemberHandler,
+  )
+  .delete(
+    '/leave',
+    validateLeaveTripInput,
+    validationErrorHandler,
+    authMiddleware,
+    leaveTripHandler,
   );
 
 export default router;

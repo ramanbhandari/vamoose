@@ -2,6 +2,7 @@ import {
   validateUpdateTripMemberInput,
   validateFetchTripMembers,
   validateFetchSingleTripMember,
+  validateLeaveTripInput,
 } from '../../../middleware/member.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
@@ -197,6 +198,69 @@ describe('TripMember Validators Middleware', () => {
         expect.arrayContaining([
           expect.objectContaining({
             msg: "Member's User ID must be a valid string",
+          }),
+        ]),
+      );
+    });
+  });
+
+  // Validate leaving a trip
+  describe('validateLeaveTripInput', () => {
+    let mockReq: Partial<Request>;
+
+    const runValidation = async (req: Partial<Request>, validation: any) => {
+      await validation.run(req);
+      return validationResult(req);
+    };
+
+    it('should pass validation for a valid tripId', async () => {
+      mockReq = { params: { tripId: '1' } };
+
+      const result = await runValidation(mockReq, validateLeaveTripInput);
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is missing', async () => {
+      mockReq = { params: {} };
+
+      const result = await runValidation(mockReq, validateLeaveTripInput);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Trip ID must be a valid positive number',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = { params: { tripId: 'invalid' } };
+
+      const result = await runValidation(mockReq, validateLeaveTripInput);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Trip ID must be a valid positive number',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if tripId is negative', async () => {
+      mockReq = { params: { tripId: '-5' } };
+
+      const result = await runValidation(mockReq, validateLeaveTripInput);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Trip ID must be a valid positive number',
           }),
         ]),
       );
