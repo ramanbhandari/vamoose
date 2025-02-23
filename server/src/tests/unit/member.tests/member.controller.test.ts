@@ -424,8 +424,28 @@ describe('Trip Member API - Remove Member', () => {
     });
   });
 
+  it('should return an error if a user tries to remove themselves', async () => {
+    mockReq = setupRequest({
+      userId: 'user-1', // User requesting removal
+      params: { tripId: '1', userId: 'user-1' }, // Trying to remove themselves
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      tripId: 1,
+      role: 'member', // User is a member
+    });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Use the Leave Trip endpoint instead of removing yourself.',
+    });
+  });
+
   it('should return 403 if requester is not an admin or creator', async () => {
-    mockReq = setupRequest({ userId: 'member-id' });
+    mockReq = setupRequest({ userId: 'regular-member-id' });
 
     (prisma.tripMember.findUnique as jest.Mock)
       .mockResolvedValueOnce({ userId: 'member-id', tripId: 1, role: 'member' }) // Requester is a member
@@ -616,6 +636,30 @@ describe('Trip Member API - Batch Remove Members', () => {
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return an error if a user tries to batch remove themselves', async () => {
+    mockReq = setupRequest({
+      userId: 'user-1', // User making request
+      params: { tripId: '1' },
+      body: { memberUserIds: ['user-1', 'user-2', 'user-3'] }, // Includes themselves
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      tripId: 1,
+      role: 'member',
+    });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Use the Leave Trip endpoint instead of removing yourself.',
     });
   });
 

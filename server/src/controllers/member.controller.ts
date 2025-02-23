@@ -233,6 +233,16 @@ export const removeTripMemberHandler = async (req: Request, res: Response) => {
       return;
     }
 
+    // If user is trying to remove themselves, suggest leaving instead
+    if (userId === memberUserId) {
+      return res.status(400).json({
+        error:
+          requester.role === 'creator'
+            ? 'As the creator, you cannot leave the trip. You must delete it instead.'
+            : 'Use the Leave Trip endpoint instead of removing yourself.',
+      });
+    }
+
     // Ensure only creator or admins can remove members
     if (requester.role !== 'creator' && requester.role !== 'admin') {
       res
@@ -305,6 +315,16 @@ export const batchRemoveTripMembersHandler = async (
     if (!requester) {
       res.status(403).json({ error: 'You are not a member of this trip' });
       return;
+    }
+
+    // Check if requester is in the batch and suggest correct action
+    if (memberUserIds.includes(userId)) {
+      return res.status(400).json({
+        error:
+          requester.role === 'creator'
+            ? 'As the creator, you cannot leave the trip. You must delete it instead.'
+            : 'Use the Leave Trip endpoint instead of removing yourself.',
+      });
     }
 
     // Ensure only creator or admins can remove members
