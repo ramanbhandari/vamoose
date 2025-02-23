@@ -3,6 +3,7 @@ import {
   updateTripMember,
   getTripMember,
   getAllTripMembers,
+  deleteTripMember,
 } from '../models/member.model.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -146,5 +147,47 @@ export const getTripMembersHandler = async (req: Request, res: Response) => {
     return;
   } catch (error) {
     handleControllerError(error, res, 'Error fetching trip members:');
+  }
+};
+
+/**
+ * Allows a user to leave a trip.
+ */
+export const leaveTripHandler = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    // Fetch the user's role in the trip
+    const member = await getTripMember(tripId, userId);
+    if (!member) {
+      res.status(404).json({ error: 'You are not a member of this trip' });
+      return;
+    }
+
+    // Prevent the creator from leaving the trip
+    if (member.role === 'creator') {
+      res.status(403).json({
+        error: 'Creators cannot leave a trip. Delete the trip instead.',
+      });
+      return;
+    }
+
+    // Proceed with removal
+    await deleteTripMember(tripId, userId);
+
+    res.status(200).json({ message: 'You have left the trip successfully' });
+  } catch (error) {
+    handleControllerError(error, res, 'Error leaving trip:');
   }
 };
