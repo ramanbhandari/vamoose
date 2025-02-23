@@ -3,6 +3,8 @@ import {
   getTripMemberHandler,
   getTripMembersHandler,
   leaveTripHandler,
+  removeTripMemberHandler,
+  batchRemoveTripMembersHandler,
 } from '../../../controllers/member.controller.ts';
 import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from 'express';
@@ -15,6 +17,8 @@ jest.mock('../../../config/prismaClient', () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
+      deleteMany: jest.fn(),
     },
   },
 }));
@@ -77,7 +81,6 @@ describe('Trip Member API - Update Role', () => {
     },
   );
 
-  // ✅ NEW TEST CASE: Should return 403 if requester is not a member of the trip
   it('should return 403 if requester is not a member of the trip', async () => {
     mockReq = setupRequest();
 
@@ -337,5 +340,418 @@ describe('Trip Member API - Leave Trip', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'An unexpected database error occurred.',
     });
+  });
+});
+
+describe('Trip Member API - Remove Member', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'admin-id', // Default requester is an admin
+    params: { tripId: '1', userId: 'member-id' },
+    ...overrides,
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if trip ID is invalid', async () => {
+    mockReq = setupRequest({
+      params: { tripId: 'invalid', userId: 'member-id' },
+    });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 400 if member user ID is missing', async () => {
+    mockReq = setupRequest({ params: { tripId: '1', userId: undefined } });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Member user ID is required',
+    });
+  });
+
+  it('should return 403 if requester is not a member of the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return 404 if target member does not exist', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'admin-id', tripId: 1, role: 'admin' }) // Requester
+      .mockResolvedValueOnce(null); // Target member not found
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Member not found in this trip',
+    });
+  });
+
+  it('should return an error if a user tries to remove themselves', async () => {
+    mockReq = setupRequest({
+      userId: 'user-1', // User requesting removal
+      params: { tripId: '1', userId: 'user-1' }, // Trying to remove themselves
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      tripId: 1,
+      role: 'member', // User is a member
+    });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Use the Leave Trip endpoint instead of removing yourself.',
+    });
+  });
+
+  it('should return 403 if requester is not an admin or creator', async () => {
+    mockReq = setupRequest({ userId: 'regular-member-id' });
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'member-id', tripId: 1, role: 'member' }) // Requester is a member
+      .mockResolvedValueOnce({
+        userId: 'target-id',
+        tripId: 1,
+        role: 'member',
+      }); // Target is a member
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Only the creator or an admin can remove members',
+    });
+  });
+
+  it('should return 403 if an admin tries to remove another admin', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'admin-id', tripId: 1, role: 'admin' }) // Requester
+      .mockResolvedValueOnce({
+        userId: 'another-admin',
+        tripId: 1,
+        role: 'admin',
+      }); // Target is an admin
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Admins can only remove regular members',
+    });
+  });
+
+  it('should return 403 if trying to remove the creator', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'admin-id', tripId: 1, role: 'admin' }) // Requester is an admin
+      .mockResolvedValueOnce({
+        userId: 'creator-id',
+        tripId: 1,
+        role: 'creator',
+      }); // Target is the creator
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'The creator cannot be removed from the trip',
+    });
+  });
+
+  it('should return 403 if trying to remove the last member', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'admin-id', tripId: 1, role: 'admin' }) // Requester
+      .mockResolvedValueOnce({
+        userId: 'target-id',
+        tripId: 1,
+        role: 'member',
+      }); // Target is a member
+    (prisma.tripMember.count as jest.Mock).mockResolvedValue(1);
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You cannot remove the last member of the trip',
+    });
+  });
+
+  it('should successfully remove a member if all conditions are met', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock)
+      .mockResolvedValueOnce({ userId: 'admin-id', tripId: 1, role: 'admin' }) // Requester
+      .mockResolvedValueOnce({
+        userId: 'target-id',
+        tripId: 1,
+        role: 'member',
+      }); // Target is a member
+    (prisma.tripMember.count as jest.Mock).mockResolvedValue(2);
+
+    (prisma.tripMember.delete as jest.Mock).mockResolvedValue({
+      userId: 'target-id',
+      tripId: 1,
+    });
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Member removed successfully',
+    });
+  });
+
+  it('should return 500 if a database error occurs', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await removeTripMemberHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'An unexpected database error occurred.',
+    });
+  });
+});
+
+describe('Trip Member API - Batch Remove Members', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'admin-id',
+    params: { tripId: '1' },
+    body: { memberUserIds: ['member1', 'member2'] },
+    ...overrides,
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if trip ID is invalid', async () => {
+    mockReq = setupRequest({ params: { tripId: 'invalid' } });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 400 if memberUserIds is not an array', async () => {
+    mockReq = setupRequest({ body: { memberUserIds: 'invalid' } });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'memberUserIds must be a non-empty array',
+    });
+  });
+
+  it('should return 403 if requester is not a trip member', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip',
+    });
+  });
+
+  it('should return an error if a user tries to batch remove themselves', async () => {
+    mockReq = setupRequest({
+      userId: 'user-1', // User making request
+      params: { tripId: '1' },
+      body: { memberUserIds: ['user-1', 'user-2', 'user-3'] }, // Includes themselves
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      tripId: 1,
+      role: 'member',
+    });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Use the Leave Trip endpoint instead of removing yourself.',
+    });
+  });
+
+  it('should return 404 if one or more members do not exist in the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      role: 'admin',
+    });
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([]);
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'No valid members found to remove from the trip',
+      }),
+    );
+  });
+
+  it('should return 403 if admin tries to remove another admin or creator', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      role: 'admin',
+    });
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'admin2', role: 'admin' },
+      { userId: 'member2', role: 'member' },
+    ]);
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Admins can only remove regular members',
+    });
+  });
+
+  it('should return 403 if the creator is being removed', async () => {
+    mockReq = setupRequest({ body: { memberUserIds: ['creator-id'] } });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      role: 'creator',
+    });
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'creator-id', role: 'creator' },
+    ]);
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'The creator cannot be removed from the trip',
+    });
+  });
+
+  it('should successfully remove multiple members', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      role: 'creator',
+    });
+    (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'member1', role: 'member' },
+      { userId: 'member2', role: 'member' },
+    ]);
+    (prisma.tripMember.count as jest.Mock).mockResolvedValue(3);
+    (prisma.tripMember.deleteMany as jest.Mock).mockResolvedValue({ count: 2 });
+
+    await batchRemoveTripMembersHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Batch removal completed',
+        removedMembers: ['member1', 'member2'],
+        ignoredMembers: [],
+      }),
+    );
   });
 });

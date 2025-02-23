@@ -34,3 +34,23 @@ export const validateLeaveTripInput = checkExact([
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a valid positive number'),
 ]);
+
+export const validateRemoveTripMemberInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive number'),
+  param('userId')
+    .isString()
+    .notEmpty()
+    .withMessage('Member user ID is required'),
+]);
+
+export const validateBatchRemoveTripMembersInput = checkExact([
+  body('memberUserIds')
+    .isArray({ min: 1 })
+    .withMessage('memberUserIds must be a non-empty array')
+    .custom((value) =>
+      value.every((id: any) => typeof id === 'string' && id.trim() !== ''),
+    )
+    .withMessage('Each memberUserId must be a non-empty string'),
+]);
