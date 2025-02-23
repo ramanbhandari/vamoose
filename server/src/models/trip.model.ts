@@ -139,7 +139,7 @@ export const deleteMultipleTrips = async (
 
     if (result.count === 0) {
       throw new NotFoundError(
-        'No trips deleted. Either they do not exist or you are not authorized.',
+        'No trips deleted. Either they do not exist or you are not authorized to delete them.',
       );
     }
 

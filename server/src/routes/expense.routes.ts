@@ -1,6 +1,5 @@
 import express from 'express';
 import validationErrorHandler from '../middleware/validationErrorHandler.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
 import { validateAddExpenseInput } from '../middleware/expense.validators.ts';
 
 import { addExpenseHandler } from '../controllers/expense.controller.ts';
@@ -13,7 +12,6 @@ router
     '/',
     validateAddExpenseInput,
     validationErrorHandler,
-    authMiddleware,
     addExpenseHandler,
   );
 

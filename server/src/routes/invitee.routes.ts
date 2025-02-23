@@ -1,22 +1,48 @@
-import express from "express";
+import express from 'express';
 import {
-    createInvite,
-    deleteInvite,
-    validateInvite,
-    acceptInvite,
-    rejectInvite,
-} from "../controllers/invitee.controller.ts"
-
-import { authMiddleware } from '../middleware/authMiddleware.ts';
-import { validateCreateInviteInput, validateInviteParams } from "../middleware/invitee.validators.ts";
-import validationErrorHandler from "../middleware/validationErrorHandler.ts";
+  createInvite,
+  deleteInvite,
+  validateInvite,
+  acceptInvite,
+  rejectInvite,
+} from '../controllers/invitee.controller.ts';
+import {
+  validateCreateInviteInput,
+  validateInviteParams,
+} from '../middleware/invitee.validators.ts';
+import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 
 const router = express.Router({ mergeParams: true });
 
-router.post("/create", validateCreateInviteInput, validationErrorHandler, authMiddleware, createInvite);
-router.get("/validate/:token", validateInviteParams, validationErrorHandler, authMiddleware, validateInvite); 
-router.post("/accept/:token", validateInviteParams, validationErrorHandler, authMiddleware, acceptInvite); 
-router.post("/reject/:token", validateInviteParams, validationErrorHandler, authMiddleware, rejectInvite); 
-router.delete('/delete/:token', validateInviteParams, validationErrorHandler, authMiddleware, deleteInvite);
+router.post(
+  '/create',
+  validateCreateInviteInput,
+  validationErrorHandler,
+  createInvite,
+);
+router.get(
+  '/validate/:token',
+  validateInviteParams,
+  validationErrorHandler,
+  validateInvite,
+);
+router.post(
+  '/accept/:token',
+  validateInviteParams,
+  validationErrorHandler,
+  acceptInvite,
+);
+router.post(
+  '/reject/:token',
+  validateInviteParams,
+  validationErrorHandler,
+  rejectInvite,
+);
+router.delete(
+  '/delete/:token',
+  validateInviteParams,
+  validationErrorHandler,
+  deleteInvite,
+);
 
 export default router;

@@ -1,6 +1,5 @@
 import express from 'express';
 import validationErrorHandler from '../middleware/validationErrorHandler.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
 import {
   validateUpdateTripMemberInput,
   validateFetchSingleTripMember,
@@ -21,28 +20,24 @@ router
     '/',
     validateFetchTripMembers,
     validationErrorHandler,
-    authMiddleware,
     getTripMembersHandler,
   )
   .get(
     '/:userId',
     validateFetchSingleTripMember,
     validationErrorHandler,
-    authMiddleware,
     getTripMemberHandler,
   )
   .patch(
     '/:userId',
     validateUpdateTripMemberInput,
     validationErrorHandler,
-    authMiddleware,
     updateTripMemberHandler,
   )
   .delete(
     '/leave',
     validateLeaveTripInput,
     validationErrorHandler,
-    authMiddleware,
     leaveTripHandler,
   );
 

@@ -100,3 +100,13 @@ export const validateFetchTripsWithFilters = checkExact([
 export const validateDeleteTripInput = checkExact([
   param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
 ]);
+
+export const validateDeleteMultipleTripsInput = checkExact([
+  body('tripIds')
+    .isArray({ min: 1 })
+    .withMessage('tripIds must be a non-empty array')
+    .custom((tripIds) =>
+      tripIds.every((id: number) => Number.isInteger(id) && id > 0),
+    )
+    .withMessage('Each trip ID must be a positive integer'),
+]);
