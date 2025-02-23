@@ -1,4 +1,7 @@
-import { validateAddExpenseInput } from '../../../middleware/expense.validators.ts';
+import {
+  validateAddExpenseInput,
+  validateFetchExpense,
+} from '../../../middleware/expense.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
 
@@ -196,6 +199,59 @@ describe('Expense Validators Middleware', () => {
           expect.objectContaining({
             msg: 'Description must be a string',
           }),
+        ]),
+      );
+    });
+  });
+
+  /** ───────────────────────────────────────────────────────
+   *  FETCH SINGLE EXPENSE VALIDATION TESTS
+   *  ─────────────────────────────────────────────────────── */
+  describe('Fetch Single Expense Validation', () => {
+    it('should pass validation for valid fetchSingleExpense input', async () => {
+      mockReq = { params: { tripId: '1', expenseId: '4' } };
+
+      const result = await runValidation(mockReq, validateFetchExpense);
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number for fetchSingleExpense', async () => {
+      mockReq = { params: { tripId: 'abc', expenseId: '10' } };
+
+      const result = await runValidation(mockReq, validateFetchExpense);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if expense id is not a number', async () => {
+      mockReq = { params: { tripId: '1', expenseId: 'xyz' } };
+
+      const result = await runValidation(mockReq, validateFetchExpense);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Expense ID must be a valid number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if both tripId and expense id are not numbers', async () => {
+      mockReq = { params: { tripId: 'abc', expenseId: 'xyz' } };
+
+      const result = await runValidation(mockReq, validateFetchExpense);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
+          expect.objectContaining({ msg: 'Expense ID must be a valid number' }),
         ]),
       );
     });
