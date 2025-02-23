@@ -1,7 +1,6 @@
 import express from 'express';
 
 import validationErrorHandler from '../middleware/validationErrorHandler.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
 
 import {
   validateAddExpenseInput,
@@ -17,20 +16,13 @@ const router = express.Router({ mergeParams: true });
 
 router
   //  Trip Expense CRUD routes
-  .post(
-    '/',
-    validateAddExpenseInput,
-    validationErrorHandler,
-    authMiddleware,
-    addExpenseHandler,
-  )
+  .post('/', validateAddExpenseInput, validationErrorHandler, addExpenseHandler)
 
   // Fetch a single Expense from the Trip
   .get(
     '/:expenseId',
     validateFetchExpense,
     validationErrorHandler,
-    authMiddleware,
     fetchSingleExpenseHandler,
   );
 
