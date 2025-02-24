@@ -5,7 +5,7 @@ import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 import {
   validateAddExpenseInput,
   validateFetchExpense,
-  validateDeleteExpense,
+  validateDeleteSingleExpense,
 } from '../middleware/expense.validators.ts';
 
 import {
@@ -31,7 +31,7 @@ router
   // Delete a single expense from the trip
   .delete(
     '/:expenseId',
-    validateDeleteExpense,
+    validateDeleteSingleExpense,
     validationErrorHandler,
     deleteSingleExpenseHandler,
   );

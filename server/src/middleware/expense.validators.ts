@@ -41,3 +41,13 @@ export const validateFetchExpense = checkExact([
     .isInt({ min: 1 })
     .withMessage('Expense ID must be a valid number'),
 ]);
+
+export const validateDeleteSingleExpense = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a valid number'),
+  
+  param('expenseId')
+    .isInt({ min: 1 })
+    .withMessage('Expense ID must be a valid number'),
+]);
