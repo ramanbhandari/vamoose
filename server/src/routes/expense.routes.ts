@@ -26,7 +26,7 @@ router
     validateFetchExpense,
     validationErrorHandler,
     fetchSingleExpenseHandler,
-  );
+  )
 
   // Delete a single expense from the trip
   .delete(
