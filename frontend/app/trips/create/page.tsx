@@ -863,7 +863,7 @@ export default function CreateTrip () {
                       globalError !== null
                     }
                   >
-                    {isEditMode ? "Update Trip" : "Create Trip"}
+                    {submitButtonText}
                   </Button>
                 )}
               </Box>
