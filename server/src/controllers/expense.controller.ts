@@ -5,7 +5,7 @@ import {
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
-import { addExpense, fetchSingleExpense } from '../models/expense.model';
+import { addExpense, deleteSingleExpense, fetchSingleExpense } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
@@ -159,5 +159,45 @@ export const fetchSingleExpenseHandler = async (
     });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+/**
+ * Delete a Single Trip (Only the Members can Delete)
+ */
+export const deleteSingleExpenseHandler = async (req: Request, res: Response) => {
+  try{
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const expenseId = Number(req.params.expenseId);
+
+    if (!userId){
+      res.status(401).json({ error: 'Unauthorized request' });
+      return;
+    }
+
+    if (!isNaN(tripId) || isNaN(expenseId)){
+      res.status(400).json({ error: 'Invalid trip ID or expense ID' });
+      return;
+    }
+
+    // Ensure the user is a member of the trip
+    const isMember = await getTripMember(tripId, userId);
+    if (!isMember){
+      throw new ForbiddenError('You are not a member of this trip.');
+    }
+
+    const expense = await fetchSingleExpense(tripId, expenseId);
+    if (!expense){
+      res.status(404).json({ error: 'Expense not found'});
+      return;
+    }
+
+    await deleteSingleExpense(tripId, expenseId);
+    res.status(200).json({ message: 'Expense deleted successfully', });
+
+  } catch(error){
+    handleControllerError(error, res, 'Error deleting expense:');
   }
 };

@@ -5,11 +5,13 @@ import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 import {
   validateAddExpenseInput,
   validateFetchExpense,
+  validateDeleteExpense,
 } from '../middleware/expense.validators.ts';
 
 import {
   addExpenseHandler,
   fetchSingleExpenseHandler,
+  deleteSingleExpenseHandler,
 } from '../controllers/expense.controller.ts';
 
 const router = express.Router({ mergeParams: true });
@@ -24,6 +26,14 @@ router
     validateFetchExpense,
     validationErrorHandler,
     fetchSingleExpenseHandler,
+  );
+
+  // Delete a single expense from the trip
+  .delete(
+    '/:expenseId',
+    validateDeleteExpense,
+    validationErrorHandler,
+    deleteSingleExpenseHandler,
   );
 
 export default router;

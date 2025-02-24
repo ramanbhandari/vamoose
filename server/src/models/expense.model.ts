@@ -64,3 +64,18 @@ export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
     throw handlePrismaError(error);
   }
 };
+
+// Delete a single expense
+export const deleteSingleExpense = async (tripId: number, expenseId: number) => {
+  try{
+    return await prisma.expense.delete({
+      where: {
+        id: expenseId,
+        tripId: tripId,
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    throw handlePrismaError(error);
+  }
+}
