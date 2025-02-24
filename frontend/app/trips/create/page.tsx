@@ -47,14 +47,14 @@ import DestinationField from "./DestinationField";
 import { useRouter } from "next/navigation";
 
 const steps = [
-  { label: "Trip Details", icon: <FlightTakeoff fontSize="large" /> },
-  { label: "Select Dates", icon: <Event fontSize="large" /> },
-  { label: "Review & Confirm", icon: <CheckCircle fontSize="large" /> },
+  { label: "Trip Details", icon: <FlightTakeoff fontSize='large' /> },
+  { label: "Select Dates", icon: <Event fontSize='large' /> },
+  { label: "Review & Confirm", icon: <CheckCircle fontSize='large' /> },
 ];
 
 const backgroundImage = "/dashboard/dashboard_15.jpg";
 
-export default function CreateTrip() {
+export default function CreateTrip () {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -80,7 +80,7 @@ export default function CreateTrip() {
   useEffect(() => {
     const preloadAssets = async () => {
       // following timeout is added purposely since there's a snap of black screen so we will show skeleton for timeout time
-      await new Promise((res) => setTimeout(res, 1000));
+      await new Promise(res => setTimeout(res, 1000));
       await preloadImage(backgroundImage);
       setLoading(false);
     };
@@ -88,7 +88,7 @@ export default function CreateTrip() {
   }, []);
 
   const preloadImage = (url: string) => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(resolve => {
       const img = new window.Image();
       img.src = url;
       img.onload = () => resolve();
@@ -132,13 +132,13 @@ export default function CreateTrip() {
 
     setErrors({});
     setGlobalError(null);
-    setActiveStep((prev) => prev + 1);
+    setActiveStep(prev => prev + 1);
   };
 
   const handleBack = () => {
     setErrors({});
     setGlobalError(null);
-    setActiveStep((prev) => prev - 1);
+    setActiveStep(prev => prev - 1);
   };
 
   const handleCreateTrip = async () => {
@@ -215,9 +215,9 @@ export default function CreateTrip() {
     const theme = useTheme();
 
     const icons: { [index: string]: React.ReactElement } = {
-      1: <FlightTakeoff fontSize="large" />,
-      2: <Event fontSize="large" />,
-      3: <CheckCircle fontSize="large" />,
+      1: <FlightTakeoff fontSize='large' />,
+      2: <Event fontSize='large' />,
+      3: <CheckCircle fontSize='large' />,
     };
 
     return (
@@ -232,13 +232,13 @@ export default function CreateTrip() {
           backgroundColor: completed
             ? theme.palette.primary.main
             : active
-              ? theme.palette.primary.light
-              : theme.palette.background.paper,
+            ? theme.palette.primary.light
+            : theme.palette.background.paper,
           color: completed
             ? "white"
             : active
-              ? "black"
-              : theme.palette.text.secondary,
+            ? "black"
+            : theme.palette.text.secondary,
           transition: "all 0.3s ease",
           boxShadow: active ? `0 0 2px ${theme.palette.primary.main}` : "none",
         }}
@@ -255,10 +255,10 @@ export default function CreateTrip() {
       setTripDetails({ ...tripDetails, startDate: formattedDate });
 
       // Clear error if valid
-      setErrors((prev) => ({ ...prev, startDate: "" }));
+      setErrors(prev => ({ ...prev, startDate: "" }));
       setGlobalError(null);
     } else {
-      setErrors((prev) => ({ ...prev, startDate: "Start Date is required." }));
+      setErrors(prev => ({ ...prev, startDate: "Start Date is required." }));
     }
   };
 
@@ -270,7 +270,7 @@ export default function CreateTrip() {
         tripDetails.startDate &&
         new Date(formattedDate) <= new Date(tripDetails.startDate)
       ) {
-        setErrors((prev) => ({
+        setErrors(prev => ({
           ...prev,
           endDate: "End Date must be after Start Date.",
         }));
@@ -278,11 +278,11 @@ export default function CreateTrip() {
         setTripDetails({ ...tripDetails, endDate: formattedDate });
 
         // Clear error if valid
-        setErrors((prev) => ({ ...prev, endDate: "" }));
+        setErrors(prev => ({ ...prev, endDate: "" }));
         setGlobalError(null);
       }
     } else {
-      setErrors((prev) => ({ ...prev, endDate: "End Date is required." }));
+      setErrors(prev => ({ ...prev, endDate: "End Date is required." }));
     }
   };
 
@@ -296,7 +296,7 @@ export default function CreateTrip() {
 
     if ((rawValue.match(/\./g) || []).length > 1) return;
 
-    setTripDetails((prev) => ({
+    setTripDetails(prev => ({
       ...prev,
       budget: rawValue,
     }));
@@ -308,7 +308,7 @@ export default function CreateTrip() {
     const number = parseFloat(tripDetails.budget);
     if (isNaN(number)) return;
 
-    setTripDetails((prev) => ({
+    setTripDetails(prev => ({
       ...prev,
       budget: number.toFixed(2),
     }));
@@ -352,8 +352,8 @@ export default function CreateTrip() {
                 marginTop: "70px",
               }}
             >
-              <Skeleton variant="text" width="60%" height={50} />
-              <Skeleton variant="text" width="80%" height={20} sx={{ mt: 2 }} />
+              <Skeleton variant='text' width='60%' height={50} />
+              <Skeleton variant='text' width='80%' height={20} sx={{ mt: 2 }} />
             </Box>
           </Grid>
           <Grid
@@ -380,7 +380,7 @@ export default function CreateTrip() {
               }}
             >
               <CardContent>
-                <Skeleton variant="text" width="80%" height={40} />
+                <Skeleton variant='text' width='80%' height={40} />
                 <Box
                   sx={{
                     display: "flex",
@@ -391,7 +391,7 @@ export default function CreateTrip() {
                   {steps.map((_, index) => (
                     <Skeleton
                       key={index}
-                      variant="circular"
+                      variant='circular'
                       width={40}
                       height={40}
                     />
@@ -399,22 +399,22 @@ export default function CreateTrip() {
                 </Box>
 
                 <Box sx={{ mt: 4 }}>
-                  <Skeleton variant="text" width="60%" height={30} />
+                  <Skeleton variant='text' width='60%' height={30} />
                   <Skeleton
-                    variant="rectangular"
-                    width="100%"
+                    variant='rectangular'
+                    width='100%'
                     height={50}
                     sx={{ mt: 2, borderRadius: 2 }}
                   />
                   <Skeleton
-                    variant="rectangular"
-                    width="100%"
+                    variant='rectangular'
+                    width='100%'
                     height={50}
                     sx={{ mt: 2, borderRadius: 2 }}
                   />
                   <Skeleton
-                    variant="rectangular"
-                    width="100%"
+                    variant='rectangular'
+                    width='100%'
                     height={50}
                     sx={{ mt: 2, borderRadius: 2 }}
                   />
@@ -424,14 +424,14 @@ export default function CreateTrip() {
                   sx={{ display: "flex", alignItems: "center", gap: 2, mt: 3 }}
                 >
                   <Skeleton
-                    variant="rectangular"
+                    variant='rectangular'
                     width={80}
                     height={50}
                     sx={{ borderRadius: 2 }}
                   />
                   <Skeleton
-                    variant="rectangular"
-                    width="100%"
+                    variant='rectangular'
+                    width='100%'
                     height={50}
                     sx={{ borderRadius: 2 }}
                   />
@@ -445,14 +445,14 @@ export default function CreateTrip() {
                   }}
                 >
                   <Skeleton
-                    variant="rectangular"
-                    width="45%"
+                    variant='rectangular'
+                    width='45%'
                     height={50}
                     sx={{ borderRadius: 2 }}
                   />
                   <Skeleton
-                    variant="rectangular"
-                    width="45%"
+                    variant='rectangular'
+                    width='45%'
                     height={50}
                     sx={{ borderRadius: 2 }}
                   />
@@ -480,10 +480,10 @@ export default function CreateTrip() {
     >
       <Image
         //src="https://images.unsplash.com/photo-1723403804231-f4e9b515fe9d?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        src="/dashboard/dashboard_15.jpg"
-        alt="Travel Background"
-        layout="fill"
-        objectFit="cover"
+        src='/dashboard/dashboard_15.jpg'
+        alt='Travel Background'
+        layout='fill'
+        objectFit='cover'
         style={{ filter: "brightness(0.7)" }}
       />
 
@@ -534,7 +534,7 @@ export default function CreateTrip() {
               ✈️ Create Your Perfect Trip
             </Typography>
             <Typography
-              variant="h6"
+              variant='h6'
               sx={{
                 fontSize: isMobile ? "1rem" : "1.25rem",
                 mx: { xs: "auto", md: 0 },
@@ -571,7 +571,7 @@ export default function CreateTrip() {
               p: { xs: 2, sm: 4 },
             }}
           >
-            <Tooltip title="Restart" arrow>
+            <Tooltip title='Restart' arrow>
               <IconButton
                 onClick={handleReset}
                 sx={{
@@ -583,7 +583,7 @@ export default function CreateTrip() {
                   },
                 }}
               >
-                <RestartAltIcon fontSize="medium" />
+                <RestartAltIcon fontSize='medium' />
               </IconButton>
             </Tooltip>
 
@@ -605,29 +605,29 @@ export default function CreateTrip() {
               <Box sx={{ mt: 4 }}>
                 {activeStep === 0 && (
                   <>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+                    <Typography variant='h5' sx={{ fontWeight: "bold", mb: 2 }}>
                       Enter Your Trip Details
                     </Typography>
 
                     {globalError && (
-                      <Alert severity="error" sx={{ mb: 2 }}>
+                      <Alert severity='error' sx={{ mb: 2 }}>
                         {globalError}
                       </Alert>
                     )}
 
                     <TextField
                       fullWidth
-                      label="Trip Name"
-                      margin="normal"
+                      label='Trip Name'
+                      margin='normal'
                       required
                       value={tripDetails.name}
-                      onChange={(e) => {
+                      onChange={e => {
                         setTripDetails({
                           ...tripDetails,
                           name: e.target.value,
                         });
                         if (e.target.value.trim()) {
-                          setErrors((prev) => ({ ...prev, name: "" }));
+                          setErrors(prev => ({ ...prev, name: "" }));
                           setGlobalError(null);
                         }
                       }}
@@ -636,12 +636,12 @@ export default function CreateTrip() {
                     />
                     <TextField
                       fullWidth
-                      label="Description (Optional)"
+                      label='Description (Optional)'
                       multiline
                       rows={3}
-                      margin="normal"
+                      margin='normal'
                       value={tripDetails.description}
-                      onChange={(e) =>
+                      onChange={e =>
                         setTripDetails({
                           ...tripDetails,
                           description: e.target.value,
@@ -660,18 +660,18 @@ export default function CreateTrip() {
 
                 {activeStep === 1 && (
                   <>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+                    <Typography variant='h5' sx={{ fontWeight: "bold", mb: 2 }}>
                       Select Trip Dates & Budget
                     </Typography>
                     {globalError && (
-                      <Alert severity="error" sx={{ mb: 2 }}>
+                      <Alert severity='error' sx={{ mb: 2 }}>
                         {globalError}
                       </Alert>
                     )}
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
-                        label="Start Date*"
+                        label='Start Date*'
                         value={
                           tripDetails.startDate
                             ? parseLocalDate(tripDetails.startDate)
@@ -689,7 +689,7 @@ export default function CreateTrip() {
                       />
 
                       <DatePicker
-                        label="End Date*"
+                        label='End Date*'
                         value={
                           tripDetails.endDate
                             ? parseLocalDate(tripDetails.endDate)
@@ -718,25 +718,25 @@ export default function CreateTrip() {
                       <Select
                         value={tripDetails.currency}
                         onChange={handleCurrencyChange}
-                        size="small"
+                        size='small'
                         sx={{ minWidth: 80 }}
                       >
-                        <MenuItem value="CAD">CAD</MenuItem>
-                        <MenuItem value="USD">USD</MenuItem>
-                        <MenuItem value="EUR">EUR</MenuItem>
-                        <MenuItem value="GBP">GBP</MenuItem>
-                        <MenuItem value="INR">INR</MenuItem>
+                        <MenuItem value='CAD'>CAD</MenuItem>
+                        <MenuItem value='USD'>USD</MenuItem>
+                        <MenuItem value='EUR'>EUR</MenuItem>
+                        <MenuItem value='GBP'>GBP</MenuItem>
+                        <MenuItem value='INR'>INR</MenuItem>
                       </Select>
 
                       <TextField
                         fullWidth
-                        label="Budget"
+                        label='Budget'
                         value={tripDetails.budget}
                         onChange={handleBudgetChange}
                         onBlur={handleBudgetBlur}
                         InputProps={{
                           startAdornment: (
-                            <InputAdornment position="start">
+                            <InputAdornment position='start'>
                               {new Intl.NumberFormat("en-US", {
                                 style: "currency",
                                 currency: tripDetails.currency,
@@ -754,11 +754,11 @@ export default function CreateTrip() {
 
                 {activeStep === 2 && (
                   <>
-                    <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+                    <Typography variant='h5' sx={{ fontWeight: "bold", mb: 2 }}>
                       Review Your Trip Details
                     </Typography>
                     <Paper sx={{ p: 3, boxShadow: 3, borderRadius: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                      <Typography variant='h6' sx={{ fontWeight: "bold" }}>
                         {tripDetails.name || "No Name Provided"}
                       </Typography>
                       <Typography sx={{ color: "text.secondary", mb: 1 }}>
@@ -792,20 +792,20 @@ export default function CreateTrip() {
                     <Button
                       disabled={activeStep === 0}
                       onClick={handleBack}
-                      variant="outlined"
+                      variant='outlined'
                     >
                       Back
                     </Button>
                     <Button
-                      variant="contained"
-                      color="primary"
+                      variant='contained'
+                      color='primary'
                       onClick={
                         activeStep === steps.length - 1
                           ? handleCreateTrip
                           : handleNext
                       }
                       disabled={
-                        Object.values(errors).some((error) => error) ||
+                        Object.values(errors).some(error => error) ||
                         globalError !== null
                       }
                     >

@@ -1,9 +1,24 @@
 "use client";
 
-import { Card, Typography, Button, CardMedia, Box } from "@mui/material";
+import {
+  Card,
+  Typography,
+  Button,
+  CardMedia,
+  Box,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import apiClient from "@/utils/apiClient";
 
 interface TripCardProps {
   tripId: number;
@@ -12,6 +27,7 @@ interface TripCardProps {
   endDate: string;
   destination: string;
   imageUrl?: string;
+  onDelete?: (tripId: number) => void; // Optional callback for parent component updates
 }
 
 const defaultImages = [
@@ -68,15 +84,18 @@ const fetchDestinationImage = async (
   }
 };
 
-export default function TripCard({
+export default function TripCard ({
   tripId,
   title,
   startDate,
   endDate,
   destination,
+  onDelete,
 }: TripCardProps) {
   const router = useRouter();
   const [cardImage, setCardImage] = useState<string>(getRandomImage());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   useEffect(() => {
     const loadImage = async () => {
@@ -92,73 +111,148 @@ export default function TripCard({
     router.push(`/trips/${tripId}`);
   };
 
-  return (
-    <Card
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: "250px",
-        borderRadius: 2,
-        overflow: "hidden",
-        transition: "transform 0.2s",
-        "&:hover": {
-          transform: "scale(1.05)",
-          boxShadow: 6,
-        },
-      }}
-    >
-      <CardMedia
-        component="img"
-        image={cardImage}
-        alt={title}
-        sx={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          filter: "brightness(0.7)",
-        }}
-      />
+  const handleEdit = () => {
+    router.push(`/trips/create?edit=${tripId}`);
+  };
 
-      <Box
+  const handleDelete = async () => {
+    if (deleteConfirmation !== title) return;
+
+    try {
+      await apiClient.delete(`/trips/${tripId}`);
+      if (onDelete) {
+        onDelete(tripId);
+      }
+      setDeleteDialogOpen(false);
+      setDeleteConfirmation("");
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+    }
+  };
+
+  return (
+    <>
+      <Card
         sx={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
+          position: "relative",
           width: "100%",
-          p: 2,
-          background:
-            "linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent)",
-          color: "white",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          height: "100%",
+          height: "250px",
+          borderRadius: 2,
+          overflow: "hidden",
+          transition: "transform 0.2s",
+          "&:hover": {
+            transform: "scale(1.05)",
+            boxShadow: 6,
+          },
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          {title}
-        </Typography>
-        <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
-          {destination}
-        </Typography>
-        <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
-        <Button
-          variant="contained"
+        <Box
           sx={{
-            mt: 2,
-            bgcolor: "rgba(255, 255, 255, 0.2)",
-            color: "white",
-            "&:hover": {
-              bgcolor: "primary.main",
-            },
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+            display: "flex",
+            gap: 1,
+            background: "rgba(0,0,0,0.5)",
+            borderRadius: "4px",
+            padding: "2px",
           }}
-          fullWidth
-          onClick={handleViewTrip}
         >
-          View Trip
-        </Button>
-      </Box>
-    </Card>
+          <IconButton size='small' onClick={handleEdit} sx={{ color: "white" }}>
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            size='small'
+            onClick={() => setDeleteDialogOpen(true)}
+            sx={{ color: "white" }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+
+        <CardMedia
+          component='img'
+          image={cardImage}
+          alt={title}
+          sx={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "brightness(0.7)",
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: "100%",
+            p: 2,
+            background:
+              "linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent)",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            height: "100%",
+          }}
+        >
+          <Typography variant='h6' sx={{ fontWeight: 700 }}>
+            {title}
+          </Typography>
+          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
+            {destination}
+          </Typography>
+          <Typography variant='caption'>{`${startDate} – ${endDate}`}</Typography>
+          <Button
+            variant='contained'
+            sx={{
+              mt: 2,
+              bgcolor: "rgba(255, 255, 255, 0.2)",
+              color: "white",
+              "&:hover": {
+                bgcolor: "primary.main",
+              },
+            }}
+            fullWidth
+            onClick={handleViewTrip}
+          >
+            View Trip
+          </Button>
+        </Box>
+      </Card>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Trip</DialogTitle>
+        <DialogContent>
+          <Typography>
+            To delete &quot;{title}&quot;, please type the trip name to confirm:
+          </Typography>
+          <TextField
+            fullWidth
+            value={deleteConfirmation}
+            onChange={e => setDeleteConfirmation(e.target.value)}
+            margin='normal'
+            placeholder={title}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleDelete}
+            disabled={deleteConfirmation !== title}
+            color='error'
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

@@ -11,19 +11,12 @@ import {
   useTheme,
   Skeleton,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Button,
 } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
 import apiClient from "@/utils/apiClient";
 import { format, parseISO } from "date-fns";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 
 const formatDate = (dateString?: string) => {
@@ -76,9 +69,6 @@ export default function Dashboard () {
   const [loading, setLoading] = useState(true);
   const [upcomingTrips, setUpcomingTrips] = useState<Trip[]>([]);
   const [pastTrips, setPastTrips] = useState<Trip[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const router = useRouter();
 
   // this useEffect fetches Trips data and images
@@ -130,22 +120,9 @@ export default function Dashboard () {
     );
   };
 
-  const handleDelete = async () => {
-    if (!tripToDelete || deleteConfirmation !== tripToDelete.name) return;
-
-    try {
-      await apiClient.delete(`/trips/${tripToDelete.id}`);
-
-      // Update the trips lists
-      setUpcomingTrips(trips => trips.filter(t => t.id !== tripToDelete.id));
-      setPastTrips(trips => trips.filter(t => t.id !== tripToDelete.id));
-
-      setDeleteDialogOpen(false);
-      setTripToDelete(null);
-      setDeleteConfirmation("");
-    } catch (error) {
-      console.error("Error deleting trip:", error);
-    }
+  const handleTripDelete = (deletedTripId: number) => {
+    setUpcomingTrips(trips => trips.filter(t => t.id !== deletedTripId));
+    setPastTrips(trips => trips.filter(t => t.id !== deletedTripId));
   };
 
   // skeleton resembling our acutal page
@@ -328,48 +305,14 @@ export default function Dashboard () {
             <Grid container spacing={3}>
               {upcomingTrips.map((trip, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Box sx={{ position: "relative" }}>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        zIndex: 1,
-                        display: "flex",
-                        gap: 1,
-                        background: "rgba(0,0,0,0.5)",
-                        borderRadius: "4px",
-                        padding: "2px",
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        onClick={() =>
-                          router.push(`/trips/create?edit=${trip.id}`)
-                        }
-                        sx={{ color: "white" }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size='small'
-                        onClick={() => {
-                          setTripToDelete(trip);
-                          setDeleteDialogOpen(true);
-                        }}
-                        sx={{ color: "white" }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                    <TripCard
-                      tripId={trip.id}
-                      title={trip.name}
-                      startDate={formatDate(trip.startDate)}
-                      endDate={formatDate(trip.endDate)}
-                      destination={trip.destination}
-                    />
-                  </Box>
+                  <TripCard
+                    tripId={trip.id}
+                    title={trip.name}
+                    startDate={formatDate(trip.startDate)}
+                    endDate={formatDate(trip.endDate)}
+                    destination={trip.destination}
+                    onDelete={handleTripDelete}
+                  />
                 </Grid>
               ))}
             </Grid>
@@ -388,48 +331,14 @@ export default function Dashboard () {
             <Grid container spacing={3}>
               {pastTrips.map((trip, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Box sx={{ position: "relative" }}>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 8,
-                        zIndex: 1,
-                        display: "flex",
-                        gap: 1,
-                        background: "rgba(0,0,0,0.5)",
-                        borderRadius: "4px",
-                        padding: "2px",
-                      }}
-                    >
-                      <IconButton
-                        size='small'
-                        onClick={() =>
-                          router.push(`/trips/create?edit=${trip.id}`)
-                        }
-                        sx={{ color: "white" }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size='small'
-                        onClick={() => {
-                          setTripToDelete(trip);
-                          setDeleteDialogOpen(true);
-                        }}
-                        sx={{ color: "white" }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                    <TripCard
-                      tripId={trip.id}
-                      title={trip.name}
-                      startDate={formatDate(trip.startDate)}
-                      endDate={formatDate(trip.endDate)}
-                      destination={trip.destination}
-                    />
-                  </Box>
+                  <TripCard
+                    tripId={trip.id}
+                    title={trip.name}
+                    startDate={formatDate(trip.startDate)}
+                    endDate={formatDate(trip.endDate)}
+                    destination={trip.destination}
+                    onDelete={handleTripDelete}
+                  />
                 </Grid>
               ))}
             </Grid>
@@ -440,35 +349,6 @@ export default function Dashboard () {
           )}
         </Box>
       </Box>
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Delete Trip</DialogTitle>
-        <DialogContent>
-          <Typography>
-            To delete &quot;{tripToDelete?.name}&quot;, please type the trip name to
-            confirm:
-          </Typography>
-          <TextField
-            fullWidth
-            value={deleteConfirmation}
-            onChange={e => setDeleteConfirmation(e.target.value)}
-            margin='normal'
-            placeholder={tripToDelete?.name}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleteConfirmation !== tripToDelete?.name}
-            color='error'
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
