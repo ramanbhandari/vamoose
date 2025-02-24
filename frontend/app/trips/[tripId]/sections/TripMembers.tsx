@@ -28,7 +28,7 @@ export default function TripMembers() {
       handleOpenInviteModal();
       router.replace(`${pathname}`);
     }
-  }, [searchParams]);
+  }, [pathname, router, searchParams]);
   
   return (
     <>
