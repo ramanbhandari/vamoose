@@ -144,6 +144,16 @@ export default function CreateTrip() {
   const handleCreateTrip = async () => {
     setLoading(true);
     try {
+      const cityName = tripDetails.destination.split(",")[0].trim();
+
+      const wikiResponse = await axios.get(
+        `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&titles=${cityName}&pithumbsize=600`
+      );
+
+      const pages = wikiResponse.data.query.pages;
+      const firstPage = Object.keys(pages)[0];
+      const wikiImage = pages[firstPage]?.thumbnail?.source;
+
       const payload = {
         name: tripDetails.name.trim(),
         description: tripDetails.description.trim(),
@@ -151,6 +161,7 @@ export default function CreateTrip() {
         startDate: tripDetails.startDate,
         endDate: tripDetails.endDate,
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
+        imageUrl: wikiImage ? wikiImage : null,
       };
 
       const response = await apiClient.post("/trips", payload);

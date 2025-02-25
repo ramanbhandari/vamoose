@@ -41,16 +41,8 @@ export default function Navbar() {
 
     // Listen for auth state changes (login/logout)
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          setUser(session.user);
-        } else {
-          setUser(null);
-          // Redirect to login page after logout
-          if (!isLoginPage) {
-            router.push("/login");
-          }
-        }
+      (_event, session) => {
+        setUser(session?.user || null);
       }
     );
 
@@ -58,7 +50,7 @@ export default function Navbar() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [router, isLoginPage]); // Add router and isLoginPage to dependencies
+  }, []);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -71,6 +63,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout();
     setUser(null);
+    router.replace("/login");
   };
 
   return (
@@ -78,7 +71,16 @@ export default function Navbar() {
       <Toolbar className="flex justify-between items-center px-4">
         <Typography
           variant="h4"
-          sx={{ color: "#ffffff", fontFamily: "var(--font-brand)" }}
+          sx={{
+            color: "#ffffff",
+            fontFamily: "var(--font-brand)",
+          }}
+          onClick={() => {
+            if (!isLoginPage) {
+              router.prefetch("/dashboard");
+              router.push("/dashboard");
+            }
+          }}
         >
           <Link href="/"> {!isLoginPage ? "Vamoose!" : " "}</Link>
         </Typography>
