@@ -159,5 +159,6 @@ export const fetchSingleExpenseHandler = async (
     });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
   }
 };
