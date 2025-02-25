@@ -112,7 +112,7 @@ export default function TripCard({
   };
 
   const handleEdit = () => {
-    router.push(`/trips/create?edit=${tripId}`);
+    router.push(`/trips/${tripId}?edit=true`);
   };
 
   const handleDelete = async () => {
@@ -153,19 +153,40 @@ export default function TripCard({
             right: 8,
             zIndex: 1,
             display: "flex",
-            gap: 1,
-            background: "rgba(0,0,0,0.5)",
-            borderRadius: "4px",
+            gap: 0.25,
+            background: "rgba(0,0,0,0)",
+            borderRadius: "20px",
             padding: "2px",
           }}
         >
-          <IconButton size="small" onClick={handleEdit} sx={{ color: "white" }}>
+          <IconButton size="small" onClick={handleEdit} 
+          sx=
+          {{ 
+            background: "none",
+            color: "white", 
+            transition: "transform 0.3s, color 0.5s",
+              "&:hover": {
+                background: "none",
+                transform: "scale(1.2)",
+                color: "var(--accent)",
+              },
+          }}>
             <EditIcon />
           </IconButton>
           <IconButton
+            
             size="small"
             onClick={() => setDeleteDialogOpen(true)}
-            sx={{ color: "white" }}
+            sx={{
+              background: "none",
+              color: "white",
+              transition: "transform 0.3s, color 0.5s",
+              "&:hover": {
+                background: "none",
+                transform: "scale(1.2)",
+                color: "primary.main",
+              },
+            }}
           >
             <DeleteIcon />
           </IconButton>

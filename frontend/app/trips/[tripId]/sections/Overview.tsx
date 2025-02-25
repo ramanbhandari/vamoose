@@ -30,6 +30,7 @@ import {
   Calculate,
   // ArrowForward,
 } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
 import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
 
@@ -118,7 +119,7 @@ const LocationPill = ({ label }: { label: string }) => (
     <Chip
       label={label}
       icon={<FlightLand />}
-      color="secondary"
+      color='secondary'
       sx={{
         px: 3,
         py: 1.5,
@@ -190,13 +191,13 @@ const AdventureCard = ({
         >
           {icon}
         </IconButton>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+        <Typography variant='h5' gutterBottom sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
         <Chip
           label={status}
-          color="secondary"
-          size="medium"
+          color='secondary'
+          size='medium'
           sx={{
             fontWeight: 600,
             px: 2,
@@ -224,12 +225,12 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
       onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <PollIcon color="primary" />
+        <PollIcon color='primary' />
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600 }}>
             {question}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             {votes} votes received
           </Typography>
         </Box>
@@ -238,8 +239,10 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
   </motion.div>
 );
 
-function TripHeader({ tripData }: TripHeaderProps) {
+function TripHeader ({ tripData }: TripHeaderProps) {
   const theme = useTheme();
+
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const BudgetRing = styled(motion.div)({
     position: "relative",
@@ -281,24 +284,40 @@ function TripHeader({ tripData }: TripHeaderProps) {
   return (
     <GradientHeader theme={theme}>
       <Container sx={{ maxHeight: "100vh" }}>
-        <HeaderGrid container alignItems="center" theme={theme}>
+        <HeaderGrid container alignItems='center' theme={theme}>
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="h1"
-                sx={{
-                  fontSize: { xs: "2.5rem", md: "3.5rem" },
-                  fontWeight: 900,
-                  lineHeight: 1.2,
-                  letterSpacing: "-1.5px",
-                  mb: 2,
-                }}
-              >
-                {tripData.name}
-              </Typography>
+              <Box display='flex' alignItems='center' gap={2}>
+                <Typography
+                  variant='h1'
+                  sx={{
+                    fontSize: { xs: "2.5rem", md: "3.5rem" },
+                    fontWeight: 900,
+                    lineHeight: 1.2,
+                    letterSpacing: "-1.5px",
+                    mb: 2,
+                  }}
+                >
+                  {tripData.name}
+                </Typography>
+                <IconButton
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  sx={{
+                    background: "none",
+                    color: "white",
+                    transition: "transform 0.3s, color 0.5s",
+                    "&:hover": {
+                      background: "none",
+                      transform: "scale(1.2)",
+                    },
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Box>
               <Chip
                 label={getTripStatus(tripData.startDate, tripData.endDate)}
-                color="secondary"
+                color='secondary'
                 sx={{
                   borderRadius: 2,
                   //   py: 1,
@@ -309,7 +328,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
               />
             </Box>
 
-            <Grid container spacing={1} alignItems="center">
+            <Grid container spacing={1} alignItems='center'>
               <Grid item xs={12} md={6}>
                 <Box
                   sx={{
@@ -320,10 +339,10 @@ function TripHeader({ tripData }: TripHeaderProps) {
                 >
                   <DateRange sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Departure Date
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    <Typography variant='h5' sx={{ fontWeight: 700 }}>
                       {formatDate(tripData.startDate)}
                     </Typography>
                   </Box>
@@ -340,10 +359,10 @@ function TripHeader({ tripData }: TripHeaderProps) {
                 >
                   <FlightTakeoff sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Return Date
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    <Typography variant='h5' sx={{ fontWeight: 700 }}>
                       {formatDate(tripData.endDate)}
                     </Typography>
                   </Box>
@@ -362,7 +381,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
                 },
               }}
             >
-              {/* <LocationPill
+              {/* <LocationPill 
                 icon={<Flight sx={{ fontSize: "1.2rem" }} />}
                 label={tripData?.from}
                 color={theme.palette.background.paper}
@@ -394,9 +413,9 @@ function TripHeader({ tripData }: TripHeaderProps) {
                     // boxShadow: theme.shadows[4],
                   }}
                 >
-                  <Box textAlign="center">
+                  <Box textAlign='center'>
                     <Typography
-                      variant="h4"
+                      variant='h4'
                       fontWeight={700}
                       color={theme.palette.text.primary}
                       sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
@@ -404,8 +423,8 @@ function TripHeader({ tripData }: TripHeaderProps) {
                       ${tripData.budget?.toLocaleString()}
                     </Typography>
                     <Typography
-                      variant="body2"
-                      color="text.secondary"
+                      variant='body2'
+                      color='text.secondary'
                       sx={{ fontSize: { xs: "0.8rem", md: "1rem" } }}
                     >
                       Total Budget
@@ -421,7 +440,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
   );
 }
 
-export default function TripOverview({
+export default function TripOverview ({
   tripData,
   onSectionChange,
 }: TripOverviewProps) {
@@ -451,7 +470,7 @@ export default function TripOverview({
 
   return (
     <motion.div style={{ scale }}>
-      <Container maxWidth="xl" disableGutters>
+      <Container maxWidth='xl' disableGutters>
         <TripHeader tripData={tripData} />
 
         <Container sx={{ pt: 4 }}>
@@ -460,7 +479,7 @@ export default function TripOverview({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant="h4"
+                    variant='h4'
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -469,10 +488,10 @@ export default function TripOverview({
                       gap: 2,
                     }}
                   >
-                    <Work fontSize="large" />
+                    <Work fontSize='large' />
                     Journey Essentials
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant='body1' color='text.secondary'>
                     Key components of your upcoming adventure
                   </Typography>
                 </Box>
@@ -483,7 +502,9 @@ export default function TripOverview({
                       id: "stays",
                       icon: <Hotel />,
                       title: "Stays",
-                      status: `${tripData?.stays ? tripData.stays.length : 0} Booked`,
+                      status: `${
+                        tripData?.stays ? tripData.stays.length : 0
+                      } Booked`,
                     },
                     {
                       id: "activities",
@@ -518,7 +539,7 @@ export default function TripOverview({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant="h4"
+                    variant='h4'
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -527,15 +548,15 @@ export default function TripOverview({
                       gap: 2,
                     }}
                   >
-                    <Group fontSize="large" />
+                    <Group fontSize='large' />
                     Travel Squad
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant='body1' color='text.secondary'>
                     {tripData?.members.length} adventurers joining the journey
                   </Typography>
                 </Box>
 
-                <Box display="flex" flexWrap="wrap" gap={3} mb={3}>
+                <Box display='flex' flexWrap='wrap' gap={3} mb={3}>
                   {tripData?.members.map((member, index) => (
                     <MemberAvatar key={index} member={member.role} />
                   ))}
@@ -544,8 +565,8 @@ export default function TripOverview({
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <Button
                     fullWidth
-                    variant="contained"
-                    color="secondary"
+                    variant='contained'
+                    color='secondary'
                     startIcon={<GroupAdd />}
                     sx={{
                       borderRadius: 3,
@@ -563,7 +584,7 @@ export default function TripOverview({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant="h4"
+                variant='h4'
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -572,10 +593,10 @@ export default function TripOverview({
                   gap: 2,
                 }}
               >
-                <Calculate fontSize="large" />
+                <Calculate fontSize='large' />
                 Expenses
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant='body1' color='text.secondary'>
                 {tripData.expenses.length} expenses
               </Typography>
             </Box>
@@ -583,8 +604,8 @@ export default function TripOverview({
             <motion.div whileHover={{ scale: 1.05 }}>
               <Button
                 fullWidth
-                variant="contained"
-                color="secondary"
+                variant='contained'
+                color='secondary'
                 sx={{
                   borderRadius: 3,
                   py: 1.5,
@@ -600,7 +621,7 @@ export default function TripOverview({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant="h4"
+                variant='h4'
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -609,10 +630,10 @@ export default function TripOverview({
                   gap: 2,
                 }}
               >
-                <PollIcon fontSize="large" />
+                <PollIcon fontSize='large' />
                 Active Polls
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant='body1' color='text.secondary'>
                 {polls.length} ongoing decisions
               </Typography>
             </Box>
@@ -632,7 +653,7 @@ export default function TripOverview({
           </SectionContainer>
 
           <Typography
-            variant="body1"
+            variant='body1'
             sx={{
               fontStyle: "italic",
               color: "text.secondary",

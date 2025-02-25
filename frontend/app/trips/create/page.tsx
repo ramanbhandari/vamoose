@@ -44,7 +44,7 @@ import Tooltip from "@mui/material/Tooltip";
 
 import Image from "next/image";
 import DestinationField from "./DestinationField";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const steps = [
   { label: "Trip Details", icon: <FlightTakeoff fontSize="large" /> },
@@ -57,7 +57,6 @@ const backgroundImage = "/dashboard/dashboard_15.jpg";
 export default function CreateTrip() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [activeStep, setActiveStep] = useState(0);
   const [tripDetails, setTripDetails] = useState<{
@@ -78,9 +77,6 @@ export default function CreateTrip() {
     currency: "CAD",
   });
 
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [tripId, setTripId] = useState<number | null>(null);
-
   useEffect(() => {
     const preloadAssets = async () => {
       // following timeout is added purposely since there's a snap of black screen so we will show skeleton for timeout time
@@ -90,15 +86,6 @@ export default function CreateTrip() {
     };
     preloadAssets();
   }, []);
-
-  useEffect(() => {
-    const editTripId = searchParams.get("edit");
-    if (editTripId) {
-      setIsEditMode(true);
-      setTripId(Number(editTripId));
-      fetchTripDetails(Number(editTripId));
-    }
-  }, [searchParams]);
 
   const preloadImage = (url: string) => {
     return new Promise<void>((resolve) => {
@@ -166,14 +153,9 @@ export default function CreateTrip() {
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
       };
 
-      let response;
-      if (isEditMode && tripId) {
-        response = await apiClient.patch(`/trips/${tripId}`, payload);
-      } else {
-        response = await apiClient.post("/trips", payload);
-      }
+      const response = await apiClient.post("/trips", payload);
 
-      if (response?.data.trip.id) {
+      if (response.data.trip.id) {
         setActiveStep(steps.length);
         router.push(`/trips/${response.data.trip.id}`);
       }
@@ -184,10 +166,8 @@ export default function CreateTrip() {
           error.response?.status,
           error.response?.data
         );
-        setGlobalError(error.response?.data?.error || "An error occurred");
       } else {
         console.error("Unexpected error:", error);
-        setGlobalError("An unexpected error occurred");
       }
     } finally {
       setLoading(false);
@@ -337,30 +317,6 @@ export default function CreateTrip() {
   const handleCurrencyChange = (event: SelectChangeEvent) => {
     setTripDetails({ ...tripDetails, currency: event.target.value });
   };
-
-  const fetchTripDetails = async (id: number) => {
-    try {
-      const response = await apiClient.get(`/trips/${id}`);
-      const trip = response.data.trip;
-
-      setTripDetails({
-        name: trip.name,
-        description: trip.description || "",
-        destination: trip.destination,
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-        budget: trip.budget?.toString() || "",
-        currency: trip.currency || "CAD",
-      });
-    } catch (error) {
-      console.error("Error fetching trip details:", error);
-      setGlobalError("Failed to fetch trip details");
-    }
-  };
-
-  const pageTitle = isEditMode ? "Edit Your Trip" : "Create Your Perfect Trip";
-  const submitButtonText = isEditMode ? "Update Trip" : "Create Trip";
-
   // if its loading, show skeleton resembling the page closely
   if (loading) {
     return (
@@ -575,7 +531,7 @@ export default function CreateTrip() {
                 textShadow: "3px 3px 8px rgba(0,0,0,0.7)",
               }}
             >
-              ✈️ {pageTitle}
+              ✈️ Create Your Perfect Trip
             </Typography>
             <Typography
               variant="h6"
@@ -831,40 +787,31 @@ export default function CreateTrip() {
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}
               >
-                <Button
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                  variant="outlined"
-                >
-                  Back
-                </Button>
-
-                {activeStep < steps.length - 1 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleNext}
-                    disabled={
-                      Object.values(errors).some((error) => error) ||
-                      globalError !== null
-                    }
-                  >
-                    Next
-                  </Button>
-                )}
-
-                {activeStep === steps.length - 1 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleCreateTrip}
-                    disabled={
-                      Object.values(errors).some((error) => error) ||
-                      globalError !== null
-                    }
-                  >
-                    {submitButtonText}
-                  </Button>
+                {activeStep != steps.length && (
+                  <>
+                    <Button
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                      variant="outlined"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={
+                        activeStep === steps.length - 1
+                          ? handleCreateTrip
+                          : handleNext
+                      }
+                      disabled={
+                        Object.values(errors).some((error) => error) ||
+                        globalError !== null
+                      }
+                    >
+                      {activeStep === steps.length - 1 ? "Finish" : "Next"}
+                    </Button>
+                  </>
                 )}
               </Box>
             </CardContent>
