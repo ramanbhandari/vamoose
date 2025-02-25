@@ -52,7 +52,7 @@ export const validateDeleteSingleExpense = checkExact([
     .withMessage('Expense ID must be a valid number'),
 ]);
 
-export const validateDeleteMultipleExpense = checkExact([
+export const validateDeleteMultipleExpenses = checkExact([
   param('tripId')
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a valid number'),

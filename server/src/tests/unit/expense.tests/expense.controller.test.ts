@@ -2,7 +2,7 @@ import {
   addExpenseHandler,
   fetchSingleExpenseHandler,
   deleteSingleExpenseHandler,
-  deleteMultipleExpenseHandler,
+  deleteMultipleExpensesHandler,
 } from '../../../controllers/expense.controller.ts';
 import { Request, Response } from 'express';
 import prisma from '../../../config/prismaClient.ts';
@@ -516,7 +516,7 @@ describe('Expense API - Delete Multiple Expense', () => {
       count: 3,
     });
 
-    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
     
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -549,7 +549,7 @@ describe('Expense API - Delete Multiple Expense', () => {
       async ({ overrides, expectedStatus, expectedMessage }) => {
         mockReq = setupRequest(overrides);
   
-        await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+        await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
   
         expect(statusMock).toHaveBeenCalledWith(expectedStatus);
         expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -561,7 +561,7 @@ describe('Expense API - Delete Multiple Expense', () => {
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
 
     (prisma.expense.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
-    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -577,7 +577,7 @@ describe('Expense API - Delete Multiple Expense', () => {
       new Error('Database error'),
     );
 
-    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({

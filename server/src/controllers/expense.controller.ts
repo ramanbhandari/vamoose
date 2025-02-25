@@ -5,7 +5,7 @@ import {
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
-import { addExpense, deleteSingleExpense, fetchSingleExpense, deleteMultipleExpense } from '../models/expense.model';
+import { addExpense, deleteSingleExpense, fetchSingleExpense, deleteMultipleExpenses } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
@@ -210,7 +210,7 @@ export const deleteSingleExpenseHandler = async (req: Request, res: Response) =>
 /**
  * Delete Multiple Expenses from a trip (Only the Members can Delete)
  */
-export const deleteMultipleExpenseHandler = async (req: Request, res: Response) => {
+export const deleteMultipleExpensesHandler = async (req: Request, res: Response) => {
   try {
     const { userId, body: { expenseIds } } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
@@ -236,7 +236,7 @@ export const deleteMultipleExpenseHandler = async (req: Request, res: Response) 
       return;
     }
 
-    const result = await deleteMultipleExpense(tripId, expenseIds);
+    const result = await deleteMultipleExpenses(tripId, expenseIds);
 
     res.status(200).json({
       message: 'Expenses deleted successfully',

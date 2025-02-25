@@ -2,7 +2,7 @@ import {
   validateAddExpenseInput,
   validateFetchExpense,
   validateDeleteSingleExpense,
-  validateDeleteMultipleExpense,
+  validateDeleteMultipleExpenses,
 } from '../../../middleware/expense.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
@@ -305,7 +305,7 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 2, 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpense);
+      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
       expect(result.isEmpty()).toBe(true);
     });
 
@@ -315,7 +315,7 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 2, 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpense);
+      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
@@ -330,7 +330,7 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: 'not-an-array' },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpense);
+      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
@@ -345,7 +345,7 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpense);
+      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
@@ -360,7 +360,7 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 'invalid', 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpense);
+      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([

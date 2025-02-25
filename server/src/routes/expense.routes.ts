@@ -6,14 +6,14 @@ import {
   validateAddExpenseInput,
   validateFetchExpense,
   validateDeleteSingleExpense,
-  validateDeleteMultipleExpense,
+  validateDeleteMultipleExpenses,
 } from '../middleware/expense.validators.ts';
 
 import {
   addExpenseHandler,
   fetchSingleExpenseHandler,
   deleteSingleExpenseHandler,
-  deleteMultipleExpenseHandler,
+  deleteMultipleExpensesHandler,
 } from '../controllers/expense.controller.ts';
 
 const router = express.Router({ mergeParams: true });
@@ -41,9 +41,9 @@ router
   // Delete multiple expenses from trip
   .delete(
     '/',
-    validateDeleteMultipleExpense,
+    validateDeleteMultipleExpenses,
     validationErrorHandler,
-    deleteMultipleExpenseHandler,
+    deleteMultipleExpensesHandler,
   );
 
 export default router;

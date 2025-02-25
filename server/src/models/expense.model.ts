@@ -82,7 +82,7 @@ export const deleteSingleExpense = async (tripId: number, expenseId: number) => 
 }
 
 // Delete multiple expenses
-export const deleteMultipleExpense = async (tripId: number, expenseIds: number[]) => {
+export const deleteMultipleExpenses = async (tripId: number, expenseIds: number[]) => {
   try {
     const result = await prisma.expense.deleteMany({
       where: {
