@@ -84,7 +84,7 @@ const fetchDestinationImage = async (
   }
 };
 
-export default function TripCard ({
+export default function TripCard({
   tripId,
   title,
   startDate,
@@ -159,11 +159,11 @@ export default function TripCard ({
             padding: "2px",
           }}
         >
-          <IconButton size='small' onClick={handleEdit} sx={{ color: "white" }}>
+          <IconButton size="small" onClick={handleEdit} sx={{ color: "white" }}>
             <EditIcon />
           </IconButton>
           <IconButton
-            size='small'
+            size="small"
             onClick={() => setDeleteDialogOpen(true)}
             sx={{ color: "white" }}
           >
@@ -172,7 +172,7 @@ export default function TripCard ({
         </Box>
 
         <CardMedia
-          component='img'
+          component="img"
           image={cardImage}
           alt={title}
           sx={{
@@ -200,15 +200,15 @@ export default function TripCard ({
             height: "100%",
           }}
         >
-          <Typography variant='h6' sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             {title}
           </Typography>
-          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
             {destination}
           </Typography>
-          <Typography variant='caption'>{`${startDate} – ${endDate}`}</Typography>
+          <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
           <Button
-            variant='contained'
+            variant="contained"
             sx={{
               mt: 2,
               bgcolor: "rgba(255, 255, 255, 0.2)",
@@ -237,8 +237,8 @@ export default function TripCard ({
           <TextField
             fullWidth
             value={deleteConfirmation}
-            onChange={e => setDeleteConfirmation(e.target.value)}
-            margin='normal'
+            onChange={(e) => setDeleteConfirmation(e.target.value)}
+            margin="normal"
             placeholder={title}
           />
         </DialogContent>
@@ -247,7 +247,7 @@ export default function TripCard ({
           <Button
             onClick={handleDelete}
             disabled={deleteConfirmation !== title}
-            color='error'
+            color="error"
           >
             Delete
           </Button>

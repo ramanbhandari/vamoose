@@ -7,7 +7,7 @@ const AnimatedMenuIcon = ({
 }) => {
   return (
     <div
-      className='w-4 h-4 p-1 cursor-pointer relative flex items-center justify-center gap-1' 
+      className="w-4 h-4 p-1 cursor-pointer relative flex items-center justify-center gap-1"
       onClick={onClick}
     >
       <span

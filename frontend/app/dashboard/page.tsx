@@ -62,7 +62,7 @@ interface Trip {
   destination: string;
 }
 
-export default function Dashboard () {
+export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   // set loading true so we can first load everything before we show the whole page
@@ -109,8 +109,8 @@ export default function Dashboard () {
   const preloadImages = (urls: string[]): Promise<void[]> => {
     return Promise.all(
       urls.map(
-        url =>
-          new Promise<void>(resolve => {
+        (url) =>
+          new Promise<void>((resolve) => {
             const img = new window.Image();
             img.src = url;
             img.onload = () => resolve();
@@ -121,8 +121,8 @@ export default function Dashboard () {
   };
 
   const handleTripDelete = (deletedTripId: number) => {
-    setUpcomingTrips(trips => trips.filter(t => t.id !== deletedTripId));
-    setPastTrips(trips => trips.filter(t => t.id !== deletedTripId));
+    setUpcomingTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
+    setPastTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
   };
 
   // skeleton resembling our acutal page
@@ -139,7 +139,7 @@ export default function Dashboard () {
             overflow: "hidden",
           }}
         >
-          <Skeleton variant='rectangular' width='100%' height='100%' />
+          <Skeleton variant="rectangular" width="100%" height="100%" />
           <Box
             sx={{
               position: "absolute",
@@ -153,10 +153,10 @@ export default function Dashboard () {
               maxWidth: "800px",
             }}
           >
-            <Skeleton variant='text' width='60%' height={isMobile ? 40 : 60} />
-            <Skeleton variant='text' width='80%' height={20} sx={{ mt: 2 }} />
+            <Skeleton variant="text" width="60%" height={isMobile ? 40 : 60} />
+            <Skeleton variant="text" width="80%" height={20} sx={{ mt: 2 }} />
             <Skeleton
-              variant='rectangular'
+              variant="rectangular"
               width={200}
               height={50}
               sx={{ mt: 3, mx: "auto" }}
@@ -174,13 +174,13 @@ export default function Dashboard () {
           }}
         >
           <Box sx={{ mb: 5 }}>
-            <Skeleton variant='text' width='40%' height={40} sx={{ mb: 2 }} />
+            <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
             <Grid container spacing={3}>
               {[...Array(3)].map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
                   <Skeleton
-                    variant='rectangular'
-                    width='100%'
+                    variant="rectangular"
+                    width="100%"
                     height={250}
                     sx={{ borderRadius: 2 }}
                   />
@@ -190,13 +190,13 @@ export default function Dashboard () {
           </Box>
 
           <Box>
-            <Skeleton variant='text' width='40%' height={40} sx={{ mb: 2 }} />
+            <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
             <Grid container spacing={3}>
               {[...Array(2)].map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
                   <Skeleton
-                    variant='rectangular'
-                    width='100%'
+                    variant="rectangular"
+                    width="100%"
                     height={250}
                     sx={{ borderRadius: 2 }}
                   />
@@ -220,14 +220,14 @@ export default function Dashboard () {
       >
         {isMobile ? (
           <Image
-            src='/dashboard/dashboard_13.jpg'
-            alt='Static Background'
+            src="/dashboard/dashboard_13.jpg"
+            alt="Static Background"
             fill
             priority
-            className='object-cover'
+            className="object-cover"
           />
         ) : (
-          <GridMotion items={items} gradientColor='background.primary' />
+          <GridMotion items={items} gradientColor="background.primary" />
         )}
 
         <Box
@@ -298,7 +298,7 @@ export default function Dashboard () {
         }}
       >
         <Box sx={{ mb: 5 }}>
-          <Typography variant='h4' sx={{ fontWeight: 700, mb: 2 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Upcoming Trips
           </Typography>
           {upcomingTrips.length > 0 ? (
@@ -317,14 +317,14 @@ export default function Dashboard () {
               ))}
             </Grid>
           ) : (
-            <Typography variant='body1' sx={{ color: "text.secondary", mt: 2 }}>
+            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
               No upcoming trips found.
             </Typography>
           )}
         </Box>
 
         <Box sx={{ mb: 5 }}>
-          <Typography variant='h4' sx={{ fontWeight: 700, mb: 2 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Past Trips
           </Typography>
           {pastTrips.length > 0 ? (
@@ -343,7 +343,7 @@ export default function Dashboard () {
               ))}
             </Grid>
           ) : (
-            <Typography variant='body1' sx={{ color: "text.secondary", mt: 2 }}>
+            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
               No past trips found.
             </Typography>
           )}
