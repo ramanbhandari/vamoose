@@ -67,8 +67,11 @@ export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
 };
 
 // Delete a single expense
-export const deleteSingleExpense = async (tripId: number, expenseId: number) => {
-  try{
+export const deleteSingleExpense = async (
+  tripId: number,
+  expenseId: number,
+) => {
+  try {
     return await prisma.expense.delete({
       where: {
         id: expenseId,
@@ -79,31 +82,35 @@ export const deleteSingleExpense = async (tripId: number, expenseId: number) => 
     console.error('Error deleting expense:', error);
     throw handlePrismaError(error);
   }
-}
+};
 
 // Delete multiple expenses
-export const deleteMultipleExpenses = async (tripId: number, expenseIds: number[]) => {
+export const deleteMultipleExpenses = async (
+  tripId: number,
+  expenseIds: number[],
+) => {
   try {
     const result = await prisma.expense.deleteMany({
       where: {
         tripId: tripId,
         id: {
-          in: expenseIds, 
+          in: expenseIds,
         },
       },
     });
 
     if (result.count === 0) {
-      throw new NotFoundError('No expenses deleted. Expense not found')
+      throw new NotFoundError('No expenses deleted. Expense not found');
     }
 
     return {
       message: 'Expenses deleted successfully',
       deletedCount: result.count,
     };
-
   } catch (error) {
     console.error('Error deleting multiple expenses:', error);
     throw handlePrismaError(error);
   }
 };
+
+

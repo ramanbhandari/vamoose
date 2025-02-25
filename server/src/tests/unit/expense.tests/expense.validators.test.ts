@@ -305,7 +305,10 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 2, 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
       expect(result.isEmpty()).toBe(true);
     });
 
@@ -315,7 +318,10 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 2, 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
@@ -330,11 +336,16 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: 'not-an-array' },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'expenseIds must be a non-empty array' }),
+          expect.objectContaining({
+            msg: 'expenseIds must be a non-empty array',
+          }),
         ]),
       );
     });
@@ -345,11 +356,16 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'expenseIds must be a non-empty array' }),
+          expect.objectContaining({
+            msg: 'expenseIds must be a non-empty array',
+          }),
         ]),
       );
     });
@@ -360,11 +376,16 @@ describe('Expense Validators Middleware', () => {
         body: { expenseIds: [1, 'invalid', 3] },
       };
 
-      const result = await runValidation(mockReq, validateDeleteMultipleExpenses);
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'Each expense ID in expenseIds must be a valid number' }),
+          expect.objectContaining({
+            msg: 'Each expense ID in expenseIds must be a valid number',
+          }),
         ]),
       );
     });

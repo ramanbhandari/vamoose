@@ -25,6 +25,9 @@ jest.mock('../../../config/prismaClient.ts', () => ({
       delete: jest.fn(),
       deleteMany: jest.fn(),
     },
+    expenseShare: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -359,7 +362,7 @@ describe('Expense API - Delete Single Expense', () => {
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
-  function setupRequest(overrides = {}){
+  function setupRequest(overrides = {}) {
     return {
       userId: '1',
       params: { tripId: '1', expenseId: '1' },
@@ -376,7 +379,7 @@ describe('Expense API - Delete Single Expense', () => {
     } as Partial<Response>;
   });
 
-  it('should delete an expense successfully', async() => {
+  it('should delete an expense successfully', async () => {
     mockReq = setupRequest();
     const expenseData = {
       id: 1,
@@ -386,7 +389,7 @@ describe('Expense API - Delete Single Expense', () => {
       createdAt: new Date().toISOString(),
       tripId: 1,
     };
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.expense.findUnique as jest.Mock).mockResolvedValue(expenseData);
 
     await deleteSingleExpenseHandler(mockReq as Request, mockRes as Response);
@@ -394,7 +397,6 @@ describe('Expense API - Delete Single Expense', () => {
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expense deleted successfully',
-      expense: expenseData,
     });
   });
 
@@ -437,7 +439,7 @@ describe('Expense API - Delete Single Expense', () => {
 
   it('should return 403 if non-member tries to delete', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(null);
 
     await deleteSingleExpenseHandler(mockReq as Request, mockRes as Response);
 
@@ -447,10 +449,9 @@ describe('Expense API - Delete Single Expense', () => {
     });
   });
 
-
   it('should return 404 if expense not found', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(true);
 
     (prisma.expense.findUnique as jest.Mock).mockRejectedValue(
       new NotFoundError('Expense not found'),
@@ -463,12 +464,11 @@ describe('Expense API - Delete Single Expense', () => {
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Expense not found' });
-  })
-
+  });
 
   it('should return 500 if database error occurs', async () => {
     mockReq = setupRequest();
-    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+    (prisma.expenseShare.findUnique as jest.Mock).mockRejectedValue(
       new Error('Database error'),
     );
 
@@ -493,7 +493,7 @@ describe('Expense API - Delete Multiple Expense', () => {
       body: {
         expenseIds: [1, 2, 3],
       },
-      params: { tripId: '1'},
+      params: { tripId: '1' },
       ...overrides,
     };
   }
@@ -510,14 +510,17 @@ describe('Expense API - Delete Multiple Expense', () => {
 
   it('should delete multiple expenses successfully', async () => {
     mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(true);
 
     (prisma.expense.deleteMany as jest.Mock).mockResolvedValue({
       count: 3,
     });
 
-    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
-    
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expenses deleted successfully',
@@ -526,47 +529,52 @@ describe('Expense API - Delete Multiple Expense', () => {
   });
 
   it.each([
-      {
-        scenario: 'missing userId',
-        overrides: { userId: undefined },
-        expectedStatus: 401,
-        expectedMessage: 'Unauthorized Request',
-      },
-      {
-        scenario: 'invalid expense IDs format (not an array)',
-        overrides: { body: { tripIds: 'invalid' } },
-        expectedStatus: 400,
-        expectedMessage: 'Invalid expense ID list',
-      },
-      {
-        scenario: 'empty expense IDs array',
-        overrides: { body: { tripIds: [] } },
-        expectedStatus: 400,
-        expectedMessage: 'Invalid expense ID list',
-      },
-    ])(
-      '[$scenario] → should return $expectedStatus',
-      async ({ overrides, expectedStatus, expectedMessage }) => {
-        mockReq = setupRequest(overrides);
-  
-        await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
-  
-        expect(statusMock).toHaveBeenCalledWith(expectedStatus);
-        expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
-      },
-    );
-  
+    {
+      scenario: 'missing userId',
+      overrides: { userId: undefined },
+      expectedStatus: 401,
+      expectedMessage: 'Unauthorized Request',
+    },
+    {
+      scenario: 'invalid expense IDs format (not an array)',
+      overrides: { body: { tripIds: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid expense ID list',
+    },
+    {
+      scenario: 'empty expense IDs array',
+      overrides: { body: { tripIds: [] } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid expense ID list',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest(overrides);
+
+      await deleteMultipleExpensesHandler(
+        mockReq as Request,
+        mockRes as Response,
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
+
   it('should return 404 if no expenses were deleted', async () => {
     mockReq = setupRequest({ expenseIds: [1, 2, 3] });
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(true);
 
     (prisma.expense.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
-    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'No expenses deleted. Expense not found',
+      error: 'No expenses deleted. Expense not found',
     });
   });
 
@@ -577,7 +585,10 @@ describe('Expense API - Delete Multiple Expense', () => {
       new Error('Database error'),
     );
 
-    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
