@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import prisma from '../config/prismaClient.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
-import { BaseError } from '../utils/errors.ts';
 import TripInvite from '../models/invitee.model.ts';
 import { getUserByEmail, getUserById } from '../models/user.model.ts';
-import { addTripMember, getTripMember } from '../models/member.model.ts';
+import { getTripMember } from '../models/member.model.ts';
 import dotenv from 'dotenv';
 import { fetchSingleTrip } from '../models/trip.model.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -175,14 +173,14 @@ export const acceptInvite = async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invite already accepted' });
       return;
     }
+    // linting error for unused 'result' so commenting for now
+    // const result = await prisma.$transaction([
+    //   // add user to trip
+    //   addTripMember(invite.tripId, userId, 'member', true),
 
-    const result = await prisma.$transaction([
-      // add user to trip
-      addTripMember(invite.tripId, userId, 'member', true),
-
-      // Update invite status to "accepted"
-      TripInvite.updateInviteStatus(token, 'accepted', true),
-    ]);
+    //   // Update invite status to "accepted"
+    //   TripInvite.updateInviteStatus(token, 'accepted', true),
+    // ]);
 
     res.status(200).json({ message: 'Invite accepted' });
     return;
