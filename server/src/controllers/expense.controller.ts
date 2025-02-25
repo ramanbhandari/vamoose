@@ -177,7 +177,7 @@ export const deleteSingleExpenseHandler = async (req: Request, res: Response) =>
       return;
     }
 
-    if (!isNaN(tripId) || isNaN(expenseId)){
+    if (isNaN(tripId) || isNaN(expenseId)){
       res.status(400).json({ error: 'Invalid trip ID or expense ID' });
       return;
     }
