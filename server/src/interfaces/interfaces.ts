@@ -16,8 +16,7 @@ export interface CreateTripInput {
   createdBy: string;
 }
 
-export interface UpdateTripInput
-  extends Partial<Omit<CreateTripInput, 'createdBy'>> {}
+export type UpdateTripInput = Partial<Omit<CreateTripInput, 'createdBy'>>;
 
 // Invitation Interfaces
 export interface CreateInviteInput {
