@@ -1,4 +1,8 @@
 import { body, checkExact, param, query } from 'express-validator';
+import { DateTime } from 'luxon';
+
+// Helper function to get today's date
+const getTodayDate = () => DateTime.now().startOf('day');
 
 // Validation for Creating a Trip
 export const validateCreateTripInput = checkExact([
@@ -13,14 +17,21 @@ export const validateCreateTripInput = checkExact([
     .withMessage('Destination is required'),
   body('startDate')
     .isISO8601()
-    .toDate()
-    .withMessage('Invalid start date format'),
+    .withMessage('Invalid start date format')
+    .custom((value) => {
+      const startDate = DateTime.fromISO(value).startOf('day');
+      if (startDate < getTodayDate()) {
+        throw new Error('Start date must be today or in the future');
+      }
+      return true;
+    }),
   body('endDate')
     .isISO8601()
-    .toDate()
     .withMessage('Invalid end date format')
     .custom((value, { req }) => {
-      if (new Date(value) <= new Date(req.body.startDate)) {
+      const startDate = DateTime.fromISO(req.body.startDate).startOf('day');
+      const endDate = DateTime.fromISO(value).startOf('day');
+      if (endDate <= startDate) {
         throw new Error('End date must be after start date');
       }
       return true;
@@ -47,15 +58,23 @@ export const validateUpdateTripInput = checkExact([
   body('startDate')
     .optional()
     .isISO8601()
-    .toDate()
-    .withMessage('Invalid start date format'),
+    .withMessage('Invalid start date format')
+    .custom((value) => {
+      const startDate = DateTime.fromISO(value).startOf('day');
+      if (startDate < getTodayDate()) {
+        throw new Error('Start date must be today or in the future');
+      }
+      return true;
+    }),
   body('endDate')
     .optional()
     .isISO8601()
-    .toDate()
     .withMessage('Invalid end date format')
     .custom((value, { req }) => {
-      if (new Date(value) <= new Date(req.body.startDate)) {
+      if (!req.body.startDate) return true; // If startDate is not updated, skip validation
+      const startDate = DateTime.fromISO(req.body.startDate).startOf('day');
+      const endDate = DateTime.fromISO(value).startOf('day');
+      if (endDate <= startDate) {
         throw new Error('End date must be after start date');
       }
       return true;
@@ -81,11 +100,29 @@ export const validateFetchTripsWithFilters = checkExact([
   query('startDate')
     .optional()
     .isISO8601()
-    .withMessage('Invalid start date format'),
+    .withMessage('Invalid start date format')
+    .custom((value) => {
+      const startDate = DateTime.fromISO(value).startOf('day');
+      if (startDate < getTodayDate()) {
+        throw new Error('Start date cannot be in the past');
+      }
+      return true;
+    }),
   query('endDate')
     .optional()
     .isISO8601()
-    .withMessage('Invalid end date format'),
+    .withMessage('Invalid end date format')
+    .custom((value, { req }) => {
+      if (!req.query?.startDate) return true; // Skip if startDate is not provided
+      const startDate = DateTime.fromISO(
+        req.query?.startDate as string,
+      ).startOf('day');
+      const endDate = DateTime.fromISO(value).startOf('day');
+      if (endDate <= startDate) {
+        throw new Error('End date must be after start date');
+      }
+      return true;
+    }),
   query('limit')
     .optional()
     .isInt({ min: 1 })
