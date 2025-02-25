@@ -2,7 +2,10 @@ import prisma from '../config/prismaClient.ts';
 import { handlePrismaError } from '../utils/errorHandlers.ts';
 
 // Gets a member who shares an expense using expenseId and userId
-export const isPartOfExpenseSplit = async (expenseId: number, userId: string) => {
+export const isPartOfExpenseSplit = async (
+  expenseId: number,
+  userId: string,
+) => {
   try {
     return await prisma.expenseShare.findUnique({
       where: {
@@ -16,7 +19,10 @@ export const isPartOfExpenseSplit = async (expenseId: number, userId: string) =>
 };
 
 // Gets multiple expenses where userId is an expense sharer
-export const getExpensesForUser = async (expenseIds: number[], userId: string) => {
+export const getExpensesForUser = async (
+  expenseIds: number[],
+  userId: string,
+) => {
   try {
     return await prisma.expenseShare.findMany({
       where: {

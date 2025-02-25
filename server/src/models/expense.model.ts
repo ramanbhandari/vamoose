@@ -72,12 +72,10 @@ export const deleteSingleExpense = async (
   tripId: number,
 ) => {
   try {
-    const deletedExpense = await prisma.expense
-      .delete({
-        where: { id: expenseId, tripId: tripId },
-      })
+    const deletedExpense = await prisma.expense.delete({
+      where: { id: expenseId, tripId: tripId },
+    });
     return deletedExpense;
-    
   } catch (error) {
     console.error('Error deleting expense:', error);
     throw handlePrismaError(error);

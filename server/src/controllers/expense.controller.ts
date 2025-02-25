@@ -4,7 +4,10 @@ import {
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
-import { isPartOfExpenseSplit, getExpensesForUser } from '../models/expenseShare.model.ts';
+import {
+  isPartOfExpenseSplit,
+  getExpensesForUser,
+} from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
@@ -216,11 +219,13 @@ export const deleteSingleExpenseHandler = async (
 
     const deletedExpense = await deleteSingleExpense(expenseId, tripId);
     if (deletedExpense) {
-      res.status(200).json({ message: 'Expense deleted successfully', expense: deletedExpense});
+      res.status(200).json({
+        message: 'Expense deleted successfully',
+        expense: deletedExpense,
+      });
       return;
-    }
-    else {
-      res.status(404).json({ error: 'Nothing deleted. Expense not found'});
+    } else {
+      res.status(404).json({ error: 'Nothing deleted. Expense not found' });
     }
   } catch (error) {
     handleControllerError(error, res, 'Error deleting expense:');
@@ -258,8 +263,10 @@ export const deleteMultipleExpensesHandler = async (
 
     // Check if the user is a member of the trip
     const isMember = await getTripMember(tripId, userId);
-    if(!isMember){
-      res.status(403).json({ error: `You are not a member of this trip: ${tripId}`});
+    if (!isMember) {
+      res
+        .status(403)
+        .json({ error: `You are not a member of this trip: ${tripId}` });
       return;
     }
 
@@ -268,11 +275,13 @@ export const deleteMultipleExpensesHandler = async (
     const validExpenseIds = userExpenses.map((expense) => expense.expenseId);
 
     if (validExpenseIds.length === 0) {
-      res.status(403).json({ error: 'You are not included in any of these expense splits' });
+      res
+        .status(403)
+        .json({ error: 'You are not included in any of these expense splits' });
       return;
     }
 
-   //TODO: check if multiple expenseIDs exist using fetchMultipleExpenses
+    //TODO: check if multiple expenseIDs exist using fetchMultipleExpenses
 
     const result = await deleteMultipleExpenses(tripId, validExpenseIds);
 
