@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Avatar,
   Box,
@@ -14,6 +14,10 @@ import {
   Typography,
   useTheme,
   CircularProgress,
+  TextField,
+  InputAdornment,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 
 import {
@@ -28,13 +32,18 @@ import {
   Work,
   Group,
   Calculate,
-  // ArrowForward,
+  Close,
+  Save,
+  Edit as Edit,
 } from "@mui/icons-material";
-import EditIcon from "@mui/icons-material/Edit";
 import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
 
 import { format, parseISO } from "date-fns";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import axios from "axios";
+import apiClient from "@/utils/apiClient";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
@@ -90,10 +99,6 @@ const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
   "&:before": {
     content: '""',
     position: "absolute",
-    // top: -50,
-    // right: -50,
-    // width: 200,
-    // height: 200,
     background: "rgba(255,255,255,0.1)",
     borderRadius: "50%",
   },
@@ -101,8 +106,6 @@ const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
 
 const HeaderGrid = styled(Grid)(({ theme }: { theme: Theme }) => ({
   [theme.breakpoints.down("md")]: {
-    // gap: "2rem",
-    // textAlign: "center",
   },
 }));
 
@@ -139,7 +142,6 @@ const MemberAvatar = ({ member }: { member: string }) => (
       sx={{
         width: 72,
         height: 72,
-        // bgcolor: `hsl(${index * 70}, 70%, 50%)`,
         fontSize: "1.5rem",
         fontWeight: 700,
         boxShadow: 3,
@@ -241,8 +243,40 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
 
 function TripHeader ({ tripData }: TripHeaderProps) {
   const theme = useTheme();
-
   const [isEditMode, setIsEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [tripDetails, setTripDetails] = useState<{
+    name: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    budget: string;
+    currency: string;
+  }>({
+    name: "",
+    destination: "",
+    startDate: "",
+    endDate: "",
+    budget: "",
+    currency: "CAD",
+  });
+
+  // Initialize form with trip data when component mounts or tripData changes
+  useEffect(() => {
+    if (tripData) {
+      setTripDetails({
+        name: tripData.name || "",
+        destination: tripData.destination || "",
+        startDate: tripData.startDate || "",
+        endDate: tripData.endDate || "",
+        budget: tripData.budget?.toString() || "",
+        currency: "CAD",
+      });
+    }
+  }, [tripData]);
 
   const BudgetRing = styled(motion.div)({
     position: "relative",
@@ -266,6 +300,106 @@ function TripHeader ({ tripData }: TripHeaderProps) {
     return "Past"; // If today is after the end date
   };
 
+  const handleReset = () => {
+    // Handle possible null tripData
+    if (tripData) {
+      setTripDetails({
+        name: tripData.name || "",
+        destination: tripData.destination || "",
+        startDate: tripData.startDate || "",
+        endDate: tripData.endDate || "",
+        budget: tripData.budget?.toString() || "",
+        currency: "CAD",
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditMode(false);
+    handleReset();
+    setError(null);
+  };
+
+  const handleSave = async () => {
+    // Validate inputs first
+    if (!tripDetails.name.trim()) {
+      setError("Trip name is required");
+      return;
+    }
+
+    if (!tripDetails.startDate || !tripDetails.endDate) {
+      setError("Start and end dates are required");
+      return;
+    }
+
+    // Check if end date is after start date
+    if (new Date(tripDetails.startDate) >= new Date(tripDetails.endDate)) {
+      setError("End date must be after start date");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const payload = {
+        name: tripDetails.name.trim(),
+        destination: tripDetails.destination.trim(),
+        startDate: tripDetails.startDate,
+        endDate: tripDetails.endDate,
+        budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
+      };
+
+      // Make the PATCH request to update the trip
+      await apiClient.patch(`/trips/${tripData?.id}`, payload);
+      
+      // Show success message
+      setSuccessMessage("Trip details updated successfully");
+      
+      // Exit edit mode
+      setIsEditMode(false);
+      
+      // You might want to refresh the trip data here by triggering a refetch
+      // This depends on how your app manages data fetching
+      // For example: refetchTripData();
+      
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(`Error updating trip: ${error.response?.data?.message || 'Server error'}`);
+        console.error("Axios error:", error.response?.status, error.response?.data);
+      } else {
+        setError("Unexpected error occurred");
+        console.error("Unexpected error:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+    
+    // Don't allow multiple decimal points
+    if ((rawValue.match(/\./g) || []).length > 1) return;
+    
+    setTripDetails((prev) => ({
+      ...prev,
+      budget: rawValue,
+    }));
+  };
+
+  const handleBudgetBlur = () => {
+    if (!tripDetails.budget) return;
+    
+    const number = parseFloat(tripDetails.budget);
+    if (isNaN(number)) return;
+    
+    setTripDetails((prev) => ({
+      ...prev,
+      budget: number.toFixed(2),
+    }));
+  };
+
   if (!tripData) {
     return (
       <Box
@@ -284,10 +418,57 @@ function TripHeader ({ tripData }: TripHeaderProps) {
   return (
     <GradientHeader theme={theme}>
       <Container sx={{ maxHeight: "100vh" }}>
+        {/* Alert for error messages */}
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2 }}
+            onClose={() => setError(null)}
+          >
+            {error}
+          </Alert>
+        )}
+        
+        {/* Confirmation message */}
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={6000}
+          onClose={() => setSuccessMessage(null)}
+          message={successMessage}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        />
+        
         <HeaderGrid container alignItems='center' theme={theme}>
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
               <Box display='flex' alignItems='center' gap={2}>
+                {isEditMode ? (
+                  <TextField 
+                    variant="standard"
+                    required={true}
+                    value={tripDetails.name}
+                    error={!tripDetails.name}
+                    helperText={!tripDetails.name ? "Trip name is required" : ""}
+                    slotProps={{
+                      input: {
+                        spellCheck: "false",
+                        autoCorrect: "off",
+                      },
+                    }}
+                    sx={{
+                      width: "0.9",
+                      "& .MuiInputBase-input": { // Match Typography size
+                        fontSize: { xs: "2.5rem", md: "3.5rem" }, 
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        letterSpacing: "-1.5px",
+                      },
+                      "& .MuiFormHelperText-root": { color: "purple" },
+                      mb: 2,
+                    }}
+                    onChange={e => setTripDetails({ ...tripDetails, name: e.target.value })}
+                  />
+                ) : ( 
                 <Typography
                   variant='h1'
                   sx={{
@@ -298,22 +479,62 @@ function TripHeader ({ tripData }: TripHeaderProps) {
                     mb: 2,
                   }}
                 >
-                  {tripData.name}
+                  {tripData?.name || ""}
                 </Typography>
-                <IconButton
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  sx={{
-                    background: "none",
-                    color: "white",
-                    transition: "transform 0.3s, color 0.5s",
-                    "&:hover": {
+                )}
+                {isEditMode ? (
+                  <Box display='flex' gap={1}>
+                    <IconButton
+                      onClick={handleCancel}
+                      sx={{
+                        background: "none",
+                        color: "white",
+                        transition: "transform 0.3s, color 0.5s",
+                        "&:hover": {
+                          background: "none",
+                          transform: "scale(1.2)",
+                          color: "#ffcccc", // Light red on hover
+                        },
+                      }}
+                    >
+                      <Close />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => {
+                        handleSave();
+                        setIsEditMode(false);
+                      }}
+                      disabled={loading}
+                      sx={{
+                        background: "none",
+                        color: "white",
+                        transition: "transform 0.3s, color 0.5s",
+                        "&:hover": {
+                          background: "none",
+                          transform: "scale(1.2)",
+                          color: "#ccffcc", // Light green on hover
+                        },
+                      }}
+                    >
+                      {loading ? <CircularProgress size={24} color="inherit" /> : <Save />}
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <IconButton
+                    onClick={() => setIsEditMode(true)}
+                    sx={{
                       background: "none",
-                      transform: "scale(1.2)",
-                    },
-                  }}
-                >
-                  <EditIcon />
-                </IconButton>
+                      color: "white",
+                      transition: "transform 0.3s, color 0.5s",
+                      "&:hover": {
+                        background: "none",
+                        transform: "scale(1.2)",
+                      },
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                )}
               </Box>
               <Chip
                 label={getTripStatus(tripData.startDate, tripData.endDate)}
@@ -342,9 +563,57 @@ function TripHeader ({ tripData }: TripHeaderProps) {
                     <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Departure Date
                     </Typography>
-                    <Typography variant='h5' sx={{ fontWeight: 700 }}>
-                      {formatDate(tripData.startDate)}
-                    </Typography>
+                    {isEditMode ? (
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DatePicker
+                          value={tripDetails.startDate ? new Date(tripDetails.startDate) : null}
+                          onChange={(newDate) => {
+                            if (newDate) {
+                              setTripDetails({
+                                ...tripDetails,
+                                startDate: newDate.toISOString(),
+                              });
+                            }
+                          }}
+                          sx={{
+                            width: "100%",
+                            "& .MuiInputBase-root": {
+                              color: "white",
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "rgba(255, 255, 255, 0.5)",
+                              },
+                              "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "white",
+                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "white",
+                              },
+                            },
+                            "& .MuiInputBase-input": {
+                              color: "white",
+                              fontWeight: 700,
+                              fontSize: "1.25rem",
+                            },
+                            "& .MuiSvgIcon-root": {
+                              color: "white",
+                            },
+                          }}
+                          slotProps={{
+                            textField: {
+                              variant: "standard",
+                              fullWidth: true,
+                              inputProps: {
+                                sx: { color: "white" },
+                              },
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
+                    ) : (
+                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
+                        {formatDate(tripData?.startDate)}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Grid>
@@ -362,9 +631,57 @@ function TripHeader ({ tripData }: TripHeaderProps) {
                     <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Return Date
                     </Typography>
-                    <Typography variant='h5' sx={{ fontWeight: 700 }}>
-                      {formatDate(tripData.endDate)}
-                    </Typography>
+                    {isEditMode ? (
+                      <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DatePicker
+                          value={tripDetails.endDate ? new Date(tripDetails.endDate) : null}
+                          onChange={(newDate) => {
+                            if (newDate) {
+                              setTripDetails({
+                                ...tripDetails,
+                                endDate: newDate.toISOString(),
+                              });
+                            }
+                          }}
+                          sx={{
+                            width: "100%",
+                            "& .MuiInputBase-root": {
+                              color: "white",
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "rgba(255, 255, 255, 0.5)",
+                              },
+                              "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "white",
+                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "white",
+                              },
+                            },
+                            "& .MuiInputBase-input": {
+                              color: "white",
+                              fontWeight: 700,
+                              fontSize: "1.25rem",
+                            },
+                            "& .MuiSvgIcon-root": {
+                              color: "white",
+                            },
+                          }}
+                          slotProps={{
+                            textField: {
+                              variant: "filled",
+                              fullWidth: true,
+                              inputProps: {
+                                sx: { color: "white" },
+                              },
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
+                    ) : (
+                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
+                        {formatDate(tripData?.endDate)}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Grid>
@@ -381,13 +698,30 @@ function TripHeader ({ tripData }: TripHeaderProps) {
                 },
               }}
             >
-              {/* <LocationPill 
-                icon={<Flight sx={{ fontSize: "1.2rem" }} />}
-                label={tripData?.from}
-                color={theme.palette.background.paper}
-              /> */}
-              {/* <ArrowForward /> */}
-              <LocationPill label={tripData.destination} />
+              {isEditMode ? (
+                <TextField
+                  variant="standard"
+                  value={tripDetails.destination}
+                  onChange={(e) => setTripDetails({...tripDetails, destination: e.target.value})}
+                  placeholder="Enter destination"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      color: "white",
+                      "& fieldset": { borderColor: "rgba(255, 255, 255, 0.5)" },
+                      "&:hover fieldset": { borderColor: "white" },
+                      "&.Mui-focused fieldset": { borderColor: "white" },
+                    },
+                    "& .MuiInputBase-input": {
+                      padding: "10px 14px",
+                      color: "white",
+                      fontWeight: 600,
+                      fontSize: "1.1rem",
+                    },
+                  }}
+                />
+              ) : (
+                <LocationPill label={tripData?.destination || ""} />
+              )}
             </Box>
           </Grid>
 
@@ -414,14 +748,39 @@ function TripHeader ({ tripData }: TripHeaderProps) {
                   }}
                 >
                   <Box textAlign='center'>
-                    <Typography
-                      variant='h4'
-                      fontWeight={700}
-                      color={theme.palette.text.primary}
-                      sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
-                    >
-                      ${tripData.budget?.toLocaleString()}
-                    </Typography>
+                    {isEditMode ? (
+                      <TextField
+                        variant="standard"
+                        type="text"
+                        value={tripDetails.budget}
+                        onChange={handleBudgetChange}
+                        onBlur={handleBudgetBlur}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Typography variant="h6" color="text.primary">$</Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          width: "80%",
+                          "& .MuiInputBase-input": {
+                            fontWeight: 700,
+                            fontSize: { xs: "1.3rem", md: "1.7rem" },
+                            textAlign: "center",
+                          }
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        variant='h4'
+                        fontWeight={700}
+                        color={theme.palette.text.primary}
+                        sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
+                      >
+                        ${tripData?.budget?.toLocaleString() || "0"}
+                      </Typography>
+                    )}
                     <Typography
                       variant='body2'
                       color='text.secondary'
