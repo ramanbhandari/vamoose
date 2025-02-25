@@ -5,20 +5,10 @@ import {
   validateDeleteMultipleExpenses,
 } from '../../../middleware/expense.validators.ts';
 import { validationResult } from 'express-validator';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
 describe('Expense Validators Middleware', () => {
   let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let next: jest.Mock;
-
-  beforeEach(() => {
-    mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-    next = jest.fn();
-  });
 
   const runValidation = async (req: Partial<Request>, validation: any) => {
     await validation.run(req);
