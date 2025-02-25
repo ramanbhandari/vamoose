@@ -226,7 +226,7 @@ export const deleteMultipleExpenseHandler = async (req: Request, res: Response) 
     }
 
     if (!Array.isArray(expenseIds) || expenseIds.length === 0) {
-      res.status(400).json({ error: 'Invalid expense IDs list' });
+      res.status(400).json({ error: 'Invalid expense ID list' });
       return;
     }
 

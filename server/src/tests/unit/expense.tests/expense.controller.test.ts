@@ -465,7 +465,7 @@ describe('Expense API - Delete Single Expense', () => {
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Expense not found' });
   })
 
-  
+
   it('should return 500 if database error occurs', async () => {
     mockReq = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
@@ -477,6 +477,111 @@ describe('Expense API - Delete Single Expense', () => {
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'Internal Server Error',
+    });
+  });
+});
+
+describe('Expense API - Delete Multiple Expense', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let jsonMock: jest.Mock;
+  let statusMock: jest.Mock;
+
+  function setupRequest(overrides = {}) {
+    return {
+      userId: 1,
+      body: {
+        expenseIds: [1, 2, 3],
+      },
+      params: { tripId: '1'},
+      ...overrides,
+    };
+  }
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  it('should delete multiple expenses successfully', async () => {
+    mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+
+    (prisma.expense.deleteMany as jest.Mock).mockResolvedValue({
+      count: 3,
+    });
+
+    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+    
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Expenses deleted successfully',
+      deletedCount: 3,
+    });
+  });
+
+  it.each([
+      {
+        scenario: 'missing userId',
+        overrides: { userId: undefined },
+        expectedStatus: 401,
+        expectedMessage: 'Unauthorized Request',
+      },
+      {
+        scenario: 'invalid expense IDs format (not an array)',
+        overrides: { body: { tripIds: 'invalid' } },
+        expectedStatus: 400,
+        expectedMessage: 'Invalid expense ID list',
+      },
+      {
+        scenario: 'empty expense IDs array',
+        overrides: { body: { tripIds: [] } },
+        expectedStatus: 400,
+        expectedMessage: 'Invalid expense ID list',
+      },
+    ])(
+      '[$scenario] → should return $expectedStatus',
+      async ({ overrides, expectedStatus, expectedMessage }) => {
+        mockReq = setupRequest(overrides);
+  
+        await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+  
+        expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+        expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+      },
+    );
+  
+  it('should return 404 if no expenses were deleted', async () => {
+    mockReq = setupRequest({ expenseIds: [1, 2, 3] });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+
+    (prisma.expense.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error:
+        'No expenses deleted. Expense not found',
+    });
+  });
+
+  it('should return 500 if database error occurs', async () => {
+    mockReq = setupRequest({ tripIds: [1, 2, 3] });
+
+    (prisma.expense.deleteMany as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await deleteMultipleExpenseHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'An unexpected database error occurred.',
     });
   });
 });
