@@ -10,14 +10,11 @@ import {
   useMediaQuery,
   useTheme,
   Skeleton,
-  IconButton,
-  Button,
 } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
 import apiClient from "@/utils/apiClient";
 import { format, parseISO } from "date-fns";
-import { useRouter } from "next/navigation";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
@@ -69,7 +66,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [upcomingTrips, setUpcomingTrips] = useState<Trip[]>([]);
   const [pastTrips, setPastTrips] = useState<Trip[]>([]);
-  const router = useRouter();
 
   // this useEffect fetches Trips data and images
   useEffect(() => {

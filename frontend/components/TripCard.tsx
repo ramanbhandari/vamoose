@@ -12,6 +12,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -96,6 +98,7 @@ export default function TripCard({
   const [cardImage, setCardImage] = useState<string>(getRandomImage());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
 
   useEffect(() => {
     const loadImage = async () => {
@@ -125,6 +128,7 @@ export default function TripCard({
       }
       setDeleteDialogOpen(false);
       setDeleteConfirmation("");
+      setSuccessSnackbarOpen(true);
     } catch (error) {
       console.error("Error deleting trip:", error);
     }
@@ -159,22 +163,23 @@ export default function TripCard({
             padding: "2px",
           }}
         >
-          <IconButton size="small" onClick={handleEdit} 
-          sx=
-          {{ 
-            background: "none",
-            color: "white", 
-            transition: "transform 0.3s, color 0.5s",
+          <IconButton
+            size="small"
+            onClick={handleEdit}
+            sx={{
+              background: "none",
+              color: "white",
+              transition: "transform 0.3s, color 0.5s",
               "&:hover": {
                 background: "none",
                 transform: "scale(1.2)",
                 color: "var(--accent)",
               },
-          }}>
+            }}
+          >
             <EditIcon />
           </IconButton>
           <IconButton
-            
             size="small"
             onClick={() => setDeleteDialogOpen(true)}
             sx={{
@@ -274,6 +279,22 @@ export default function TripCard({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSuccessSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSuccessSnackbarOpen(false)}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          Trip "{title}" has been successfully deleted
+        </Alert>
+      </Snackbar>
     </>
   );
 }
