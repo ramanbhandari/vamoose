@@ -4,7 +4,7 @@ import {
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
-import { isPartOfExpenseSplit } from '../models/expenseShare.model.ts';
+import { isPartOfExpenseSplit, getExpensesForUser } from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
@@ -198,7 +198,7 @@ export const deleteSingleExpenseHandler = async (
     // Check if the expense even exists
     const expense = await fetchSingleExpense(tripId, expenseId);
     if (!expense) {
-      res.status(404).json({ error: 'Expense not found ' });
+      res.status(404).json({ error: 'Expense not found' });
       return;
     }
 
@@ -216,11 +216,11 @@ export const deleteSingleExpenseHandler = async (
 
     const deletedExpense = await deleteSingleExpense(expenseId, tripId);
     if (deletedExpense) {
-      res.status(200).json({
-        message: 'Expense deleted successfully',
-        expense: deletedExpense,
-      });
+      res.status(200).json({ message: 'Expense deleted successfully', expense: deletedExpense});
       return;
+    }
+    else {
+      res.status(404).json({ error: 'Nothing deleted. Expense not found'});
     }
   } catch (error) {
     handleControllerError(error, res, 'Error deleting expense:');
@@ -256,35 +256,25 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    for (const expenseId of expenseIds) {
-      // Check if the expense exists
-      const expense = await fetchSingleExpense(tripId, expenseId);
-      if (!expense) {
-        res.status(404).json({ error: 'Expense not found' });
-        return;
-      }
-
-      // Check if the user is a member of the trip
-      const isMember = await getTripMember(tripId, expenseId);
-      if (!isMember) {
-        res
-          .status(403)
-          .json({ error: `You are not a member of this trip: ${tripId}` });
-        return;
-      }
-
-      // Check if the user is included in the expense share
-      const isPartOfSplit = await isPartOfExpenseSplit(expenseId, userId);
-      if (!isPartOfSplit) {
-        res.status(403).json({
-          error: `You are not included in this expense split: ${expenseId}`,
-        });
-        return;
-      }
+    // Check if the user is a member of the trip
+    const isMember = await getTripMember(tripId, userId);
+    if(!isMember){
+      res.status(403).json({ error: `You are not a member of this trip: ${tripId}`});
+      return;
     }
 
-    // Proceed with deletion after all checks pass
-    const result = await deleteMultipleExpenses(tripId, expenseIds);
+    // Fetch all valid expenses where userId is part of the expense split
+    const userExpenses = await getExpensesForUser(expenseIds, userId);
+    const validExpenseIds = userExpenses.map((expense) => expense.expenseId);
+
+    if (validExpenseIds.length === 0) {
+      res.status(403).json({ error: 'You are not included in any of these expense splits' });
+      return;
+    }
+
+   //TODO: check if multiple expenseIDs exist using fetchMultipleExpenses
+
+    const result = await deleteMultipleExpenses(tripId, validExpenseIds);
 
     res.status(200).json({
       message: 'Expenses deleted successfully',

@@ -76,9 +76,8 @@ export const deleteSingleExpense = async (
       .delete({
         where: { id: expenseId, tripId: tripId },
       })
-      .catch((error) => console.error('Prisma Delete Error:', error));
-
     return deletedExpense;
+    
   } catch (error) {
     console.error('Error deleting expense:', error);
     throw handlePrismaError(error);
