@@ -216,12 +216,10 @@ export const deleteSingleExpenseHandler = async (
 
     const deletedExpense = await deleteSingleExpense(expenseId, tripId);
     if (deletedExpense) {
-      res
-        .status(200)
-        .json({
-          message: 'Expense deleted successfully',
-          expense: deletedExpense,
-        });
+      res.status(200).json({
+        message: 'Expense deleted successfully',
+        expense: deletedExpense,
+      });
       return;
     }
   } catch (error) {
@@ -278,11 +276,9 @@ export const deleteMultipleExpensesHandler = async (
       // Check if the user is included in the expense share
       const isPartOfSplit = await isPartOfExpenseSplit(expenseId, userId);
       if (!isPartOfSplit) {
-        res
-          .status(403)
-          .json({
-            error: `You are not included in this expense split: ${expenseId}`,
-          });
+        res.status(403).json({
+          error: `You are not included in this expense split: ${expenseId}`,
+        });
         return;
       }
     }
