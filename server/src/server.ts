@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import appRouter from './routes/appRouter.ts';
 import prisma from './config/prismaClient.ts';
 import cors from 'cors';
-import connectMongoDB from './db/mongo.js';
+// import connectMongoDB from './db/mongo.js'; // lint error, commenting to stop it
 
 dotenv.config();
 
