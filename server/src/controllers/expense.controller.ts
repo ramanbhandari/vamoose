@@ -199,7 +199,7 @@ export const deleteSingleExpenseHandler = async (req: Request, res: Response) =>
     }
 
     await deleteSingleExpense(tripId, expenseId);
-    res.status(200).json({ message: 'Expense deleted successfully', });
+    res.status(200).json({ message: 'Expense deleted successfully', expense});
 
   } catch(error){
     handleControllerError(error, res, 'Error deleting expense:');
@@ -246,4 +246,5 @@ export const deleteMultipleExpenseHandler = async (req: Request, res: Response) 
     handleControllerError(error, res, 'Error deleting multiple expenses:');
   }
 };
+
 

@@ -277,7 +277,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+          expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
         ]),
       );
     });
@@ -289,7 +289,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'Expense ID must be a number' }),
+          expect.objectContaining({ msg: 'Expense ID must be a valid number' }),
         ]),
       );
     });
