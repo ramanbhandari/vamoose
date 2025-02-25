@@ -4,7 +4,7 @@ import {
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
-import {isPartOfExpenseSplit} from '../models/expenseShare.model.ts';
+import { isPartOfExpenseSplit } from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
@@ -197,15 +197,15 @@ export const deleteSingleExpenseHandler = async (
 
     // Check if the expense even exists
     const expense = await fetchSingleExpense(tripId, expenseId);
-    if (!expense){
-      res.status(404).json({ error: 'Expense not found '});
+    if (!expense) {
+      res.status(404).json({ error: 'Expense not found ' });
       return;
     }
 
     // Ensure the user is included in the trip
     const isMember = await getTripMember(tripId, userId);
-    if(!isMember) {
-      throw new ForbiddenError('You are not a member of this trip')
+    if (!isMember) {
+      throw new ForbiddenError('You are not a member of this trip');
     }
 
     // Ensure the user is included in the expense split
@@ -215,11 +215,15 @@ export const deleteSingleExpenseHandler = async (
     }
 
     const deletedExpense = await deleteSingleExpense(expenseId, tripId);
-    if (deletedExpense){
-      res.status(200).json({ message: 'Expense deleted successfully', expense: deletedExpense });
+    if (deletedExpense) {
+      res
+        .status(200)
+        .json({
+          message: 'Expense deleted successfully',
+          expense: deletedExpense,
+        });
       return;
     }
-   
   } catch (error) {
     handleControllerError(error, res, 'Error deleting expense:');
   }
@@ -257,22 +261,28 @@ export const deleteMultipleExpensesHandler = async (
     for (const expenseId of expenseIds) {
       // Check if the expense exists
       const expense = await fetchSingleExpense(tripId, expenseId);
-      if (!expense){
-        res.status(404).json({ error: 'Expense not found'});
+      if (!expense) {
+        res.status(404).json({ error: 'Expense not found' });
         return;
       }
 
       // Check if the user is a member of the trip
       const isMember = await getTripMember(tripId, expenseId);
-      if(!isMember) {
-        res.status(403).json({error: `You are not a member of this trip: ${tripId}`});
+      if (!isMember) {
+        res
+          .status(403)
+          .json({ error: `You are not a member of this trip: ${tripId}` });
         return;
       }
 
       // Check if the user is included in the expense share
       const isPartOfSplit = await isPartOfExpenseSplit(expenseId, userId);
       if (!isPartOfSplit) {
-        res.status(403).json({error: `You are not included in this expense split: ${expenseId}`});
+        res
+          .status(403)
+          .json({
+            error: `You are not included in this expense split: ${expenseId}`,
+          });
         return;
       }
     }
@@ -288,4 +298,3 @@ export const deleteMultipleExpensesHandler = async (
     handleControllerError(error, res, 'Error deleting multiple expenses:');
   }
 };
-

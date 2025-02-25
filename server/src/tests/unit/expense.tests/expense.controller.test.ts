@@ -398,7 +398,8 @@ describe('Expense API - Delete Single Expense', () => {
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Expense deleted successfully', expense: expenseData,
+      message: 'Expense deleted successfully',
+      expense: expenseData,
     });
   });
 
@@ -449,7 +450,11 @@ describe('Expense API - Delete Single Expense', () => {
       tripId: 1,
     };
     (prisma.expense.findUnique as jest.Mock).mockResolvedValue(expenseData);
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({ id: 1, userId: "2", tripId: 1 });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      id: 1,
+      userId: '2',
+      tripId: 1,
+    });
     (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(null);
 
     mockReq = setupRequest();
@@ -565,33 +570,38 @@ describe('Expense API - Delete Multiple Expense', () => {
 
   it('should return 403 if user is not a member of the trip', async () => {
     mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-  
+
     (prisma.expense.findUnique as jest.Mock).mockResolvedValue(true);
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null); 
-  
-    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
-  
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'You are not a member of this trip: 1',
     });
   });
-  
+
   it('should return 403 if user is not part of the expense split', async () => {
     mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-  
+
     (prisma.expense.findUnique as jest.Mock).mockResolvedValue(true);
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true); 
-    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(null); 
-  
-    await deleteMultipleExpensesHandler(mockReq as Request, mockRes as Response);
-  
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expenseShare.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'You are not included in this expense split: 1',
     });
   });
-  
 
   it.each([
     {
