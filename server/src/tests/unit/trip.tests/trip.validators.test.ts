@@ -11,18 +11,6 @@ import { Request } from 'express';
 
 describe('Trip Validators Middleware', () => {
   let mockReq: Partial<Request>;
-  // lint unused error
-
-  // let mockRes: Partial<Response>;
-  // let next: jest.Mock;
-
-  // beforeEach(() => {
-  //   mockRes = {
-  //     status: jest.fn().mockReturnThis(),
-  //     json: jest.fn(),
-  //   };
-  //   next = jest.fn();
-  // });
 
   const runValidation = async (req: Partial<Request>, validation: any) => {
     await validation.run(req);

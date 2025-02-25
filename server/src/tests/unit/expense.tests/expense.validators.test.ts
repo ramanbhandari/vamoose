@@ -7,17 +7,6 @@ import { Request } from 'express';
 
 describe('Expense Validators Middleware', () => {
   let mockReq: Partial<Request>;
-  //lint error, unused mockRes and next
-  // let mockRes: Partial<Response>;
-  // let next: jest.Mock;
-
-  // beforeEach(() => {
-  //   mockRes = {
-  //     status: jest.fn().mockReturnThis(),
-  //     json: jest.fn(),
-  //   };
-  //   next = jest.fn();
-  // });
 
   const runValidation = async (req: Partial<Request>, validation: any) => {
     await validation.run(req);
