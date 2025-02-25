@@ -78,7 +78,7 @@ describe('Invitee Validators Middleware', () => {
   /** ───────────────────────────────────────────────────────
    *  Invite Token VALIDATION TESTS
    *  ─────────────────────────────────────────────────────── */
-  describe('Invite Token Validation', () => {
+  describe('Invite Request Params Validation', () => {
     it('should pass validation for valid params', async () => {
       mockReq = {
         params: {
@@ -92,7 +92,7 @@ describe('Invitee Validators Middleware', () => {
       expect(result.isEmpty()).toBe(true);
     });
 
-    it('should fail validation if invalid params', async () => {
+    it('should fail validation if invalid token and tripId param', async () => {
       mockReq = {
         params: {
           token: '',
