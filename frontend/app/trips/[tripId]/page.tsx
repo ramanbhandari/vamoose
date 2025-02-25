@@ -29,6 +29,8 @@ import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import apiClient from "@/utils/apiClient";
+import { supabase } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 const sections = [
   {
@@ -89,6 +91,7 @@ export default function TripSummaryPage() {
   const tripId = params?.tripId;
 
   const theme = useTheme();
+  const [user, setUser] = useState<User | null>(null);
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   //   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -127,6 +130,21 @@ export default function TripSummaryPage() {
 
     fetchTrip();
   }, [tripId]);
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error("Error fetching user:", error)
+      }
+    }
+
+    fetchUser();
+    
+  },[]);
 
   if (isLoading) {
     return (
@@ -207,7 +225,7 @@ export default function TripSummaryPage() {
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
-        {activeSection === "members" && <TripMembers />}
+        {activeSection === "members" && <TripMembers members={tripData?.members} user={user} />}
       </Container>
     </Box>
   );
