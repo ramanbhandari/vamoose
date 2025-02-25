@@ -5,7 +5,7 @@ import {
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
-import { addExpense, deleteSingleExpense, fetchSingleExpense } from '../models/expense.model';
+import { addExpense, deleteSingleExpense, fetchSingleExpense, deleteMultipleExpense } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '../utils/errors.ts';
@@ -164,7 +164,7 @@ export const fetchSingleExpenseHandler = async (
 
 
 /**
- * Delete a Single Trip (Only the Members can Delete)
+ * Delete a Single Expense (Only the Members can Delete)
  */
 export const deleteSingleExpenseHandler = async (req: Request, res: Response) => {
   try{
@@ -177,9 +177,13 @@ export const deleteSingleExpenseHandler = async (req: Request, res: Response) =>
       return;
     }
 
-    if (isNaN(tripId) || isNaN(expenseId)){
-      res.status(400).json({ error: 'Invalid trip ID or expense ID' });
+    if (isNaN(tripId)){
+      res.status(400).json({ error: 'Invalid trip ID' });
       return;
+    }
+
+    if (isNaN(expenseId)){
+      res.status(400).json({ error: 'Invalid expense ID' });
     }
 
     // Ensure the user is a member of the trip
@@ -201,3 +205,45 @@ export const deleteSingleExpenseHandler = async (req: Request, res: Response) =>
     handleControllerError(error, res, 'Error deleting expense:');
   }
 };
+
+
+/**
+ * Delete Multiple Expenses from a trip (Only the Members can Delete)
+ */
+export const deleteMultipleExpenseHandler = async (req: Request, res: Response) => {
+  try {
+    const { userId, body: { expenseIds } } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (!Array.isArray(expenseIds) || expenseIds.length === 0) {
+      res.status(400).json({ error: 'Invalid expense IDs list' });
+      return;
+    }
+
+    const isMember = await getTripMember(tripId, userId);
+    if (!isMember) {
+      res.status(403).json({ error: 'You are not a member of this trip.' });
+      return;
+    }
+
+    const result = await deleteMultipleExpense(tripId, expenseIds);
+
+    res.status(200).json({
+      message: 'Expenses deleted successfully',
+      deletedCount: result.deletedCount, 
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error deleting multiple expenses:');
+  }
+};
+

@@ -1,5 +1,6 @@
 import prisma from '../config/prismaClient.ts';
 import { handlePrismaError } from '../utils/errorHandlers.ts';
+import { NotFoundError } from '../utils/errors.ts';
 
 /**
  * Creates an expense and associated shares in the database.
@@ -79,3 +80,30 @@ export const deleteSingleExpense = async (tripId: number, expenseId: number) => 
     throw handlePrismaError(error);
   }
 }
+
+// Delete multiple expenses
+export const deleteMultipleExpense = async (tripId: number, expenseIds: number[]) => {
+  try {
+    const result = await prisma.expense.deleteMany({
+      where: {
+        tripId: tripId,
+        id: {
+          in: expenseIds, 
+        },
+      },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundError('No expenses deleted. Expense not found')
+    }
+
+    return {
+      message: 'Expenses deleted successfully',
+      deletedCount: result.count,
+    };
+
+  } catch (error) {
+    console.error('Error deleting multiple expenses:', error);
+    throw handlePrismaError(error);
+  }
+};
