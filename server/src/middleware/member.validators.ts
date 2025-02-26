@@ -9,6 +9,7 @@ export const validateUpdateTripMemberInput = checkExact([
     .notEmpty()
     .withMessage("Member's userId is required"),
   body('role')
+    .toLowerCase()
     .isIn(['admin', 'member'])
     .withMessage('Role must be either "admin" or "member"'),
 ]);
@@ -48,9 +49,11 @@ export const validateRemoveTripMemberInput = checkExact([
 export const validateBatchRemoveTripMembersInput = checkExact([
   body('memberUserIds')
     .isArray({ min: 1 })
-    .withMessage('memberUserIds must be a non-empty array')
-    .custom((value) =>
-      value.every((id: any) => typeof id === 'string' && id.trim() !== ''),
-    )
+    .withMessage('memberUserIds must be a non-empty array'),
+  body('memberUserIds.*')
+    .isString()
+    .withMessage('Each memberUserId must be a string')
+    .trim()
+    .notEmpty()
     .withMessage('Each memberUserId must be a non-empty string'),
 ]);

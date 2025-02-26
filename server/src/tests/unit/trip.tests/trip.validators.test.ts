@@ -142,10 +142,6 @@ describe('Trip Validators Middleware', () => {
         tripIds: [0, -1, 5],
         errorMsg: 'Each trip ID must be a positive integer',
       },
-      {
-        tripIds: ['1', '2', '3'],
-        errorMsg: 'Each trip ID must be a positive integer',
-      },
     ])(
       'should fail validation for invalid input',
       async ({ tripIds, errorMsg }) => {

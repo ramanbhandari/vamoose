@@ -93,7 +93,27 @@ describe('Expense Validators Middleware', () => {
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'Category is required' }),
+          expect.objectContaining({
+            msg: 'Category must be one of: food, accommodation, travel, other',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if category is not one of the allowed values', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { amount: 50.0, category: 'invalid-category' },
+      };
+
+      const result = await runValidation(mockReq, validateAddExpenseInput);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Category must be one of: food, accommodation, travel, other',
+          }),
         ]),
       );
     });
@@ -103,7 +123,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 50.0,
-          category: 'Food',
+          category: 'food',
           paidByEmail: 'invalid-email',
         },
       };
@@ -166,7 +186,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 100,
-          category: 'Transport',
+          category: 'travel',
         },
       };
 
@@ -179,7 +199,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 100,
-          category: 'Transport',
+          category: 'travel',
           description: 123, // Invalid type
         },
       };
