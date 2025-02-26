@@ -79,7 +79,7 @@ export const fetchMultipleExpenses = async (tripId: number) => {
 };
 
 // Gets multiple expenses where userId is an expense sharer
-export const getExpensesForUser = async (
+export const getExpensesForUserFiltered = async (
   expenseIds: number[],
   userId: string,
 ) => {

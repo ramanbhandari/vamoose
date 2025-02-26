@@ -635,6 +635,31 @@ describe('Expense API - Delete Multiple Expense', () => {
     },
   );
 
+    it('should return 404 if user is not part of any expenses', async () => {
+    mockReq = setupRequest({
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
+    });
+
+    // Simulate that the user is a trip member.
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    // Simulate that getExpensesForUserFiltered returns no expenses for this user.
+    (prisma.expense.findMany as jest.Mock).mockResolvedValue([]);
+    
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid expenses found for deletion',
+      addInvalidExpenseIds: [1, 2, 3],
+    });
+  });
+
+
   it('should return 500 if database error occurs', async () => {
     mockReq = setupRequest({
       params: { tripId: '1' },

@@ -10,7 +10,7 @@ import {
   addExpense,
   deleteSingleExpense,
   fetchSingleExpense,
-  getExpensesForUser,
+  getExpensesForUserFiltered,
   deleteMultipleExpenses,
 } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -267,25 +267,25 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    const userExpenses = await getExpensesForUser(expenseIds, userId);
+    const userExpenses = await getExpensesForUserFiltered(expenseIds, userId);
     const userExpenseIds = userExpenses.map((expense) => expense.id);
 
-    const validExpenseIds = expenseIds.filter((id) =>
+    const addValidExpenseIds = expenseIds.filter((id) =>
       userExpenseIds.includes(id),
     );
-    const invalidExpenseIds = expenseIds.filter(
+    const addInvalidExpenseIds = expenseIds.filter(
       (id) => !userExpenseIds.includes(id),
     );
 
-    if (validExpenseIds.length === 0) {
+    if (addValidExpenseIds.length === 0) {
       res.status(404).json({
         error: 'No valid expenses found for deletion',
-        invalidExpenseIds,
+        addInvalidExpenseIds,
       });
       return;
     }
 
-    const result = await deleteMultipleExpenses(tripId, validExpenseIds);
+    const result = await deleteMultipleExpenses(tripId, addValidExpenseIds);
 
     res.status(200).json({
       message: 'Expenses deleted successfully',
