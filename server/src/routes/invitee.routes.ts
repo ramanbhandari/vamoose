@@ -5,6 +5,7 @@ import {
   validateInvite,
   acceptInvite,
   rejectInvite,
+  checkInvite,
 } from '../controllers/invitee.controller.ts';
 import {
   validateCreateInviteInput,
@@ -44,5 +45,8 @@ router.delete(
   validationErrorHandler,
   deleteInvite,
 );
+
+export const nonAuthInviteRouter = express.Router({ mergeParams: true });
+nonAuthInviteRouter.get('/check/:token', checkInvite);
 
 export default router;
