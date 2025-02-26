@@ -593,23 +593,80 @@ function TripHeader({ tripData }: TripHeaderProps) {
             display: "flex",
             justifyContent: "flex-end",
             mt: -4,
-            ml: 4,
           }}
-        >
+         >
+          {isEditMode ? (
+                  <Box display="flex" gap={0}>
+                    <IconButton
+                      onClick={handleCancel}
+                      sx={{
+                        background: "none",
+                        color: "white",
+                        transition: "transform 0.3s, color 0.5s",
+                        "&:hover": {
+                          background: "none",
+                          transform: "scale(1.2)",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      <Close />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => {
+                        handleSave();
+                        setIsEditMode(false);
+                      }}
+                      disabled={loading}
+                      sx={{
+                        background: "none",
+                        color: "white",
+                        transition: "transform 0.3s, color 0.5s",
+                        "&:hover": {
+                          background: "none",
+                          transform: "scale(1.2)",
+                          color: "var(--accent)",
+                        },
+                      }}
+                    >
+                      {loading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        <Save />
+                      )}
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <IconButton
+                    onClick={() => setIsEditMode(true)}
+                    sx={{
+                      background: "none",
+                      color: "white",
+                      transition: "transform 0.3s, color 0.5s",
+                      "&:hover": {
+                        background: "none",
+                        transform: "scale(1.2)",
+                        color: "var(--accent)"
+                      },
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                )}
           <IconButton
             onClick={() => setDeleteDialogOpen(true)}
             sx={{
               background: "none",
-              color: "white",
+              color: "primary.main",
               transition: "transform 0.3s, color 0.5s",
+              cursor: "pointer",
               "&:hover": {
-                background: "none",
                 transform: "scale(1.2)",
-                color: "primary.main",
+                background: "none"
               },
             }}
           >
-            <Delete />
+            <Delete/>
           </IconButton>
         </Box>
         <ConfirmationDialog
@@ -667,63 +724,6 @@ function TripHeader({ tripData }: TripHeaderProps) {
                     {tripData?.name || ""}
                   </Typography>
                 )}
-                {isEditMode ? (
-                  <Box display="flex" gap={1}>
-                    <IconButton
-                      onClick={handleCancel}
-                      sx={{
-                        background: "none",
-                        color: "white",
-                        transition: "transform 0.3s, color 0.5s",
-                        "&:hover": {
-                          background: "none",
-                          transform: "scale(1.2)",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      <Close />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        handleSave();
-                        setIsEditMode(false);
-                      }}
-                      disabled={loading}
-                      sx={{
-                        background: "none",
-                        color: "white",
-                        transition: "transform 0.3s, color 0.5s",
-                        "&:hover": {
-                          background: "none",
-                          transform: "scale(1.2)",
-                          color: "var(--accent)",
-                        },
-                      }}
-                    >
-                      {loading ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        <Save />
-                      )}
-                    </IconButton>
-                  </Box>
-                ) : (
-                  <IconButton
-                    onClick={() => setIsEditMode(true)}
-                    sx={{
-                      background: "none",
-                      color: "white",
-                      transition: "transform 0.3s, color 0.5s",
-                      "&:hover": {
-                        background: "none",
-                        transform: "scale(1.2)",
-                      },
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                )}
               </Box>
               <Box sx={{ mb: 1 }}>
                 {isEditMode ? (
@@ -765,7 +765,6 @@ function TripHeader({ tripData }: TripHeaderProps) {
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
-                      cursor: "pointer",
                       "&:hover": {
                         opacity: 1,
                       },
@@ -994,6 +993,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
                 display: "flex",
                 justifyContent: { xs: "center", md: "flex-start" },
                 mt: { xs: 2, md: 0 },
+                ml: { xs: 0, md: "4rem" },
                 position: "relative",
                 width: "300px",
               }}

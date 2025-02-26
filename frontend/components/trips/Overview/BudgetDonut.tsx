@@ -116,6 +116,7 @@ export default function BudgetDonut({
             textAlign: "center",
             width: "60%",
             transition: "transform 0.3s ease-in-out",
+            
           }}
         >
           {isEditMode ? (
@@ -129,7 +130,7 @@ export default function BudgetDonut({
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Typography variant="h6" sx={{ color: "white" }}>
+                      <Typography variant="h5" sx={{ color: "white" }}>
                         $
                       </Typography>
                     </InputAdornment>
@@ -137,10 +138,10 @@ export default function BudgetDonut({
                 },
               }}
               sx={{
-                width: "100%",
+                width: "80%",
                 "& .MuiInputBase-input": {
                   color: "white",
-                  textAlign: "left",
+                  textAlign: "right",
                   fontSize: "1.5rem",
                   fontWeight: 700,
                 },
