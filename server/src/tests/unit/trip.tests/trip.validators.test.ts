@@ -251,6 +251,28 @@ describe('Trip Validators Middleware', () => {
       );
     });
 
+    it('should fail validation if status is not one of the allowed values', async () => {
+      mockReq = {
+        query: {
+          status: 'invalid-status',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateFetchTripsWithFilters,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Invalid status. Allowed values: past, current, future',
+          }),
+        ]),
+      );
+    });
+
     it('should fail validation if limit is not a positive integer', async () => {
       mockReq = {
         query: {
