@@ -30,7 +30,7 @@ interface BudgetDonutProps {
   >;
 }
 
-export default function BudgetDonut ({
+export default function BudgetDonut({
   budget,
   isEditMode,
   tripDetails,
@@ -61,12 +61,12 @@ export default function BudgetDonut ({
         }}
       >
         <DonutChart
-          data={budgetCategories.map(category => ({
+          data={budgetCategories.map((category) => ({
             name: category.name,
             value: budget * (category.value / 100),
             color: category.color,
           }))}
-          tooltipDataSource='segment'
+          tooltipDataSource="segment"
           size={200}
           thickness={50}
           tooltipProps={{
@@ -76,7 +76,7 @@ export default function BudgetDonut ({
                 const data = payload[0].payload;
                 return (
                   <MantineBox
-                    p='sm'
+                    p="sm"
                     style={{
                       zIndex: 1000,
                       backgroundColor: data.color,
@@ -92,11 +92,11 @@ export default function BudgetDonut ({
                       },
                     }}
                   >
-                    <Text size='sm' fw={500}>
+                    <Text size="sm" fw={500}>
                       {data.name}
                     </Text>
-                    <Text size='xs'>${data.value.toLocaleString()}</Text>
-                    <Text size='xs'>
+                    <Text size="xs">${data.value.toLocaleString()}</Text>
+                    <Text size="xs">
                       {((data.value / budget) * 100).toFixed(1)}%
                     </Text>
                   </MantineBox>
@@ -112,7 +112,7 @@ export default function BudgetDonut ({
             position: "absolute",
             top: "50%",
             left: "50%",
-            transform: `translate(-50%, ${isEditMode ? '-350%' : '-50%'})`,
+            transform: `translate(-50%, ${isEditMode ? "-350%" : "-50%"})`,
             textAlign: "center",
             width: "60%",
             transition: "transform 0.3s ease-in-out",
@@ -120,16 +120,16 @@ export default function BudgetDonut ({
         >
           {isEditMode ? (
             <TextField
-              variant='standard'
-              type='text'
+              variant="standard"
+              type="text"
               value={tripDetails.budget}
               onChange={handleBudgetChange}
               onBlur={handleBudgetBlur}
               slotProps={{
                 input: {
                   startAdornment: (
-                    <InputAdornment position='start'>
-                      <Typography variant='h6' sx={{ color: "white" }}>
+                    <InputAdornment position="start">
+                      <Typography variant="h6" sx={{ color: "white" }}>
                         $
                       </Typography>
                     </InputAdornment>
@@ -149,16 +149,16 @@ export default function BudgetDonut ({
           ) : (
             <>
               <Typography
-                variant='h4'
+                variant="h4"
                 fontWeight={700}
-                color='white'
+                color="white"
                 sx={{ fontSize: "1.5rem" }}
               >
                 ${budget.toLocaleString() || "0"}
               </Typography>
               <Typography
-                variant='body2'
-                color='white'
+                variant="body2"
+                color="white"
                 sx={{ fontSize: "0.8rem" }}
               >
                 Total Budget

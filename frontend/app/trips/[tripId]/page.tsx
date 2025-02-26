@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Box, Container, useTheme, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  Container,
+  useTheme,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventIcon from "@mui/icons-material/Event";
@@ -139,20 +145,20 @@ export default function TripSummaryPage() {
     fetchTrip();
   }, [tripId]);
 
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
       } catch (error) {
-        console.error("Error fetching user:", error)
+        console.error("Error fetching user:", error);
       }
-    }
+    };
 
     fetchUser();
-    
-  },[]);
+  }, []);
 
   //Just a loading screen
   if (isLoading) {
@@ -261,7 +267,9 @@ export default function TripSummaryPage() {
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
-        {activeSection === "members" && <TripMembers members={tripData?.members} user={user} />}
+        {activeSection === "members" && (
+          <TripMembers members={tripData?.members} user={user} />
+        )}
       </Container>
     </Box>
   );

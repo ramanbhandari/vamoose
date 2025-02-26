@@ -13,7 +13,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
-import { useState} from "react";
+import { useState } from "react";
 import apiClient from "@/utils/apiClient";
 import ConfirmationDialog from "./ConfirmationDialog";
 
