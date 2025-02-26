@@ -4,9 +4,7 @@ import {
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
-import {
-  isPartOfExpenseSplit,
-} from '../models/expenseShare.model.ts';
+import { isPartOfExpenseSplit } from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
@@ -275,8 +273,8 @@ export const deleteMultipleExpensesHandler = async (
     const validExpenseIds = expenseIds.filter((id) =>
       userExpenseIds.includes(id),
     );
-    const invalidExpenseIds = expenseIds.filter((id) =>
-      !userExpenseIds.includes(id),
+    const invalidExpenseIds = expenseIds.filter(
+      (id) => !userExpenseIds.includes(id),
     );
 
     if (validExpenseIds.length === 0) {
@@ -297,4 +295,3 @@ export const deleteMultipleExpensesHandler = async (
     handleControllerError(error, res, 'Error deleting multiple expenses:');
   }
 };
-

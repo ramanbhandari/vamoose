@@ -601,7 +601,6 @@ describe('Expense API - Delete Multiple Expense', () => {
     });
   });
 
-  
   it.each([
     {
       scenario: 'missing userId',
@@ -636,14 +635,13 @@ describe('Expense API - Delete Multiple Expense', () => {
     },
   );
 
-  
   it('should return 500 if database error occurs', async () => {
     mockReq = setupRequest({
       params: { tripId: '1' },
       body: { expenseIds: [1, 2, 3] },
-      userId: '1'
+      userId: '1',
     });
-  
+
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.expense.findMany as jest.Mock).mockResolvedValue([
       { id: 1 },
@@ -651,17 +649,18 @@ describe('Expense API - Delete Multiple Expense', () => {
       { id: 3 },
     ]);
 
-    (prisma.expense.deleteMany as jest.Mock).mockRejectedValue(new Error('Database error'));
-  
+    (prisma.expense.deleteMany as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
     await deleteMultipleExpensesHandler(
       mockReq as Request,
       mockRes as Response,
     );
-  
+
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'An unexpected database error occurred.',
     });
   });
-  
 });
