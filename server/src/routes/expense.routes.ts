@@ -5,11 +5,13 @@ import validationErrorHandler from '../middleware/validationErrorHandler.ts';
 import {
   validateAddExpenseInput,
   validateFetchExpense,
+  validateFetchMultipleExpenses,
 } from '../middleware/expense.validators.ts';
 
 import {
   addExpenseHandler,
   fetchSingleExpenseHandler,
+  fetchMultipleExpensesHandler,
 } from '../controllers/expense.controller.ts';
 
 const router = express.Router({ mergeParams: true });
@@ -24,6 +26,14 @@ router
     validateFetchExpense,
     validationErrorHandler,
     fetchSingleExpenseHandler,
+  )
+
+  // Fetch multiple expenses from the Trip
+  .get(
+    '/',
+    validateFetchMultipleExpenses,
+    validationErrorHandler,
+    fetchMultipleExpensesHandler,
   );
 
 export default router;
