@@ -274,7 +274,9 @@ export const deleteMultipleExpensesHandler = async (
     const tripExpenses = await fetchMultipleExpenses(tripId);
     const tripExpenseIds = tripExpenses.map((expense) => expense.id);
 
-    const validExpenseIds = expenseIds.filter((id) => tripExpenseIds.includes(id));
+    const validExpenseIds = expenseIds.filter((id) =>
+      tripExpenseIds.includes(id),
+    );
 
     if (validExpenseIds.length === 0) {
       res.status(404).json({ error: 'No valid expenses found for deletion' });
@@ -286,7 +288,9 @@ export const deleteMultipleExpensesHandler = async (
     const userExpenseIds = userExpenses.map((expense) => expense.expenseId);
 
     if (userExpenseIds.length === 0) {
-      res.status(403).json({ error: 'You are not included in any of these expense splits' });
+      res
+        .status(403)
+        .json({ error: 'You are not included in any of these expense splits' });
       return;
     }
 

@@ -66,17 +66,17 @@ export const fetchSingleExpense = async (tripId: number, expenseId: number) => {
   }
 };
 
-// Fetch Multiple Expenses 
+// Fetch Multiple Expenses
 export const fetchMultipleExpenses = async (tripId: number) => {
-  try{
+  try {
     return await prisma.expense.findMany({
       where: { tripId: tripId },
     });
-  } catch (error){
+  } catch (error) {
     console.error('Error fetching expense by tripId:', error);
     throw handlePrismaError(error);
   }
-}
+};
 
 // Delete a single expense
 export const deleteSingleExpense = async (

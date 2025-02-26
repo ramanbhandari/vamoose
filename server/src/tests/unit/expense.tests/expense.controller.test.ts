@@ -550,9 +550,9 @@ describe('Expense API - Delete Multiple Expense', () => {
 
   it('should delete multiple expenses successfully', async () => {
     mockReq = setupRequest({
-      params: { tripId: '1' }, 
-      body: { expenseIds: [1, 2, 3] }, 
-      userId: '1'
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
     });
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
@@ -584,7 +584,6 @@ describe('Expense API - Delete Multiple Expense', () => {
     });
   });
 
-
   it('should return 403 if user is not a member of the trip', async () => {
     mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
 
@@ -604,9 +603,9 @@ describe('Expense API - Delete Multiple Expense', () => {
 
   it('should return 403 if user is not part of the expense splits', async () => {
     mockReq = setupRequest({
-      params: { tripId: '1' }, 
-      body: { expenseIds: [1, 2, 3] }, 
-      userId: '1'
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
     });
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
@@ -668,7 +667,7 @@ describe('Expense API - Delete Multiple Expense', () => {
     mockReq = setupRequest({
       params: { tripId: '1' },
       body: { expenseIds: [4, 5, 6] }, // Expense IDs that do not exist in the trip
-      userId: '1'
+      userId: '1',
     });
 
     // Mock trip membership check (User is a trip member)
@@ -690,8 +689,7 @@ describe('Expense API - Delete Multiple Expense', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'No valid expenses found for deletion',
     });
-});
-
+  });
 
   it('should return 500 if database error occurs', async () => {
     mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
