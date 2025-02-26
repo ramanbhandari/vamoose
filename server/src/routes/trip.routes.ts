@@ -1,48 +1,56 @@
 import express from 'express';
 import validationErrorHandler from '../middleware/validationErrorHandler.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
 import {
   validateCreateTripInput,
   validateDeleteTripInput,
   validateUpdateTripInput,
-} from '../middleware/validators.ts';
+  validateFetchSingleTrip,
+  validateFetchTripsWithFilters,
+  validateDeleteMultipleTripsInput,
+} from '../middleware/trip.validators.ts';
 
 import {
   createTripHandler,
   deleteTripHandler,
   deleteMultipleTripsHandler,
   updateTripHandler,
-} from '../controllers/tripController.ts';
+  fetchSingleTripHandler,
+  fetchTripsWithFiltersHandler,
+} from '../controllers/trip.controller.ts';
 
 const router = express.Router();
 
+// Trip CRUD routes
 router
-  .post(
-    '/',
-    validateCreateTripInput,
+  .get(
+    '/:tripId',
+    validateFetchSingleTrip,
     validationErrorHandler,
-    authMiddleware,
-    createTripHandler,
+    fetchSingleTripHandler,
   )
+  .get(
+    '/',
+    validateFetchTripsWithFilters,
+    validationErrorHandler,
+    fetchTripsWithFiltersHandler,
+  )
+  .post('/', validateCreateTripInput, validationErrorHandler, createTripHandler)
   .patch(
     '/:tripId',
     validateUpdateTripInput,
     validationErrorHandler,
-    authMiddleware,
     updateTripHandler,
   )
   .delete(
     '/:tripId',
     validateDeleteTripInput,
     validationErrorHandler,
-    authMiddleware,
     deleteTripHandler,
   )
   .delete(
     '/',
-    validateDeleteTripInput,
+    validateDeleteMultipleTripsInput,
     validationErrorHandler,
-    authMiddleware,
     deleteMultipleTripsHandler,
   );
 

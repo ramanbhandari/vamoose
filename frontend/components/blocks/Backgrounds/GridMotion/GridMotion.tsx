@@ -85,7 +85,9 @@ const GridMotion: FC<GridMotionProps> = ({
               key={rowIndex}
               className="grid gap-4 grid-cols-7"
               style={{ willChange: "transform, filter" }}
-              ref={(el) => (rowRefs.current[rowIndex] = el)}
+              ref={(el) => {
+                if (el) rowRefs.current[rowIndex] = el;
+              }}
             >
               {Array.from({ length: 7 }, (_, itemIndex) => {
                 const content = combinedItems[rowIndex * 7 + itemIndex];

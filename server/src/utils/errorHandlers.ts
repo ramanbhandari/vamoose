@@ -7,8 +7,9 @@ import {
   BaseError,
   ValidationError,
 } from './errors';
+import { Response } from 'express';
 
-export const handlePrismaError = (error: unknown): Error => {
+export function handlePrismaError(error: unknown): Error {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case 'P2002':
@@ -47,4 +48,17 @@ export const handlePrismaError = (error: unknown): Error => {
   }
 
   return new DatabaseError('An unexpected database error occurred.');
-};
+}
+
+export function handleControllerError(
+  error: unknown,
+  res: Response,
+  logString: string,
+) {
+  if (error instanceof BaseError) {
+    res.status(error.statusCode).json({ error: error.message });
+  } else {
+    console.error(logString, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}

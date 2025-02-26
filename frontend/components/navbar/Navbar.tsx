@@ -1,52 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { Button, AppBar, Toolbar, Box, Typography } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Typography,
+  Menu,
+  MenuItem,
+  IconButton,
+  ListItemIcon,
+} from "@mui/material";
+import { LogoutTwoTone } from "@mui/icons-material";
 import ThemeToggle from "../ThemeToggle";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { logout } from "@/app/dashboard/actions";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import AnimatedMenuIcon from "./hamAnimIcon";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
-  // check if its login page, then we don't want to show the header
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const router = useRouter();
+
+  // Check if it's the login page
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
 
   useEffect(() => {
-    //fetch on initial mount (eg. on login page), then fetch again if Auth's state changes (eg, logged in, logout)
+    // Fetch user on initial mount and set the user state if authenticated
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
     };
 
-    fetchUser();
+    fetchUser(); // Call once on mount
 
+    // Listen for auth state changes (login/logout)
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setUser(session.user);
-        } else {
-          setUser(null);
-        }
+      (_event, session) => {
+        setUser(session?.user || null);
       }
     );
 
-    //cleanup  on unmount
+    // Cleanup the listener on unmount
     return () => {
-      setUser(null); // on unmount set it to null again
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
+    router.replace("/login");
+  };
 
   return (
     <AppBar position="fixed" sx={{ bgcolor: "primary.main" }}>
       <Toolbar className="flex justify-between items-center px-4">
         <Typography
           variant="h4"
-          sx={{ color: "#ffffff", fontFamily: "var(--font-brand)" }}
+          sx={{
+            color: "#ffffff",
+            fontFamily: "var(--font-brand)",
+          }}
+          onClick={() => {
+            if (!isLoginPage) {
+              router.prefetch("/dashboard");
+              router.push("/dashboard");
+            }
+          }}
         >
           <Link href="/"> {!isLoginPage ? "Vamoose!" : " "}</Link>
         </Typography>
@@ -54,23 +88,46 @@ export default function Navbar() {
         <Box className="flex items-center gap-2">
           <ThemeToggle />
           {user && (
-            <form action={logout}>
-              <Button
-                variant="outlined"
-                type="submit"
+            <div>
+              <IconButton
+                aria-label="menu"
+                onClick={handleMenuOpen}
+                color="inherit"
+              >
+                <AnimatedMenuIcon isOpen={open} onClick={handleMenuOpen} />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleMenuClose}
+                MenuListProps={{
+                  "aria-labelledby": "basic-button",
+                }}
                 sx={{
-                  color: "primary.main",
-                  bgcolor: "#ffffff",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-                    fontWeight: 900,
+                  "& .MuiPaper-root": {
+                    borderRadius: "8px",
+                    boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
                   },
                 }}
               >
-                Logout
-              </Button>
-            </form>
+                {user && (
+                  <MenuItem onClick={handleMenuClose}>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </MenuItem>
+                )}
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    handleLogout();
+                  }}
+                >
+                  <ListItemIcon>
+                    <LogoutTwoTone />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
+            </div>
           )}
         </Box>
       </Toolbar>

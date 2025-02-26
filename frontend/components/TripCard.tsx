@@ -1,52 +1,32 @@
 "use client";
 
 import { Card, Typography, Button, CardMedia, Box } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 interface TripCardProps {
+  tripId: number;
   title: string;
-  description: string;
-  date: string;
+  startDate: string;
+  endDate: string;
+  destination: string;
   imageUrl?: string;
 }
 
-const defaultImages = [
-  "/dashboard/dashboard_1.jpg",
-  "/dashboard/dashboard_2.jpg",
-  "/dashboard/dashboard_3.jpg",
-  "/dashboard/dashboard_4.jpg",
-  "/dashboard/dashboard_5.jpg",
-  "/dashboard/dashboard_6.jpg",
-  "/dashboard/dashboard_7.avif",
-  "/dashboard/dashboard_8.jpg",
-  "/dashboard/dashboard_9.jpg",
-  "/dashboard/dashboard_10.jpg",
-  "/dashboard/dashboard_13.jpg",
-  "/dashboard/dashboard_14.jpg",
-  "/dashboard/dashboard_15.jpg",
-  "/dashboard/dashboard_11.jpg",
-  "/dashboard/dashboard_12.jpg",
-  "/dashboard/dashboard_16.jpg",
-  "/dashboard/dashboard_17.jpg",
-  "/dashboard/dashboard_18.jpg",
-  "/dashboard/dashboard_19.jpg",
-  "/dashboard/dashboard_20.jpg",
-  "/dashboard/dashboard_21.jpg",
-  "/dashboard/dashboard_22.jpg",
-  "/dashboard/dashboard_23.jpg",
-];
-
-const getRandomImage = () => {
-  const randomIndex = Math.floor(Math.random() * defaultImages.length);
-  return defaultImages[randomIndex];
-};
-
 export default function TripCard({
+  tripId,
   title,
-  description,
-  date,
+  startDate,
+  endDate,
+  destination,
   imageUrl,
 }: TripCardProps) {
-  const card_image = imageUrl || getRandomImage();
+  const router = useRouter();
+  const cardImage = imageUrl ? imageUrl : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
+
+  const handleViewTrip = () => {
+    router.push(`/trips/${tripId}`);
+  };
+
   return (
     <Card
       sx={{
@@ -64,7 +44,7 @@ export default function TripCard({
     >
       <CardMedia
         component="img"
-        image={card_image}
+        image={cardImage}
         alt={title}
         sx={{
           position: "absolute",
@@ -94,10 +74,10 @@ export default function TripCard({
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
-        <Typography variant="body2" sx={{ my: 1 }}>
-          {description}
+        <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
+          {destination}
         </Typography>
-        <Typography variant="caption">{date}</Typography>
+        <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
         <Button
           variant="contained"
           sx={{
@@ -109,6 +89,7 @@ export default function TripCard({
             },
           }}
           fullWidth
+          onClick={handleViewTrip}
         >
           View Trip
         </Button>

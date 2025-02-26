@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import appRouter from './routes/appRouter.ts';
 import prisma from './config/prismaClient.ts';
 import cors from 'cors';
-import connectMongoDB from './db/mongo.js';
+// import connectMongoDB from './db/mongo.js'; // lint error, commenting to stop it
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', appRouter);
 
 // Handle non-exisiting routes
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((_req: Request, res: Response, _next: NextFunction) => {
   res.status(404).send('Route not found');
 });

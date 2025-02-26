@@ -1,7 +1,7 @@
 import { CreateTripInput, UpdateTripInput } from '../interfaces/interfaces.ts';
 import prisma from '../config/prismaClient.ts';
-import { handlePrismaError } from '../utils/prismaErrorHandler.ts';
-import { NotFoundError } from '../utils/errors.ts';
+import { handlePrismaError } from '../utils/errorHandlers.ts';
+import { NotFoundError, ForbiddenError } from '../utils/errors.ts';
 
 // Create a Trip
 export const createTrip = async (tripData: CreateTripInput) => {
@@ -20,6 +20,67 @@ export const createTrip = async (tripData: CreateTripInput) => {
     });
   } catch (error) {
     console.error('Error creating trip:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Fetch a single trip by ID
+export const fetchSingleTrip = async (
+  userId: string,
+  tripId: number,
+  allowNonMembersToView: boolean = false,
+) => {
+  try {
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        members: true,
+        expenses: true,
+        stays: true,
+      },
+    });
+
+    if (!trip) {
+      throw new NotFoundError('Trip not found');
+    }
+
+    const isAuthorized =
+      allowNonMembersToView ||
+      trip.createdBy === userId ||
+      trip.members.some((m) => m.userId === userId);
+
+    if (!isAuthorized) {
+      throw new ForbiddenError('You are not authorized to view this trip');
+    }
+
+    return trip;
+  } catch (error) {
+    console.error('Error fetching trip:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Fetch trips with optional filters
+export const fetchTripsWithFilters = async (
+  userId: string,
+  filters: any,
+  limit: number,
+  offset: number,
+) => {
+  try {
+    return await prisma.trip.findMany({
+      where: {
+        AND: [
+          { members: { some: { userId } } }, // User must be a member
+          filters, // Apply optional filters
+        ],
+      },
+      take: limit,
+      skip: offset,
+      orderBy: { startDate: 'asc' },
+    });
+  } catch (error) {
+    console.error('Error fetching trips by dates:', error);
     throw handlePrismaError(error);
   }
 };
@@ -78,7 +139,7 @@ export const deleteMultipleTrips = async (
 
     if (result.count === 0) {
       throw new NotFoundError(
-        'No trips deleted. Either they do not exist or you are not authorized.',
+        'No trips deleted. Either they do not exist or you are not authorized to delete them.',
       );
     }
 

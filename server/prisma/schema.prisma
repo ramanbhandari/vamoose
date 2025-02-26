@@ -27,7 +27,8 @@ model User {
 
   createdTrips Trip[]
   tripMembers  TripMember[]
-  tripInvites  TripInvitee[]
+  tripInvites  TripInvitee[] @relation("CreatorRelation")
+  invitedTrips TripInvitee[] @relation("InvitedUserRelation")
 
   expenses     Expense[]
   messages     Message[]
@@ -47,6 +48,8 @@ model Trip {
   startDate   DateTime
   endDate     DateTime
   budget      Float?
+
+  imageUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -71,20 +74,27 @@ model TripMember {
   tripId Int
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  role   String @default("member")
+  role   String @default("member") // Possible values: "creator", "admin", "member"
 
   @@id([tripId, userId])
 }
 
 // ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
 model TripInvitee {
-  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  tripId Int
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-  status String @default("pending")
+  inviteToken String    @id @default(uuid())
+  tripId      Int
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  email       String
+  createdBy   String
+  creator     User      @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
+  status      String    @default("pending") // Status: pending, accepted, expired
+  expiresAt   DateTime?
 
-  @@id([tripId, userId])
+  // Optional link to the User model if they exist
+  invitedUserId String?
+  invitedUser   User?   @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, email])
 }
 
 // ─── STAY MODEL ───────────────────────────────────────────────────────────
@@ -105,7 +115,7 @@ model Stay {
 model Expense {
   id          Int      @id @default(autoincrement())
   amount      Float
-  category    String
+  category    String // "food", "travel", "accommodation", "other"
   description String?
   createdAt   DateTime @default(now())
 
@@ -123,8 +133,8 @@ model ExpenseShare {
   expenseId Int
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  share     Float
-  settled   Boolean @default(false)
+  share     Float // Amount this user owes
+  settled   Boolean @default(false) // True if payment is completed
 
   @@id([expenseId, userId])
 }
