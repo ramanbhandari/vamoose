@@ -92,6 +92,27 @@ describe('TripMember Validators Middleware', () => {
       );
     });
 
+    it('should fail validation if role is not one of the allowed values', async () => {
+      mockReq = {
+        params: { tripId: '1', userId: 'user-id' },
+        body: { role: '123' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateTripMemberInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Role must be either "admin" or "member"',
+          }),
+        ]),
+      );
+    });
+
     it('should fail validation if role is not a valid option', async () => {
       mockReq = {
         params: { tripId: '1', userId: 'user-id' },
@@ -418,7 +439,7 @@ describe('TripMember Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Each memberUserId must be a non-empty string',
+            msg: 'Each memberUserId must be a string',
           }),
         ]),
       );
