@@ -34,8 +34,20 @@ export const fetchSingleTrip = async (
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
       include: {
-        members: true,
-        expenses: true,
+        members: {
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
+        },
+        expenses: {
+          include: {
+            paidBy: {
+              select: { email: true },
+            },
+          },
+        },
         stays: true,
       },
     });
@@ -74,6 +86,22 @@ export const fetchTripsWithFilters = async (
           { members: { some: { userId } } }, // User must be a member
           filters, // Apply optional filters
         ],
+      },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
+        },
+        expenses: {
+          include: {
+            paidBy: {
+              select: { email: true },
+            },
+          },
+        },
       },
       take: limit,
       skip: offset,

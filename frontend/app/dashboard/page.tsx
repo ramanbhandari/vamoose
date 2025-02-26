@@ -47,8 +47,6 @@ const items = [
   "/dashboard/dashboard_19.jpg",
   "/dashboard/dashboard_20.jpg",
   "/dashboard/dashboard_21.jpg",
-  "/dashboard/dashboard_22.jpg",
-  "/dashboard/dashboard_23.jpg",
 ];
 
 interface Trip {
@@ -57,6 +55,7 @@ interface Trip {
   startDate: string;
   endDate: string;
   destination: string;
+  imageUrl?: string;
 }
 
 export default function Dashboard() {
@@ -307,6 +306,7 @@ export default function Dashboard() {
                     startDate={formatDate(trip.startDate)}
                     endDate={formatDate(trip.endDate)}
                     destination={trip.destination}
+                    imageUrl={trip.imageUrl}
                     onDelete={handleTripDelete}
                   />
                 </Grid>
@@ -333,6 +333,7 @@ export default function Dashboard() {
                     startDate={formatDate(trip.startDate)}
                     endDate={formatDate(trip.endDate)}
                     destination={trip.destination}
+                    imageUrl={trip.imageUrl}
                     onDelete={handleTripDelete}
                   />
                 </Grid>

@@ -10,6 +10,13 @@ import {
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { getTripMember } from '../models/member.model.ts';
+import { DateTime } from 'luxon';
+
+interface TripFilters {
+  destination?: { contains: string; mode: 'insensitive' };
+  startDate?: { gte: Date } | { lte: Date };
+  endDate?: { lte: Date } | { gte: Date };
+}
 
 /**
  * Create a Trip
@@ -39,12 +46,12 @@ export const createTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate comparison
+    // Parse dates
+    const startDate = DateTime.fromISO(start).startOf('day');
+    const endDate = DateTime.fromISO(end).endOf('day');
+    const today = DateTime.now().startOf('day');
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (!startDate.isValid || !endDate.isValid) {
       res.status(400).json({ error: 'Invalid start or end date format' });
       return;
     }
@@ -65,14 +72,15 @@ export const createTripHandler = async (req: Request, res: Response) => {
       name,
       description,
       destination,
-      startDate,
-      endDate,
+      startDate: startDate.toJSDate(),
+      endDate: endDate.toJSDate(),
       budget: budget ?? null,
       createdBy: userId,
       imageUrl: imageUrl ?? null,
     });
 
     res.status(201).json({ message: 'Trip created successfully', trip });
+    return;
   } catch (error) {
     handleControllerError(error, res, 'Error creating trip:');
   }
@@ -97,7 +105,6 @@ export const fetchSingleTripHandler = async (req: Request, res: Response) => {
     }
 
     const trip = await fetchSingleTrip(userId, tripId);
-
     res.status(200).json({ trip });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching trip:');
@@ -117,8 +124,9 @@ export const fetchTripsWithFiltersHandler = async (
       destination,
       startDate,
       endDate,
-      limit = 10,
+      limit = 100,
       offset = 0,
+      status, // current, future, past
     } = req.query;
 
     if (!userId) {
@@ -126,16 +134,42 @@ export const fetchTripsWithFiltersHandler = async (
       return;
     }
 
-    const filters: any = {};
+    const filters: TripFilters = {};
+    const today = DateTime.now().startOf('day');
 
+    // Handle destination filtering
     if (destination) {
       filters.destination = {
         contains: destination as string,
         mode: 'insensitive', // Case-insensitive search
       };
     }
-    if (startDate) filters.startDate = { gte: new Date(startDate as string) };
-    if (endDate) filters.endDate = { lte: new Date(endDate as string) };
+
+    // Handle status-based filtering
+    if (status === 'past') {
+      filters.endDate = { lte: today.toJSDate() }; // Ended before today
+    } else if (status === 'future') {
+      filters.startDate = { gte: today.plus({ days: 1 }).toJSDate() }; // Starts after today
+    } else if (status === 'current') {
+      filters.startDate = { lte: today.toJSDate() }; // Started on or before today
+      filters.endDate = { gte: today.toJSDate() }; // Ends on or after today
+    } else {
+      // Apply manual startDate & endDate filters if provided
+      if (startDate) {
+        filters.startDate = {
+          gte: DateTime.fromISO(startDate as string)
+            .startOf('day')
+            .toJSDate(),
+        };
+      }
+      if (endDate) {
+        filters.endDate = {
+          lte: DateTime.fromISO(endDate as string)
+            .endOf('day')
+            .toJSDate(),
+        };
+      }
+    }
 
     const trips = await fetchTripsWithFilters(
       userId,
@@ -143,7 +177,6 @@ export const fetchTripsWithFiltersHandler = async (
       Number(limit),
       Number(offset),
     );
-
     res.status(200).json({ trips });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching filtered trips:');
@@ -218,7 +251,6 @@ export const deleteMultipleTripsHandler = async (
     handleControllerError(error, res, 'Error deleting multiple trips:');
   }
 };
-
 /**
  * Update a Trip (Only the Creator and Admins Can Update)
  */
@@ -245,6 +277,13 @@ export const updateTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
+    if (tripData.startDate) {
+      tripData.startDate = DateTime.fromISO(tripData.startDate).toJSDate();
+    }
+    if (tripData.endDate) {
+      tripData.endDate = DateTime.fromISO(tripData.endDate).toJSDate();
+    }
+
     // Fetch the trip to verify membership and role
     const trip = await fetchSingleTrip(userId, tripId);
 
@@ -263,7 +302,6 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     }
 
     const updatedTrip = await updateTrip(userId, tripId, tripData);
-
     res
       .status(200)
       .json({ message: 'Trip updated successfully', trip: updatedTrip });

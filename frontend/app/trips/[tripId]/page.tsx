@@ -29,6 +29,8 @@ import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import apiClient from "@/utils/apiClient";
+import { supabase } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 import axios from "axios";
 
 const sections = [
@@ -83,6 +85,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
+  imageUrl: string;
 }
 
 export default function TripSummaryPage() {
@@ -90,6 +93,7 @@ export default function TripSummaryPage() {
   const tripId = params?.tripId;
 
   const theme = useTheme();
+  const [user, setUser] = useState<User | null>(null);
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -120,6 +124,7 @@ export default function TripSummaryPage() {
           members: trip.members,
           expenses: trip.expenses,
           stays: trip.stays,
+          imageUrl: trip.imageUrl,
         });
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -133,6 +138,21 @@ export default function TripSummaryPage() {
 
     fetchTrip();
   }, [tripId]);
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error("Error fetching user:", error)
+      }
+    }
+
+    fetchUser();
+    
+  },[]);
 
   //Just a loading screen
   if (isLoading) {
@@ -241,7 +261,7 @@ export default function TripSummaryPage() {
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
-        {activeSection === "members" && <TripMembers />}
+        {activeSection === "members" && <TripMembers members={tripData?.members} user={user} />}
       </Container>
     </Box>
   );

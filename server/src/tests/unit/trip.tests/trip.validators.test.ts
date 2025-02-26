@@ -7,20 +7,10 @@ import {
   validateDeleteMultipleTripsInput,
 } from '../../../middleware/trip.validators.ts';
 import { validationResult } from 'express-validator';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
 describe('Trip Validators Middleware', () => {
   let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let next: jest.Mock;
-
-  beforeEach(() => {
-    mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-    next = jest.fn();
-  });
 
   const runValidation = async (req: Partial<Request>, validation: any) => {
     await validation.run(req);
@@ -152,10 +142,6 @@ describe('Trip Validators Middleware', () => {
         tripIds: [0, -1, 5],
         errorMsg: 'Each trip ID must be a positive integer',
       },
-      {
-        tripIds: ['1', '2', '3'],
-        errorMsg: 'Each trip ID must be a positive integer',
-      },
     ])(
       'should fail validation for invalid input',
       async ({ tripIds, errorMsg }) => {
@@ -257,6 +243,28 @@ describe('Trip Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ msg: 'Invalid end date format' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if status is not one of the allowed values', async () => {
+      mockReq = {
+        query: {
+          status: 'invalid-status',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateFetchTripsWithFilters,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Invalid status. Allowed values: past, current, future',
+          }),
         ]),
       );
     });

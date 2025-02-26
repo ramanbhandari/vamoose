@@ -47,6 +47,7 @@ export const authMiddleware = (
   } catch (error) {
     //console.error('Auth Middleware Error:', error);
     res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    console.error(error);
     return;
   }
 };

@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import prisma from '../config/prismaClient.ts';
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
-import { BaseError } from '../utils/errors.ts';
 import TripInvite from '../models/invitee.model.ts';
 import { getUserByEmail, getUserById } from '../models/user.model.ts';
 import { addTripMember, getTripMember } from '../models/member.model.ts';
 import dotenv from 'dotenv';
 import { fetchSingleTrip } from '../models/trip.model.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
+import prisma from '../config/prismaClient.ts';
 
 dotenv.config();
 
@@ -176,7 +175,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await prisma.$transaction([
+    await prisma.$transaction([
       // add user to trip
       addTripMember(invite.tripId, userId, 'member', true),
 

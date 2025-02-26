@@ -33,83 +33,20 @@ interface TripCardProps {
   onDelete?: (tripId: number) => void; // Optional callback for parent component updates
 }
 
-const defaultImages = [
-  "/dashboard/dashboard_1.jpg",
-  "/dashboard/dashboard_2.jpg",
-  "/dashboard/dashboard_3.jpg",
-  "/dashboard/dashboard_4.jpg",
-  "/dashboard/dashboard_5.jpg",
-  "/dashboard/dashboard_6.jpg",
-  "/dashboard/dashboard_7.avif",
-  "/dashboard/dashboard_8.jpg",
-  "/dashboard/dashboard_9.jpg",
-  "/dashboard/dashboard_10.jpg",
-  "/dashboard/dashboard_13.jpg",
-  "/dashboard/dashboard_14.jpg",
-  "/dashboard/dashboard_15.jpg",
-  "/dashboard/dashboard_11.jpg",
-  "/dashboard/dashboard_12.jpg",
-  "/dashboard/dashboard_16.jpg",
-  "/dashboard/dashboard_17.jpg",
-  "/dashboard/dashboard_18.jpg",
-  "/dashboard/dashboard_19.jpg",
-  "/dashboard/dashboard_20.jpg",
-  "/dashboard/dashboard_21.jpg",
-  "/dashboard/dashboard_22.jpg",
-  "/dashboard/dashboard_23.jpg",
-];
-
-const getRandomImage = () => {
-  const randomIndex = Math.floor(Math.random() * defaultImages.length);
-  return defaultImages[randomIndex];
-};
-
-const fetchDestinationImage = async (
-  destination: string
-): Promise<string | null> => {
-  try {
-    const cityName = destination.split(",")[0].trim();
-
-    const wikiResponse = await axios.get(
-      `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&titles=${cityName}&pithumbsize=600`
-    );
-
-    const pages = wikiResponse.data.query.pages;
-    const firstPage = Object.keys(pages)[0];
-    const wikiImage = pages[firstPage]?.thumbnail?.source;
-
-    if (wikiImage) return wikiImage;
-
-    return null;
-  } catch (error) {
-    console.error("Error fetching destination image:", error);
-    return null;
-  }
-};
-
 export default function TripCard({
   tripId,
   title,
   startDate,
   endDate,
   destination,
+  imageUrl,
   onDelete,
 }: TripCardProps) {
   const router = useRouter();
-  const [cardImage, setCardImage] = useState<string>(getRandomImage());
+  const cardImage = imageUrl ? imageUrl : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
-
-  useEffect(() => {
-    const loadImage = async () => {
-      if (destination) {
-        const fetchedImage = await fetchDestinationImage(destination);
-        if (fetchedImage) setCardImage(fetchedImage);
-      }
-    };
-    loadImage();
-  }, [destination]);
 
   const handleViewTrip = () => {
     router.push(`/trips/${tripId}`);

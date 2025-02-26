@@ -67,6 +67,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
+  imageUrl: string;
   description: string;
 }
 
@@ -93,8 +94,7 @@ interface PollProps {
   onClick?: () => void;
 }
 
-const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
   padding: "3rem 2rem",
   color: "white",
   borderRadius: "0 0 80px 80px",
@@ -465,7 +465,33 @@ function TripHeader ({ tripData }: TripHeaderProps) {
   }
 
   return (
-    <GradientHeader theme={theme}>
+    <GradientHeader
+      theme={theme}
+      sx={{
+        background: tripData.imageUrl
+          ? "none"
+          : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+
+        "&::after": tripData.imageUrl
+          ? {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: `url(${tripData.imageUrl}) center/cover no-repeat`,
+              filter: "brightness(0.5) blur(4px)",
+              zIndex: -2,
+            }
+          : "none",
+
+        "& > *": {
+          position: "relative",
+          zIndex: 1,
+        },
+      }}
+    >
       <Container sx={{ maxHeight: "100vh" }}>
         <Box
           sx={{
@@ -947,6 +973,13 @@ export default function TripOverview ({
     { id: "2", question: "Preferred departure time?", votes: 5 },
   ]);
 
+  const router = useRouter();
+
+  const handleInviteClick = () => {
+    router.replace(`/trips/${tripData?.id}?invite=true`);
+    onSectionChange("members");
+  };
+
   if (!tripData) {
     return (
       <Box
@@ -1067,7 +1100,7 @@ export default function TripOverview ({
                       py: 1.5,
                       fontSize: "1.1rem",
                     }}
-                    onClick={() => onSectionChange("members")}
+                    onClick={handleInviteClick}
                   >
                     Invite More Explorers
                   </Button>

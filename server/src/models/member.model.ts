@@ -137,3 +137,32 @@ export const deleteTripMember = async (tripId: number, userId: string) => {
     throw handlePrismaError(error);
   }
 };
+
+/**
+ * Get the count of members in a trip
+ */
+export const getTripMemberCount = async (tripId: number) => {
+  try {
+    return await prisma.tripMember.count({
+      where: { tripId },
+    });
+  } catch (error) {
+    console.error('Error fetching trip member count:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Delete multiple members from a trip
+export const deleteManyTripMembers = async (
+  tripId: number,
+  userIds: string[],
+) => {
+  try {
+    return await prisma.tripMember.deleteMany({
+      where: { tripId, userId: { in: userIds } },
+    });
+  } catch (error) {
+    console.error('Error deleting trip members:', error);
+    throw handlePrismaError(error);
+  }
+};
