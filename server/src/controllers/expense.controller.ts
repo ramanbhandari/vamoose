@@ -13,6 +13,7 @@ import {
   addExpense,
   deleteSingleExpense,
   fetchSingleExpense,
+  fetchMultipleExpenses,
   deleteMultipleExpenses,
 } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -270,18 +271,24 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    // Fetch all valid expenses where userId is part of the expense split
-    const userExpenses = await getExpensesForUser(expenseIds, userId);
-    const validExpenseIds = userExpenses.map((expense) => expense.expenseId);
+    const tripExpenses = await fetchMultipleExpenses(tripId);
+    const tripExpenseIds = tripExpenses.map((expense) => expense.id);
+
+    const validExpenseIds = expenseIds.filter((id) => tripExpenseIds.includes(id));
 
     if (validExpenseIds.length === 0) {
-      res
-        .status(403)
-        .json({ error: 'You are not included in any of these expense splits' });
+      res.status(404).json({ error: 'No valid expenses found for deletion' });
       return;
     }
 
-    //TODO: check if multiple expenseIDs exist using fetchMultipleExpenses
+    // Fetch all valid expenses where userId is part of the expense split
+    const userExpenses = await getExpensesForUser(validExpenseIds, userId);
+    const userExpenseIds = userExpenses.map((expense) => expense.expenseId);
+
+    if (userExpenseIds.length === 0) {
+      res.status(403).json({ error: 'You are not included in any of these expense splits' });
+      return;
+    }
 
     const result = await deleteMultipleExpenses(tripId, validExpenseIds);
 
