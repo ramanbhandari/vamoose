@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Box, Container, useTheme, CircularProgress } from "@mui/material";
+import { Box, Container, useTheme, CircularProgress, Typography } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import EventIcon from "@mui/icons-material/Event";
@@ -29,6 +29,7 @@ import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import apiClient from "@/utils/apiClient";
+import axios from "axios";
 
 const sections = [
   {
@@ -91,6 +92,7 @@ export default function TripSummaryPage() {
   const theme = useTheme();
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   //   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [activeSection, setActiveSection] = useState("overview");
@@ -99,6 +101,7 @@ export default function TripSummaryPage() {
     setActiveSection(sectionId);
   };
 
+  // Gets the trip data from the API
   useEffect(() => {
     if (!tripId) return;
     const fetchTrip = async () => {
@@ -119,6 +122,9 @@ export default function TripSummaryPage() {
           stays: trip.stays,
         });
       } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          setErrorMessage("404: TRIP NOT FOUND");
+        }
         console.error("Error fetching trip data:", error);
       } finally {
         setIsLoading(false);
@@ -128,6 +134,7 @@ export default function TripSummaryPage() {
     fetchTrip();
   }, [tripId]);
 
+  //Just a loading screen
   if (isLoading) {
     return (
       <Box
@@ -139,6 +146,33 @@ export default function TripSummaryPage() {
         }}
       >
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  //If there is an error, show the error message
+  if (errorMessage) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: 4,
+        }}
+      >
+        <Typography
+          variant="h2"
+          color="error"
+          sx={{
+            fontWeight: "700",
+            fontFamily: "apple-system",
+          }}
+        >
+          {errorMessage}
+        </Typography>
       </Box>
     );
   }

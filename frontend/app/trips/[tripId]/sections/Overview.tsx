@@ -15,7 +15,6 @@ import {
   useTheme,
   CircularProgress,
   TextField,
-  InputAdornment,
   Alert,
   Snackbar,
 } from "@mui/material";
@@ -35,6 +34,7 @@ import {
   Close,
   Save,
   Edit as Edit,
+  Delete,
 } from "@mui/icons-material";
 import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
@@ -45,7 +45,9 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import axios from "axios";
 import apiClient from "@/utils/apiClient";
 import { useSearchParams, useRouter } from "next/navigation";
-
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
+//import DestinationField from "@/app/trips/create/DestinationField";
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
 
@@ -65,6 +67,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
+  description: string;
 }
 
 interface TripOverviewProps {
@@ -74,7 +77,6 @@ interface TripOverviewProps {
 
 interface TripHeaderProps {
   tripData: TripData | null;
-  onTripUpdate?: (updatedTrip: TripData) => void;
 }
 
 interface AdventureCardProps {
@@ -123,7 +125,7 @@ const LocationPill = ({ label }: { label: string }) => (
     <Chip
       label={label}
       icon={<FlightLand />}
-      color="secondary"
+      color='secondary'
       sx={{
         px: 3,
         py: 1.5,
@@ -194,13 +196,13 @@ const AdventureCard = ({
         >
           {icon}
         </IconButton>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+        <Typography variant='h5' gutterBottom sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
         <Chip
           label={status}
-          color="secondary"
-          size="medium"
+          color='secondary'
+          size='medium'
           sx={{
             fontWeight: 600,
             px: 2,
@@ -228,12 +230,12 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
       onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <PollIcon color="primary" />
+        <PollIcon color='primary' />
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant='h6' sx={{ fontWeight: 600 }}>
             {question}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             {votes} votes received
           </Typography>
         </Box>
@@ -242,14 +244,15 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
   </motion.div>
 );
 
-function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
+function TripHeader ({ tripData }: TripHeaderProps) {
+  const router = useRouter();
   const theme = useTheme();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [tripDetails, setTripDetails] = useState<{
     name: string;
@@ -258,6 +261,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
     endDate: string;
     budget: string;
     currency: string;
+    description: string;
   }>({
     name: "",
     destination: "",
@@ -265,6 +269,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
     endDate: "",
     budget: "",
     currency: "CAD",
+    description: "",
   });
 
   // Initialize form with trip data when component mounts or tripData changes
@@ -277,6 +282,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
         endDate: tripData.endDate || "",
         budget: tripData.budget?.toString() || "",
         currency: "CAD",
+        description: tripData.description || "",
       });
     }
   }, [tripData]);
@@ -288,18 +294,6 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
       setIsEditMode(true);
     }
   }, [searchParams]);
-
-  const BudgetRing = styled(motion.div)({
-    position: "relative",
-    width: 140,
-    height: 140,
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
-    background: theme.palette.primary.main,
-  });
 
   const getTripStatus = (startDate: string, endDate: string) => {
     const today = new Date();
@@ -321,6 +315,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
         endDate: tripData.endDate || "",
         budget: tripData.budget?.toString() || "",
         currency: "CAD",
+        description: tripData.description || "",
       });
     }
   };
@@ -332,14 +327,29 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
   };
 
   const handleSave = async () => {
-    // Validate inputs first
+    // Validate all required inputs
     if (!tripDetails.name.trim()) {
       setError("Trip name is required");
       return;
     }
 
-    if (!tripDetails.startDate || !tripDetails.endDate) {
-      setError("Start and end dates are required");
+    if (!tripDetails.destination.trim()) {
+      setError("Destination is required");
+      return;
+    }
+
+    if (!tripDetails.startDate) {
+      setError("Start date is required");
+      return;
+    }
+
+    if (!tripDetails.endDate) {
+      setError("End date is required");
+      return;
+    }
+
+    if (!tripDetails.budget) {
+      setError("Budget is required");
       return;
     }
 
@@ -359,16 +369,11 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
         startDate: tripDetails.startDate,
         endDate: tripDetails.endDate,
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
+        description: tripDetails.description,
       };
 
       // Make the PATCH request to update the trip
-      const response = await apiClient.patch(`/trips/${tripData?.id}`, payload);
-
-      // Update the local tripData if callback exists
-      const updatedTrip = response.data;
-      if (onTripUpdate && updatedTrip) {
-        onTripUpdate(updatedTrip);
-      }
+      await apiClient.patch(`/trips/${tripData?.id}`, payload);
 
       // Show success message
       setSuccessMessage("Trip details updated successfully");
@@ -376,8 +381,8 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
       // Exit edit mode
       setIsEditMode(false);
 
-      // Redirect to the normal trip URL without the edit parameter
-      router.push(`/trips/${tripData?.id}`);
+      // Simply refresh the page after successful save
+      window.location.href = `/trips/${tripData?.id}`;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError(
@@ -405,7 +410,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
     // Don't allow multiple decimal points
     if ((rawValue.match(/\./g) || []).length > 1) return;
 
-    setTripDetails((prev) => ({
+    setTripDetails(prev => ({
       ...prev,
       budget: rawValue,
     }));
@@ -417,10 +422,31 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
     const number = parseFloat(tripDetails.budget);
     if (isNaN(number)) return;
 
-    setTripDetails((prev) => ({
+    setTripDetails(prev => ({
       ...prev,
       budget: number.toFixed(2),
     }));
+  };
+
+  const handleDelete = async () => {
+    try {
+      await apiClient.delete(`/trips/${tripData?.id}`);
+      setSuccessMessage("Trip deleted successfully!");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(
+          `Error deleting trip: ${
+            error.response?.data?.message || "Server error"
+          }`
+        );
+      } else {
+        setError("Unexpected error occurred while deleting trip");
+      }
+      console.error("Error deleting trip:", error);
+    }
   };
 
   if (!tripData) {
@@ -441,35 +467,91 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
   return (
     <GradientHeader theme={theme}>
       <Container sx={{ maxHeight: "100vh" }}>
-        {/* Alert for error messages */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
+        <Box
+          sx={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            width: "90%",
+            maxWidth: 600,
+          }}
+        >
+          {error && (
+            <Alert
+              severity='error'
+              sx={{ mb: 2 }}
+              onClose={() => {
+                setError(null);
+              }}
+            >
+              {error}
+            </Alert>
+          )}
+          <Snackbar
+            open={!!successMessage}
+            autoHideDuration={3000}
+            onClose={() => setSuccessMessage(null)}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          >
+            <Alert
+              onClose={() => setSuccessMessage(null)}
+              severity='success'
+              sx={{
+                width: "100%",
+                bgcolor: "background.paper",
+                color: "text.primary",
+              }}
+            >
+              {successMessage}
+            </Alert>
+          </Snackbar>
+        </Box>
 
-        {/* Confirmation message */}
-        <Snackbar
-          open={!!successMessage}
-          autoHideDuration={5000}
-          onClose={() => setSuccessMessage(null)}
-          message={successMessage}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            mt: -4,
+            ml: 4,
+          }}
+        >
+          <IconButton
+            onClick={() => setDeleteDialogOpen(true)}
+            sx={{
+              background: "none",
+              color: "white",
+              transition: "transform 0.3s, color 0.5s",
+              "&:hover": {
+                background: "none",
+                transform: "scale(1.2)",
+                color: "primary.main",
+              },
+            }}
+          >
+            <Delete />
+          </IconButton>
+        </Box>
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleDelete}
+          title='Delete Trip'
+          message={`Are you sure you want to delete "${tripData?.name}"?`}
         />
 
-        <HeaderGrid container alignItems="center" theme={theme}>
+        <HeaderGrid container alignItems='center' theme={theme}>
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
-              <Box display="flex" alignItems="center" gap={2}>
+              <Box display='flex' alignItems='center' gap={2}>
                 {isEditMode ? (
                   <TextField
-                    variant="standard"
+                    variant='standard'
                     required={true}
                     value={tripDetails.name}
                     error={!tripDetails.name}
-                    helperText={
-                      !tripDetails.name ? "Trip name is required" : ""
-                    }
+                    placeholder='Trip Name'
                     slotProps={{
                       input: {
                         spellCheck: "false",
@@ -477,24 +559,24 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                       },
                     }}
                     sx={{
-                      width: "1",
+                      width: "0.75",
                       "& .MuiInputBase-input": {
-                        // Match Typography size
                         fontSize: { xs: "2.5rem", md: "3.5rem" },
                         fontWeight: 900,
                         lineHeight: 1,
                         letterSpacing: "-1.5px",
+                        color: "white",
                       },
                       "& .MuiFormHelperText-root": { color: "purple" },
                       mb: 2,
                     }}
-                    onChange={(e) =>
+                    onChange={e =>
                       setTripDetails({ ...tripDetails, name: e.target.value })
                     }
                   />
                 ) : (
                   <Typography
-                    variant="h1"
+                    variant='h1'
                     sx={{
                       fontSize: { xs: "2.5rem", md: "3.5rem" },
                       fontWeight: 900,
@@ -507,7 +589,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                   </Typography>
                 )}
                 {isEditMode ? (
-                  <Box display="flex" gap={1}>
+                  <Box display='flex' gap={1}>
                     <IconButton
                       onClick={handleCancel}
                       sx={{
@@ -517,7 +599,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                         "&:hover": {
                           background: "none",
                           transform: "scale(1.2)",
-                          color: "#ffcccc", // Light red on hover
+                          color: "primary.main",
                         },
                       }}
                     >
@@ -536,12 +618,12 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                         "&:hover": {
                           background: "none",
                           transform: "scale(1.2)",
-                          color: "#ccffcc", // Light green on hover
+                          color: "var(--accent)",
                         },
                       }}
                     >
                       {loading ? (
-                        <CircularProgress size={24} color="inherit" />
+                        <CircularProgress size={24} color='inherit' />
                       ) : (
                         <Save />
                       )}
@@ -564,9 +646,59 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                   </IconButton>
                 )}
               </Box>
+              <Box sx={{ mb: 1 }}>
+                {isEditMode ? (
+                  <TextField
+                    variant='standard'
+                    placeholder='Add a trip description'
+                    value={tripDetails.description}
+                    onChange={e => {
+                      if (e.target.value.length <= 50) {
+                        setTripDetails(prev => ({
+                          ...prev,
+                          description: e.target.value,
+                        }));
+                      }
+                    }}
+                    helperText={`${tripDetails.description.length}/50`}
+                    slotProps={{
+                      input: {
+                        spellCheck: "false",
+                        autoCorrect: "off",
+                      },
+                    }}
+                    sx={{
+                      width: "0.62",
+                      "& .MuiInputBase-input": {
+                        color: "white",
+                        fontSize: "1rem",
+                      },
+                    }}
+                  />
+                ) : (
+                  <Typography
+                    variant='body1'
+                    sx={{
+                      color: "white",
+                      opacity: 0.9,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      cursor: "pointer",
+                      "&:hover": {
+                        opacity: 1,
+                      },
+                    }}
+                  >
+                    {tripDetails.description || "No description provided"}
+                  </Typography>
+                )}
+              </Box>
               <Chip
                 label={getTripStatus(tripData.startDate, tripData.endDate)}
-                color="secondary"
+                color='secondary'
                 sx={{
                   borderRadius: 2,
                   //   py: 1,
@@ -577,7 +709,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
               />
             </Box>
 
-            <Grid container spacing={1} alignItems="center">
+            <Grid container spacing={1} alignItems='center'>
               <Grid item xs={12} md={6}>
                 <Box
                   sx={{
@@ -588,7 +720,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                 >
                   <DateRange sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Departure Date
                     </Typography>
                     {isEditMode ? (
@@ -599,7 +731,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                               ? new Date(tripDetails.startDate)
                               : null
                           }
-                          onChange={(newDate) => {
+                          onChange={newDate => {
                             if (newDate) {
                               setTripDetails({
                                 ...tripDetails,
@@ -608,7 +740,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                             }
                           }}
                           sx={{
-                            width: "100%",
+                            width: "0.8",
                             "& .MuiInputBase-root": {
                               color: "white",
                               "& .MuiOutlinedInput-notchedOutline": {
@@ -643,7 +775,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                         />
                       </LocalizationProvider>
                     ) : (
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
                         {formatDate(tripData?.startDate)}
                       </Typography>
                     )}
@@ -661,7 +793,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                 >
                   <FlightTakeoff sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
                       Return Date
                     </Typography>
                     {isEditMode ? (
@@ -672,7 +804,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                               ? new Date(tripDetails.endDate)
                               : null
                           }
-                          onChange={(newDate) => {
+                          onChange={newDate => {
                             if (newDate) {
                               setTripDetails({
                                 ...tripDetails,
@@ -681,7 +813,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                             }
                           }}
                           sx={{
-                            width: "100%",
+                            width: "0.8",
                             "& .MuiInputBase-root": {
                               color: "white",
                               "& .MuiOutlinedInput-notchedOutline": {
@@ -716,7 +848,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
                         />
                       </LocalizationProvider>
                     ) : (
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
                         {formatDate(tripData?.endDate)}
                       </Typography>
                     )}
@@ -738,15 +870,23 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
             >
               {isEditMode ? (
                 <TextField
-                  variant="standard"
+                  variant='standard'
+                  required={true}
+                  error={!tripDetails.destination}
+                  placeholder='Destination'
+                  slotProps={{
+                    input: {
+                      spellCheck: "false",
+                      autoCorrect: "off",
+                    },
+                  }}
                   value={tripDetails.destination}
-                  onChange={(e) =>
+                  onChange={e =>
                     setTripDetails({
                       ...tripDetails,
                       destination: e.target.value,
                     })
                   }
-                  placeholder="Enter destination"
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       color: "white",
@@ -772,70 +912,20 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
             <Box
               sx={{
                 display: "flex",
-                justifyContent: { xs: "center", md: "flex-end" },
-                // mb: { xs: 0, md: 0 },
+                justifyContent: { xs: "center", md: "flex-start" },
                 mt: { xs: 2, md: 0 },
+                position: "relative",
+                width: "300px",
               }}
             >
-              <BudgetRing>
-                <Box
-                  sx={{
-                    background: theme.palette.background.paper,
-                    borderRadius: "50%",
-                    width: "80%",
-                    height: "80%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    // boxShadow: theme.shadows[4],
-                  }}
-                >
-                  <Box textAlign="center">
-                    {isEditMode ? (
-                      <TextField
-                        variant="standard"
-                        type="text"
-                        value={tripDetails.budget}
-                        onChange={handleBudgetChange}
-                        onBlur={handleBudgetBlur}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Typography variant="h6" color="text.primary">
-                                $
-                              </Typography>
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          width: "80%",
-                          "& .MuiInputBase-input": {
-                            fontWeight: 700,
-                            fontSize: { xs: "1.3rem", md: "1.7rem" },
-                            textAlign: "center",
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        variant="h4"
-                        fontWeight={700}
-                        color={theme.palette.text.primary}
-                        sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
-                      >
-                        ${tripData?.budget?.toLocaleString() || "0"}
-                      </Typography>
-                    )}
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontSize: { xs: "0.8rem", md: "1rem" } }}
-                    >
-                      Total Budget
-                    </Typography>
-                  </Box>
-                </Box>
-              </BudgetRing>
+              <BudgetDonut
+                budget={tripData?.budget || 0}
+                isEditMode={isEditMode}
+                tripDetails={tripDetails}
+                handleBudgetChange={handleBudgetChange}
+                handleBudgetBlur={handleBudgetBlur}
+                setTripDetails={setTripDetails}
+              />
             </Box>
           </Grid>
         </HeaderGrid>
@@ -844,7 +934,7 @@ function TripHeader({ tripData, onTripUpdate }: TripHeaderProps) {
   );
 }
 
-export default function TripOverview({
+export default function TripOverview ({
   tripData,
   onSectionChange,
 }: TripOverviewProps) {
@@ -874,7 +964,7 @@ export default function TripOverview({
 
   return (
     <motion.div style={{ scale }}>
-      <Container maxWidth="xl" disableGutters>
+      <Container maxWidth='xl' disableGutters>
         <TripHeader tripData={tripData} />
 
         <Container sx={{ pt: 4 }}>
@@ -883,7 +973,7 @@ export default function TripOverview({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant="h4"
+                    variant='h4'
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -892,10 +982,10 @@ export default function TripOverview({
                       gap: 2,
                     }}
                   >
-                    <Work fontSize="large" />
+                    <Work fontSize='large' />
                     Journey Essentials
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant='body1' color='text.secondary'>
                     Key components of your upcoming adventure
                   </Typography>
                 </Box>
@@ -943,7 +1033,7 @@ export default function TripOverview({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant="h4"
+                    variant='h4'
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -952,15 +1042,15 @@ export default function TripOverview({
                       gap: 2,
                     }}
                   >
-                    <Group fontSize="large" />
+                    <Group fontSize='large' />
                     Travel Squad
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant='body1' color='text.secondary'>
                     {tripData?.members.length} adventurers joining the journey
                   </Typography>
                 </Box>
 
-                <Box display="flex" flexWrap="wrap" gap={3} mb={3}>
+                <Box display='flex' flexWrap='wrap' gap={3} mb={3}>
                   {tripData?.members.map((member, index) => (
                     <MemberAvatar key={index} member={member.role} />
                   ))}
@@ -969,8 +1059,8 @@ export default function TripOverview({
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <Button
                     fullWidth
-                    variant="contained"
-                    color="secondary"
+                    variant='contained'
+                    color='secondary'
                     startIcon={<GroupAdd />}
                     sx={{
                       borderRadius: 3,
@@ -988,7 +1078,7 @@ export default function TripOverview({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant="h4"
+                variant='h4'
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -997,10 +1087,10 @@ export default function TripOverview({
                   gap: 2,
                 }}
               >
-                <Calculate fontSize="large" />
+                <Calculate fontSize='large' />
                 Expenses
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant='body1' color='text.secondary'>
                 {tripData.expenses.length} expenses
               </Typography>
             </Box>
@@ -1008,8 +1098,8 @@ export default function TripOverview({
             <motion.div whileHover={{ scale: 1.05 }}>
               <Button
                 fullWidth
-                variant="contained"
-                color="secondary"
+                variant='contained'
+                color='secondary'
                 sx={{
                   borderRadius: 3,
                   py: 1.5,
@@ -1025,7 +1115,7 @@ export default function TripOverview({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant="h4"
+                variant='h4'
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -1034,10 +1124,10 @@ export default function TripOverview({
                   gap: 2,
                 }}
               >
-                <PollIcon fontSize="large" />
+                <PollIcon fontSize='large' />
                 Active Polls
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant='body1' color='text.secondary'>
                 {polls.length} ongoing decisions
               </Typography>
             </Box>
@@ -1057,7 +1147,7 @@ export default function TripOverview({
           </SectionContainer>
 
           <Typography
-            variant="body1"
+            variant='body1'
             sx={{
               fontStyle: "italic",
               color: "text.secondary",

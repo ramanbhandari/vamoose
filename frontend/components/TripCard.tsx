@@ -21,6 +21,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import apiClient from "@/utils/apiClient";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 interface TripCardProps {
   tripId: number;
@@ -119,15 +120,12 @@ export default function TripCard({
   };
 
   const handleDelete = async () => {
-    if (deleteConfirmation !== title) return;
-
     try {
       await apiClient.delete(`/trips/${tripId}`);
       if (onDelete) {
         onDelete(tripId);
       }
       setDeleteDialogOpen(false);
-      setDeleteConfirmation("");
       setSuccessSnackbarOpen(true);
     } catch (error) {
       console.error("Error deleting trip:", error);
@@ -251,34 +249,13 @@ export default function TripCard({
         </Box>
       </Card>
 
-      <Dialog
+      <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Delete Trip</DialogTitle>
-        <DialogContent>
-          <Typography>
-            To delete &quot;{title}&quot;, please type the trip name to confirm:
-          </Typography>
-          <TextField
-            fullWidth
-            value={deleteConfirmation}
-            onChange={(e) => setDeleteConfirmation(e.target.value)}
-            margin="normal"
-            placeholder={title}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleteConfirmation !== title}
-            color="error"
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDelete}
+        title="Delete Trip"
+        message={`Are you sure you want to delete "${title}"?`}
+      />
 
       {/* Success Snackbar */}
       <Snackbar
