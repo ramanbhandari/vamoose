@@ -160,9 +160,9 @@ export const validateDeleteTripInput = checkExact([
 export const validateDeleteMultipleTripsInput = checkExact([
   body('tripIds')
     .isArray({ min: 1 })
-    .withMessage('tripIds must be a non-empty array')
-    .custom((tripIds) =>
-      tripIds.every((id: number) => Number.isInteger(id) && id > 0),
-    )
+    .withMessage('tripIds must be a non-empty array'),
+
+  body('tripIds.*')
+    .isInt({ min: 1 })
     .withMessage('Each trip ID must be a positive integer'),
 ]);
