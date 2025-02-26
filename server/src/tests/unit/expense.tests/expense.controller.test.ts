@@ -581,6 +581,8 @@ describe('Expense API - Delete Multiple Expense', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expenses deleted successfully',
       deletedCount: 3,
+      validExpenseIds: [1, 2, 3],
+      invalidExpenseIds: [],
     });
   });
 
@@ -655,7 +657,7 @@ describe('Expense API - Delete Multiple Expense', () => {
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'No valid expenses found for deletion',
-      addInvalidExpenseIds: [1, 2, 3],
+      invalidExpenseIds: [1, 2, 3],
     });
   });
 

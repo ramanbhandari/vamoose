@@ -270,26 +270,28 @@ export const deleteMultipleExpensesHandler = async (
     const userExpenses = await getExpensesForUserFiltered(expenseIds, userId);
     const userExpenseIds = userExpenses.map((expense) => expense.id);
 
-    const addValidExpenseIds = expenseIds.filter((id) =>
+    const validExpenseIds = expenseIds.filter((id) =>
       userExpenseIds.includes(id),
     );
-    const addInvalidExpenseIds = expenseIds.filter(
+    const invalidExpenseIds = expenseIds.filter(
       (id) => !userExpenseIds.includes(id),
     );
 
-    if (addValidExpenseIds.length === 0) {
+    if (validExpenseIds.length === 0) {
       res.status(404).json({
         error: 'No valid expenses found for deletion',
-        addInvalidExpenseIds,
+        invalidExpenseIds,
       });
       return;
     }
 
-    const result = await deleteMultipleExpenses(tripId, addValidExpenseIds);
+    const result = await deleteMultipleExpenses(tripId, validExpenseIds);
 
     res.status(200).json({
       message: 'Expenses deleted successfully',
       deletedCount: result.deletedCount,
+      validExpenseIds,
+      invalidExpenseIds,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error deleting multiple expenses:');
