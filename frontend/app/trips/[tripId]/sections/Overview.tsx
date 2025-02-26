@@ -34,6 +34,7 @@ import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
 
 import { format, parseISO } from "date-fns";
+import { useRouter } from "next/navigation";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
@@ -450,6 +451,13 @@ export default function TripOverview({
     { id: "2", question: "Preferred departure time?", votes: 5 },
   ]);
 
+  const router = useRouter();
+
+  const handleInviteClick = () => {
+    router.replace(`/trips/${tripData?.id}?invite=true`);
+    onSectionChange("members");
+  };
+
   if (!tripData) {
     return (
       <Box
@@ -568,7 +576,7 @@ export default function TripOverview({
                       py: 1.5,
                       fontSize: "1.1rem",
                     }}
-                    onClick={() => onSectionChange("members")}
+                    onClick={handleInviteClick}
                   >
                     Invite More Explorers
                   </Button>
