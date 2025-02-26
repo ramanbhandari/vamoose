@@ -161,7 +161,7 @@ export default function CreateTrip() {
         startDate: tripDetails.startDate,
         endDate: tripDetails.endDate,
         budget: tripDetails.budget ? parseFloat(tripDetails.budget) : 0,
-        imageUrl: wikiImage ? wikiImage : null,
+        imageUrl: wikiImage ?? null,
       };
 
       const response = await apiClient.post("/trips", payload);
