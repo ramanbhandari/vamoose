@@ -9,7 +9,10 @@ export const validateAddExpenseInput = checkExact([
     .isFloat({ min: 0.01 })
     .withMessage('Amount must be a positive number'),
 
-  body('category').isString().notEmpty().withMessage('Category is required'),
+  body('category')
+    .toLowerCase()
+    .isIn(['food', 'accommodation', 'travel', 'other'])
+    .withMessage('Category must be one of: food, accommodation, travel, other'),
 
   body('description')
     .optional()

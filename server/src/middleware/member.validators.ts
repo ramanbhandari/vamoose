@@ -9,6 +9,7 @@ export const validateUpdateTripMemberInput = checkExact([
     .notEmpty()
     .withMessage("Member's userId is required"),
   body('role')
+    .toLowerCase()
     .isIn(['admin', 'member'])
     .withMessage('Role must be either "admin" or "member"'),
 ]);

@@ -100,8 +100,7 @@ export const validateFetchTripsWithFilters = checkExact([
 
   query('status')
     .optional()
-    .isString()
-    .customSanitizer((value) => value.toLowerCase())
+    .toLowerCase()
     .isIn(['past', 'current', 'future'])
     .withMessage('Invalid status. Allowed values: past, current, future'),
 
