@@ -1,6 +1,8 @@
 import {
   validateAddExpenseInput,
   validateFetchExpense,
+  validateDeleteSingleExpense,
+  validateDeleteMultipleExpenses,
 } from '../../../middleware/expense.validators.ts';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
@@ -242,6 +244,138 @@ describe('Expense Validators Middleware', () => {
         expect.arrayContaining([
           expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
           expect.objectContaining({ msg: 'Expense ID must be a valid number' }),
+        ]),
+      );
+    });
+  });
+
+  /** ───────────────────────────────────────────────────────
+   * DELETE SINGLE EXPENSE VALIDATION TESTS
+   * ─────────────────────────────────────────────────────── */
+  describe('Delete Single Expense Validation', () => {
+    it('should pass validation for a valid deleteSingleExpense input', async () => {
+      mockReq = { params: { tripId: '1', expenseId: '2' } };
+
+      const result = await runValidation(mockReq, validateDeleteSingleExpense);
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is invalid for deleteSingleExpense', async () => {
+      mockReq = { params: { tripId: 'abc', expenseId: '2' } };
+
+      const result = await runValidation(mockReq, validateDeleteSingleExpense);
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if expenseId is invalid for deleteSingleExpense', async () => {
+      mockReq = { params: { tripId: '1', expenseId: 'xyz' } };
+
+      const result = await runValidation(mockReq, validateDeleteSingleExpense);
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Expense ID must be a valid number' }),
+        ]),
+      );
+    });
+  });
+
+  /** ───────────────────────────────────────────────────────
+   * DELETE MULTIPLE EXPENSE VALIDATION TESTS
+   * ─────────────────────────────────────────────────────── */
+  describe('Delete Multiple Expense Validation', () => {
+    it('should pass validation for a valid deleteMultipleExpense input', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { expenseIds: [1, 2, 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is invalid for deleteMultipleExpense', async () => {
+      mockReq = {
+        params: { tripId: 'abc' },
+        body: { expenseIds: [1, 2, 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a valid number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if expenseIds is not an array', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { expenseIds: 'not-an-array' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'expenseIds must be a non-empty array',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if expenseIds is an empty array', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { expenseIds: [] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'expenseIds must be a non-empty array',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if any expenseIds element is invalid', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { expenseIds: [1, 'invalid', 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMultipleExpenses,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Each expense ID in expenseIds must be a valid number',
+          }),
         ]),
       );
     });

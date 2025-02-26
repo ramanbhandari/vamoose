@@ -51,7 +51,7 @@
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.5.0",
     "mongoose": "^8.10.0",
-    "prisma": "^6.3.0"
+    "prisma": "^6.4.1"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
