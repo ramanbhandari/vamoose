@@ -6,14 +6,13 @@ import {
 } from '../models/member.model.ts';
 import {
   isPartOfExpenseSplit,
-  getExpensesForUser,
 } from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
   deleteSingleExpense,
   fetchSingleExpense,
-  fetchMultipleExpenses,
+  getExpensesForUser,
   deleteMultipleExpenses,
 } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -262,7 +261,6 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    // Check if the user is a member of the trip
     const isMember = await getTripMember(tripId, userId);
     if (!isMember) {
       res
@@ -271,26 +269,21 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    const tripExpenses = await fetchMultipleExpenses(tripId);
-    const tripExpenseIds = tripExpenses.map((expense) => expense.id);
+    const userExpenses = await getExpensesForUser(expenseIds, userId);
+    const userExpenseIds = userExpenses.map((expense) => expense.id);
 
     const validExpenseIds = expenseIds.filter((id) =>
-      tripExpenseIds.includes(id),
+      userExpenseIds.includes(id),
+    );
+    const invalidExpenseIds = expenseIds.filter((id) =>
+      !userExpenseIds.includes(id),
     );
 
     if (validExpenseIds.length === 0) {
-      res.status(404).json({ error: 'No valid expenses found for deletion' });
-      return;
-    }
-
-    // Fetch all valid expenses where userId is part of the expense split
-    const userExpenses = await getExpensesForUser(validExpenseIds, userId);
-    const userExpenseIds = userExpenses.map((expense) => expense.expenseId);
-
-    if (userExpenseIds.length === 0) {
-      res
-        .status(403)
-        .json({ error: 'You are not included in any of these expense splits' });
+      res.status(404).json({
+        error: 'No valid expenses found for deletion',
+        invalidExpenseIds,
+      });
       return;
     }
 
@@ -304,3 +297,4 @@ export const deleteMultipleExpensesHandler = async (
     handleControllerError(error, res, 'Error deleting multiple expenses:');
   }
 };
+

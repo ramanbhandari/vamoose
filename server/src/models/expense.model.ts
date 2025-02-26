@@ -78,6 +78,31 @@ export const fetchMultipleExpenses = async (tripId: number) => {
   }
 };
 
+// Gets multiple expenses where userId is an expense sharer
+export const getExpensesForUser = async (
+  expenseIds: number[],
+  userId: string,
+) => {
+  try {
+    return await prisma.expense.findMany({
+      where: {
+        id: { in: expenseIds },
+        shares: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching expenses for user:', error);
+    throw handlePrismaError(error);
+  }
+};
+
 // Delete a single expense
 export const deleteSingleExpense = async (
   expenseId: number,
