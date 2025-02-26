@@ -55,6 +55,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
+  imageUrl: string;
 }
 
 interface TripOverviewProps {
@@ -80,8 +81,7 @@ interface PollProps {
   onClick?: () => void;
 }
 
-const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
   padding: "3rem 2rem",
   color: "white",
   borderRadius: "0 0 80px 80px",
@@ -90,10 +90,6 @@ const GradientHeader = styled(Box)<{ theme: Theme }>(({ theme }) => ({
   "&:before": {
     content: '""',
     position: "absolute",
-    // top: -50,
-    // right: -50,
-    // width: 200,
-    // height: 200,
     background: "rgba(255,255,255,0.1)",
     borderRadius: "50%",
   },
@@ -280,7 +276,33 @@ function TripHeader({ tripData }: TripHeaderProps) {
   }
 
   return (
-    <GradientHeader theme={theme}>
+    <GradientHeader
+      theme={theme}
+      sx={{
+        background: tripData.imageUrl
+          ? "none"
+          : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+
+        "&::after": tripData.imageUrl
+          ? {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: `url(${tripData.imageUrl}) center/cover no-repeat`,
+              filter: "brightness(0.5) blur(4px)",
+              zIndex: -2,
+            }
+          : "none",
+
+        "& > *": {
+          position: "relative",
+          zIndex: 1,
+        },
+      }}
+    >
       <Container sx={{ maxHeight: "100vh" }}>
         <HeaderGrid container alignItems="center" theme={theme}>
           <Grid item xs={12} md={8}>
@@ -363,12 +385,6 @@ function TripHeader({ tripData }: TripHeaderProps) {
                 },
               }}
             >
-              {/* <LocationPill
-                icon={<Flight sx={{ fontSize: "1.2rem" }} />}
-                label={tripData?.from}
-                color={theme.palette.background.paper}
-              /> */}
-              {/* <ArrowForward /> */}
               <LocationPill label={tripData.destination} />
             </Box>
           </Grid>

@@ -11,10 +11,18 @@ import {
   Stack,
   Box,
   Container,
+  InputAdornment,
+  IconButton,
   Tabs,
   Tab,
 } from "@mui/material";
-import { Google, Lock, Email } from "@mui/icons-material";
+import {
+  Google,
+  Lock,
+  Email,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
 import { getMessages } from "./messages";
 
 export default function AuthForm() {
@@ -25,6 +33,9 @@ export default function AuthForm() {
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<"login" | "signup">("login");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,20 +155,30 @@ export default function AuthForm() {
 
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             fullWidth
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             InputProps={{
               startAdornment: <Lock sx={{ mr: 1, color: "secondary.main" }} />,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
 
           {formType === "signup" && (
             <TextField
               label="Confirm Password"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               fullWidth
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -165,6 +186,16 @@ export default function AuthForm() {
               InputProps={{
                 startAdornment: (
                   <Lock sx={{ mr: 1, color: "secondary.main" }} />
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
                 ),
               }}
             />

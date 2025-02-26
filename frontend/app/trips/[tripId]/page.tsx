@@ -84,6 +84,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
+  imageUrl: string;
 }
 
 export default function TripSummaryPage() {
@@ -120,6 +121,7 @@ export default function TripSummaryPage() {
           members: trip.members,
           expenses: trip.expenses,
           stays: trip.stays,
+          imageUrl: trip.imageUrl,
         });
       } catch (error) {
         console.error("Error fetching trip data:", error);
