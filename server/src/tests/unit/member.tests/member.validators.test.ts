@@ -439,7 +439,7 @@ describe('TripMember Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Each memberUserId must be a non-empty string',
+            msg: 'Each memberUserId must be a string',
           }),
         ]),
       );
