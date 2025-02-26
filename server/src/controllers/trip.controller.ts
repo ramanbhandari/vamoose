@@ -40,9 +40,9 @@ export const createTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    // Ensure dates are properly formatted
-    const startDate = DateTime.fromISO(start);
-    const endDate = DateTime.fromISO(end);
+    // Parse dates
+    const startDate = DateTime.fromISO(start).startOf('day');
+    const endDate = DateTime.fromISO(end).endOf('day');
     const today = DateTime.now().startOf('day');
 
     if (!startDate.isValid || !endDate.isValid) {
@@ -118,8 +118,9 @@ export const fetchTripsWithFiltersHandler = async (
       destination,
       startDate,
       endDate,
-      limit = 10,
+      limit = 100,
       offset = 0,
+      status, // current, future, past
     } = req.query;
 
     if (!userId) {
@@ -128,21 +129,41 @@ export const fetchTripsWithFiltersHandler = async (
     }
 
     const filters: any = {};
+    const today = DateTime.now().startOf('day');
 
+    // Handle destination filtering
     if (destination) {
       filters.destination = {
         contains: destination as string,
         mode: 'insensitive', // Case-insensitive search
       };
     }
-    if (startDate)
-      filters.startDate = {
-        gte: DateTime.fromISO(startDate as string).toJSDate(),
-      };
-    if (endDate)
-      filters.endDate = {
-        lte: DateTime.fromISO(endDate as string).toJSDate(),
-      };
+
+    // Handle status-based filtering
+    if (status === 'past') {
+      filters.endDate = { lte: today.toJSDate() }; // Ended before today
+    } else if (status === 'future') {
+      filters.startDate = { gte: today.plus({ days: 1 }).toJSDate() }; // Starts after today
+    } else if (status === 'current') {
+      filters.startDate = { lte: today.toJSDate() }; // Started on or before today
+      filters.endDate = { gte: today.toJSDate() }; // Ends on or after today
+    } else {
+      // Apply manual startDate & endDate filters if provided
+      if (startDate) {
+        filters.startDate = {
+          gte: DateTime.fromISO(startDate as string)
+            .startOf('day')
+            .toJSDate(),
+        };
+      }
+      if (endDate) {
+        filters.endDate = {
+          lte: DateTime.fromISO(endDate as string)
+            .endOf('day')
+            .toJSDate(),
+        };
+      }
+    }
 
     const trips = await fetchTripsWithFilters(
       userId,
@@ -151,7 +172,6 @@ export const fetchTripsWithFiltersHandler = async (
       Number(offset),
     );
     res.status(200).json({ trips });
-    return;
   } catch (error) {
     handleControllerError(error, res, 'Error fetching filtered trips:');
   }
