@@ -17,24 +17,3 @@ export const isPartOfExpenseSplit = async (
     throw handlePrismaError(error);
   }
 };
-
-// Gets multiple expenses where userId is an expense sharer
-export const getExpensesForUser = async (
-  expenseIds: number[],
-  userId: string,
-) => {
-  try {
-    return await prisma.expenseShare.findMany({
-      where: {
-        expenseId: { in: expenseIds },
-        userId,
-      },
-      select: {
-        expenseId: true,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching expenses for user:', error);
-    throw handlePrismaError(error);
-  }
-};

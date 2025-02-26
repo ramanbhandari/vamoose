@@ -22,6 +22,7 @@ jest.mock('../../../config/prismaClient.ts', () => ({
     expense: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       delete: jest.fn(),
       deleteMany: jest.fn(),
     },
@@ -548,9 +549,19 @@ describe('Expense API - Delete Multiple Expense', () => {
   });
 
   it('should delete multiple expenses successfully', async () => {
-    mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(true);
+    mockReq = setupRequest({
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
+    });
+
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expense.findMany as jest.Mock).mockResolvedValue([
+      { id: 1, tripId: 1 },
+      { id: 2, tripId: 1 },
+      { id: 3, tripId: 1 },
+    ]);
+
     (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
       { expenseId: 1, userId: '1' },
       { expenseId: 2, userId: '1' },
@@ -570,6 +581,8 @@ describe('Expense API - Delete Multiple Expense', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Expenses deleted successfully',
       deletedCount: 3,
+      validExpenseIds: [1, 2, 3],
+      invalidExpenseIds: [],
     });
   });
 
@@ -590,23 +603,6 @@ describe('Expense API - Delete Multiple Expense', () => {
     });
   });
 
-  it('should return 403 if user is not part of the expense splits', async () => {
-    mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-
-    (prisma.expense.findUnique as jest.Mock).mockResolvedValue(true);
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
-    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([]);
-
-    await deleteMultipleExpensesHandler(
-      mockReq as Request,
-      mockRes as Response,
-    );
-
-    expect(statusMock).toHaveBeenCalledWith(403);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'You are not included in any of these expense splits',
-    });
-  });
   it.each([
     {
       scenario: 'missing userId',
@@ -641,14 +637,42 @@ describe('Expense API - Delete Multiple Expense', () => {
     },
   );
 
-  // TODO: write test for multiple expenseIDs exist using fetchMultipleExpenses
+  it('should return 404 if user is not part of any expenses', async () => {
+    mockReq = setupRequest({
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
+    });
+
+    // Simulate that the user is a trip member.
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    // Simulate that getExpensesForUserFiltered returns no expenses for this user.
+    (prisma.expense.findMany as jest.Mock).mockResolvedValue([]);
+
+    await deleteMultipleExpensesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid expenses found for deletion',
+      invalidExpenseIds: [1, 2, 3],
+    });
+  });
 
   it('should return 500 if database error occurs', async () => {
-    mockReq = setupRequest({ body: { expenseIds: [1, 2, 3] } });
-    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
-      { expenseId: 1, userId: '1' },
-      { expenseId: 2, userId: '1' },
-      { expenseId: 3, userId: '1' },
+    mockReq = setupRequest({
+      params: { tripId: '1' },
+      body: { expenseIds: [1, 2, 3] },
+      userId: '1',
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.expense.findMany as jest.Mock).mockResolvedValue([
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
     ]);
 
     (prisma.expense.deleteMany as jest.Mock).mockRejectedValue(
