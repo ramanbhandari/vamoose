@@ -12,6 +12,12 @@ import { handleControllerError } from '../utils/errorHandlers.ts';
 import { getTripMember } from '../models/member.model.ts';
 import { DateTime } from 'luxon';
 
+interface TripFilters {
+  destination?: { contains: string; mode: 'insensitive' };
+  startDate?: { gte: Date } | { lte: Date };
+  endDate?: { lte: Date } | { gte: Date };
+}
+
 /**
  * Create a Trip
  */
@@ -128,7 +134,7 @@ export const fetchTripsWithFiltersHandler = async (
       return;
     }
 
-    const filters: any = {};
+    const filters: TripFilters = {};
     const today = DateTime.now().startOf('day');
 
     // Handle destination filtering
