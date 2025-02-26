@@ -7,19 +7,13 @@ import {
   CardMedia,
   Box,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Snackbar,
   Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import apiClient from "@/utils/apiClient";
 import ConfirmationDialog from "./ConfirmationDialog";
 
@@ -45,7 +39,6 @@ export default function TripCard({
   const router = useRouter();
   const cardImage = imageUrl ? imageUrl : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
 
   const handleViewTrip = () => {
@@ -197,7 +190,7 @@ export default function TripCard({
       {/* Success Snackbar */}
       <Snackbar
         open={successSnackbarOpen}
-        autoHideDuration={6000}
+        autoHideDuration={2000}
         onClose={() => setSuccessSnackbarOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
@@ -206,7 +199,7 @@ export default function TripCard({
           severity="success"
           sx={{ width: "100%" }}
         >
-          Trip "{title}" has been successfully deleted
+          Trip has been successfully deleted!
         </Alert>
       </Snackbar>
     </>

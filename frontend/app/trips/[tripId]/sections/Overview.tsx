@@ -251,7 +251,7 @@ function TripHeader ({ tripData }: TripHeaderProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [tripDetails, setTripDetails] = useState<{
@@ -323,44 +323,52 @@ function TripHeader ({ tripData }: TripHeaderProps) {
   const handleCancel = () => {
     setIsEditMode(false);
     handleReset();
-    setError(null);
+    setErrors([]);
   };
 
   const handleSave = async () => {
-    // Validate all required inputs
+    // Reset any existing errors
+    setErrors([]);
+
+    // Collect all validation errors
+    const validationErrors = [];
+
     if (!tripDetails.name.trim()) {
-      setError("Trip name is required");
-      return;
+      validationErrors.push("Trip name is required");
     }
 
     if (!tripDetails.destination.trim()) {
-      setError("Destination is required");
-      return;
+      validationErrors.push("Destination is required");
     }
 
     if (!tripDetails.startDate) {
-      setError("Start date is required");
-      return;
+      validationErrors.push("Start date is required");
     }
 
     if (!tripDetails.endDate) {
-      setError("End date is required");
-      return;
+      validationErrors.push("End date is required");
     }
 
     if (!tripDetails.budget) {
-      setError("Budget is required");
-      return;
+      validationErrors.push("Budget is required");
     }
 
-    // Check if end date is after start date
-    if (new Date(tripDetails.startDate) >= new Date(tripDetails.endDate)) {
-      setError("End date must be after start date");
+    //if end date is after start date
+    if (
+      tripDetails.startDate &&
+      tripDetails.endDate &&
+      new Date(tripDetails.startDate) >= new Date(tripDetails.endDate)
+    ) {
+      validationErrors.push("End date must be after start date");
+    }
+
+    // If there are any validation errors, stack em up
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const payload = {
@@ -372,31 +380,27 @@ function TripHeader ({ tripData }: TripHeaderProps) {
         description: tripDetails.description,
       };
 
-      // Make the PATCH request to update the trip
       await apiClient.patch(`/trips/${tripData?.id}`, payload);
 
       // Show success message
-      setSuccessMessage("Trip details updated successfully");
-
-      // Exit edit mode
+      setSuccessMessage("Trip details updated successfully!");
       setIsEditMode(false);
 
-      // Simply refresh the page after successful save
       window.location.href = `/trips/${tripData?.id}`;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setError(
+        setErrors([
           `Error updating trip: ${
             error.response?.data?.message || "Server error"
-          }`
-        );
+          }`,
+        ]);
         console.error(
           "Axios error:",
           error.response?.status,
           error.response?.data
         );
       } else {
-        setError("Unexpected error occurred");
+        setErrors(["Unexpected error occurred"]);
         console.error("Unexpected error:", error);
       }
     } finally {
@@ -437,13 +441,13 @@ function TripHeader ({ tripData }: TripHeaderProps) {
       }, 1500);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setError(
+        setErrors([
           `Error deleting trip: ${
             error.response?.data?.message || "Server error"
-          }`
-        );
+          }`,
+        ]);
       } else {
-        setError("Unexpected error occurred while deleting trip");
+        setErrors(["Unexpected error occurred while deleting trip"]);
       }
       console.error("Error deleting trip:", error);
     }
@@ -492,6 +496,65 @@ function TripHeader ({ tripData }: TripHeaderProps) {
         },
       }}
     >
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={3000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          severity='success'
+          sx={{
+            width: "100%",
+            bgcolor: "background.paper",
+            color: "text.primary",
+            boxShadow: 4,
+            border: 2,
+            borderColor: "success.main",
+            borderRadius: 2,
+          }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbars */}
+      {errors.map((error, index) => (
+        <Snackbar
+          key={index}
+          open={true}
+          autoHideDuration={2000}
+          onClose={() => setErrors(prev => prev.filter((_, i) => i !== index))}
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "center",
+          }}
+          sx={{
+            top: `${index * 60}px !important`,
+          }}
+        >
+          <Alert
+            onClose={() =>
+              setErrors(prev => prev.filter((_, i) => i !== index))
+            }
+            severity='error'
+            sx={{
+              width: "100%",
+              bgcolor: "background.paper",
+              color: "text.primary",
+              boxShadow: 4,
+              border: 2,
+              borderColor: "error.main",
+              borderRadius: 2,
+            }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+      ))}
+
       <Container sx={{ maxHeight: "100vh" }}>
         <Box
           sx={{
@@ -504,35 +567,23 @@ function TripHeader ({ tripData }: TripHeaderProps) {
             maxWidth: 600,
           }}
         >
-          {error && (
+          {errors.length > 0 && (
             <Alert
               severity='error'
-              sx={{ mb: 2 }}
-              onClose={() => {
-                setError(null);
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-          <Snackbar
-            open={!!successMessage}
-            autoHideDuration={3000}
-            onClose={() => setSuccessMessage(null)}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }}
-          >
-            <Alert
-              onClose={() => setSuccessMessage(null)}
-              severity='success'
               sx={{
-                width: "100%",
+                mb: 2,
+                boxShadow: 4,
                 bgcolor: "background.paper",
                 color: "text.primary",
+                fontWeight: "bold",
+              }}
+              onClose={() => {
+                setErrors([]);
               }}
             >
-              {successMessage}
+              {errors.join(" • ")}
             </Alert>
-          </Snackbar>
+          )}
         </Box>
 
         <Box

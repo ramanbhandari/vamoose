@@ -24,16 +24,23 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   message,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} sx={{
+      "& .MuiDialog-paper": {
+        borderRadius: 2,
+        border: 2,
+        backgroundColor: 'background.paper',
+        borderColor: 'error.main',
+      },
+    }}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Typography>{message}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>No</Button>
         <Button onClick={onConfirm} color="error">
           Yes
         </Button>
+        <Button onClick={onClose}>No</Button>
       </DialogActions>
     </Dialog>
   );
