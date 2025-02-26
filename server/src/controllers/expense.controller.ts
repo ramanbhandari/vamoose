@@ -4,15 +4,13 @@ import {
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '../models/member.model.ts';
-import {
-  isPartOfExpenseSplit,
-  getExpensesForUser,
-} from '../models/expenseShare.model.ts';
+import { isPartOfExpenseSplit } from '../models/expenseShare.model.ts';
 import { getUserByEmail, getUsersByEmails } from '../models/user.model.ts';
 import {
   addExpense,
   deleteSingleExpense,
   fetchSingleExpense,
+  getExpensesForUserFiltered,
   deleteMultipleExpenses,
 } from '../models/expense.model';
 import { handleControllerError } from '../utils/errorHandlers.ts';
@@ -261,7 +259,6 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    // Check if the user is a member of the trip
     const isMember = await getTripMember(tripId, userId);
     if (!isMember) {
       res
@@ -270,24 +267,31 @@ export const deleteMultipleExpensesHandler = async (
       return;
     }
 
-    // Fetch all valid expenses where userId is part of the expense split
-    const userExpenses = await getExpensesForUser(expenseIds, userId);
-    const validExpenseIds = userExpenses.map((expense) => expense.expenseId);
+    const userExpenses = await getExpensesForUserFiltered(expenseIds, userId);
+    const userExpenseIds = userExpenses.map((expense) => expense.id);
+
+    const validExpenseIds = expenseIds.filter((id) =>
+      userExpenseIds.includes(id),
+    );
+    const invalidExpenseIds = expenseIds.filter(
+      (id) => !userExpenseIds.includes(id),
+    );
 
     if (validExpenseIds.length === 0) {
-      res
-        .status(403)
-        .json({ error: 'You are not included in any of these expense splits' });
+      res.status(404).json({
+        error: 'No valid expenses found for deletion',
+        invalidExpenseIds,
+      });
       return;
     }
-
-    //TODO: check if multiple expenseIDs exist using fetchMultipleExpenses
 
     const result = await deleteMultipleExpenses(tripId, validExpenseIds);
 
     res.status(200).json({
       message: 'Expenses deleted successfully',
       deletedCount: result.deletedCount,
+      validExpenseIds,
+      invalidExpenseIds,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error deleting multiple expenses:');
