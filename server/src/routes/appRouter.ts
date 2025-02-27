@@ -8,7 +8,7 @@ import { authMiddleware } from '../middleware/authMiddleware.ts';
 const router = express.Router();
 
 // Apply authMiddleware globally to all routes
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.use('/trips', tripRouter);
 router.use('/trips/:tripId/expenses', expenseRouter);
