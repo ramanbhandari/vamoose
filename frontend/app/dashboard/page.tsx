@@ -124,9 +124,6 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
-  console.log("user", user);
-  console.log("upcomingTrips", upcomingTrips);
-
   // preload images since we have quite a lot
   const preloadImages = (urls: string[]): Promise<void[]> => {
     return Promise.all(
