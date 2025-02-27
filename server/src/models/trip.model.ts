@@ -47,6 +47,7 @@ export const fetchSingleTrip = async (
               select: { email: true },
             },
           },
+          orderBy: { createdAt: 'desc' }, // Orders by createdAt, newest first
         },
         stays: true,
       },
@@ -101,6 +102,7 @@ export const fetchTripsWithFilters = async (
               select: { email: true },
             },
           },
+          orderBy: { createdAt: 'desc' }, // Orders by createdAt, newest first
         },
       },
       take: limit,
