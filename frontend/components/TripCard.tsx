@@ -24,10 +24,10 @@ interface TripCardProps {
   endDate: string;
   destination: string;
   imageUrl?: string;
-  onDelete?: (tripId: number) => void; // Optional callback for parent component updates
+  onDelete?: (tripId: number) => void;
 }
 
-export default function TripCard({
+export default function TripCard ({
   tripId,
   title,
   startDate,
@@ -92,7 +92,7 @@ export default function TripCard({
           }}
         >
           <IconButton
-            size="small"
+            size='small'
             onClick={handleEdit}
             sx={{
               background: "none",
@@ -108,7 +108,7 @@ export default function TripCard({
             <EditIcon />
           </IconButton>
           <IconButton
-            size="small"
+            size='small'
             onClick={() => setDeleteDialogOpen(true)}
             sx={{
               background: "none",
@@ -126,7 +126,7 @@ export default function TripCard({
         </Box>
 
         <CardMedia
-          component="img"
+          component='img'
           image={cardImage}
           alt={title}
           sx={{
@@ -154,15 +154,15 @@ export default function TripCard({
             height: "100%",
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant='h6' sx={{ fontWeight: 700 }}>
             {title}
           </Typography>
-          <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
+          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
             {destination}
           </Typography>
-          <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
+          <Typography variant='caption'>{`${startDate} – ${endDate}`}</Typography>
           <Button
-            variant="contained"
+            variant='contained'
             sx={{
               mt: 2,
               bgcolor: "rgba(255, 255, 255, 0.2)",
@@ -183,7 +183,7 @@ export default function TripCard({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDelete}
-        title="Delete Trip"
+        title='Delete Trip'
         message={`Are you sure you want to delete "${title}"?`}
       />
 
@@ -196,7 +196,7 @@ export default function TripCard({
       >
         <Alert
           onClose={() => setSuccessSnackbarOpen(false)}
-          severity="success"
+          severity='success'
           sx={{ width: "100%" }}
         >
           Trip has been successfully deleted!
