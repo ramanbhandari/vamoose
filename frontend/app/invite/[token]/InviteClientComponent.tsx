@@ -39,7 +39,7 @@ interface TripData {
 
 interface InviteClientComponentProps {
     inviteInfo: InviteDetails;
-    inviteToken: string; 
+    inviteToken: string | string[] | undefined; 
 }
 
 export default function InviteClientComponent({ inviteInfo: initialInviteInfo, inviteToken }: InviteClientComponentProps) {
