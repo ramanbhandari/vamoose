@@ -1,11 +1,16 @@
 import express from 'express';
 import tripRouter from './trip.routes.ts';
 import expenseRouter from './expense.routes.ts';
-import inviteRouter from './invitee.routes.ts';
+import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.ts';
 import memberRouter from './member.routes.ts';
 import { authMiddleware } from '../middleware/authMiddleware.ts';
 
 const router = express.Router();
+
+//Non-Auth routes
+
+// TODO: Find a better way to pass global auth
+router.use('/trips/invites', nonAuthInviteRouter);
 
 // Apply authMiddleware globally to all routes
 router.use(authMiddleware);
