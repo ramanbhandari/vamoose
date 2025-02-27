@@ -53,8 +53,10 @@ import apiClient from "@/utils/apiClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
+import { getUserInfo } from "@/app/util/userHelper";
 
 import { formatISO } from "date-fns";
+import { User } from "@supabase/supabase-js";
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
 
@@ -81,12 +83,12 @@ interface TripData {
 interface TripOverviewProps {
   tripData: TripData | null;
   onSectionChange: (sectionId: string) => void;
-  currentUser: { id: string } | null;
+  currentUser: User | null;
 }
 
 interface TripHeaderProps {
   tripData: TripData | null;
-  currentUser: { id: string } | null;
+  currentUser: User | null;
 }
 
 interface AdventureCardProps {
@@ -491,12 +493,13 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
     }
   };
 
-  const isCreator = tripData?.members.find(
-    member => member.role === "creator" 
-    && member.userId === currentUser?.id
-  );
+  const userInfo = getUserInfo(currentUser);
 
-  console.log("isCreator", isCreator);
+  //console.log("userInfo", userInfo);
+
+  const isCreator = userInfo?.isCreator(tripData);
+
+  //console.log("isCreator", isCreator);
 
   const handleLeaveTrip = async () => {
     if (!isCreator) {

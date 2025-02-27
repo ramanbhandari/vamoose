@@ -94,17 +94,12 @@ interface TripData {
   imageUrl: string;
 }
 
-interface currentUser {
-  id: string;
-}
-
 export default function TripSummaryPage () {
   const params = useParams();
   const tripId = params?.tripId;
 
   const theme = useTheme();
   const [user, setUser] = useState<User | null>(null);
-  const [currentUser, setCurrentUser] = useState<currentUser | null>(null);
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -123,8 +118,6 @@ export default function TripSummaryPage () {
       try {
         const response = await apiClient.get(`/trips/${tripId}`);
         const trip = response.data.trip;
-
-        console.log("trip", trip);
 
         setTripData({
           id: trip.id,
@@ -159,7 +152,6 @@ export default function TripSummaryPage () {
           data: { user },
         } = await supabase.auth.getUser();
         setUser(user);
-        setCurrentUser({ id: user?.id ?? "" });
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -268,7 +260,7 @@ export default function TripSummaryPage () {
           <Overview
             tripData={tripData}
             onSectionChange={handleSectionChange}
-            currentUser={currentUser}
+            currentUser={user}
           />
         )}
         {activeSection === "dates" && <Dates />}

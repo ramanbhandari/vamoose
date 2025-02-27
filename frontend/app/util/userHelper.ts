@@ -1,23 +1,17 @@
 import { User } from "@supabase/supabase-js";
 
-interface TripMember {
-  tripId: number;
-  userId: string;
-  role: string;
-}
-
 interface TripData {
-    id: number;
-    name: string;
-    description: string;
-    destination: string;
-    startDate: string;
-    endDate: string;
-    budget: number;
-    members: TripMember[];
-    expenses: Array<[]>;
-    stays: Array<[]>;
-    imageUrl: string;
+  id: number;
+  name: string;
+  description: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  members: Array<{ tripId: number; userId: string; role: string }>;
+  expenses: Array<[]>;
+  stays: Array<[]>;
+  imageUrl: string;
 }
 
 interface UserInfo {
