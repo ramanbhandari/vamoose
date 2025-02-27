@@ -37,6 +37,16 @@ export default function AuthForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const handleRedirect = () => {
+    const inviteRedirect = sessionStorage.getItem("inviteRedirect");
+    if (inviteRedirect) {
+      sessionStorage.removeItem("inviteRedirect"); 
+      router.push(inviteRedirect);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -49,14 +59,14 @@ export default function AuthForm() {
           password,
         });
         if (error) throw error;
-        router.push("/dashboard");
       } else {
         if (password !== confirmPassword)
           throw new Error(getMessages.passwordsUnmatchError);
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        router.push("/dashboard");
       }
+
+      handleRedirect();
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -73,6 +83,8 @@ export default function AuthForm() {
         provider: "google",
       });
       if (error) throw error;
+
+      handleRedirect();
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

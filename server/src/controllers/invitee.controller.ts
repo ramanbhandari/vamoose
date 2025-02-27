@@ -10,6 +10,36 @@ import prisma from '../config/prismaClient.ts';
 
 dotenv.config();
 
+export const checkInvite = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+
+    // Find the invite by token
+    const invite = await TripInvite.getInviteByToken(token);
+
+    if (!invite || invite.status !== 'pending') {
+      res.status(400).json({ error: 'Invite not found' });
+      return;
+    }
+
+    const user = await getUserById(invite.createdBy);
+
+    const trip = await fetchSingleTrip('', invite.tripId, true);
+
+    const inviteDetails = {
+      inviter: user?.fullName || 'Full Name',
+      invited: invite.email,
+      destination: trip.destination,
+      from: trip.startDate,
+      to: trip.endDate,
+    };
+
+    res.status(200).json(inviteDetails);
+  } catch (error) {
+    handleControllerError(error, res, 'Error checking the invite:');
+  }
+};
+
 export const createInvite = async (req: Request, res: Response) => {
   try {
     const {

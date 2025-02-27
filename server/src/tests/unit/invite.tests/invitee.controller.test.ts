@@ -4,6 +4,7 @@ import {
   acceptInvite,
   rejectInvite,
   deleteInvite,
+  checkInvite,
 } from '../../../controllers/invitee.controller.ts';
 import prisma from '../../../config/prismaClient.ts';
 import { Request, Response } from 'express';
@@ -593,5 +594,100 @@ describe('Delete Invite Handler', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Invite deleted successfully',
     });
+  });
+});
+
+describe('Check Invite Handler', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let jsonMock: jest.Mock;
+  let statusMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    mockRes = { status: statusMock, json: jsonMock } as Partial<Response>;
+  });
+
+  function setupRequest(overrides = {}) {
+    return {
+      params: { token: 'token', ...overrides },
+    };
+  }
+
+  // it.each([
+  //   {
+  //     overrides: { userId: undefined },
+  //     expectedStatus: 401,
+  //     expectedMessage: 'Unauthorized Request',
+  //   },
+  //   {
+  //     overrides: { token: undefined },
+  //     expectedStatus: 400,
+  //     expectedMessage: 'Invite not found',
+  //   },
+  // ])(
+  //   'should return $expectedStatus when token is $token',
+  //   async ({ overrides, expectedStatus, expectedMessage }) => {
+  //     mockReq = setupRequest(overrides);
+  //     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(null);
+
+  //     await deleteInvite(mockReq as Request, mockRes as Response);
+  //     expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+  //     expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+  //   },
+  // );
+
+  it('should return 400 if invalid token', async () => {
+    mockReq = setupRequest();
+    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await checkInvite(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invite not found' });
+  });
+
+  it('should return 400 if invite is not pending', async () => {
+    mockReq = setupRequest();
+    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({
+      status: 'rejected',
+    });
+
+    await checkInvite(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invite not found' });
+  });
+
+  it('should return 200 with a valid token and invite is pending', async () => {
+    mockReq = setupRequest();
+    const inviteDetails = {
+      inviter: 'Name',
+      invited: 'test@test.com',
+      destination: 'destination',
+      from: '2025-03-08T00:00:00.000Z',
+      to: '2025-03-15T00:00:00.000Z',
+    };
+
+    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({
+      status: 'pending',
+      email: 'test@test.com',
+    });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      id: '1',
+      fullName: 'Name',
+    });
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      id: 1,
+      destination: 'destination',
+      startDate: '2025-03-08T00:00:00.000Z',
+      endDate: '2025-03-15T00:00:00.000Z',
+    });
+
+    await checkInvite(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith(inviteDetails);
   });
 });
