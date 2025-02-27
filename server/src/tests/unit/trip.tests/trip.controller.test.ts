@@ -26,6 +26,9 @@ jest.mock('../../../config/prismaClient', () => ({
     tripMember: {
       findUnique: jest.fn(),
     },
+    expense: {
+      groupBy: jest.fn(),
+    },
   },
 }));
 
@@ -198,9 +201,11 @@ describe('Trip Controller - fetchSingleTripHandler', () => {
       budget: 500,
       createdBy: '1',
       members: [{ userId: '1', role: 'creator' }],
+      expenseSummary: { breakdown: [], totalExpenses: 0 },
     };
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);
+    (prisma.expense.groupBy as jest.Mock).mockResolvedValue([]);
 
     mockReq = setupRequest(1);
     await fetchSingleTripHandler(mockReq as Request, mockRes as Response);
@@ -299,10 +304,12 @@ describe('Trip Controller - fetchTripsWithFiltersHandler', () => {
         endDate: '2025-03-15T00:00:00.000Z',
         budget: 1000,
         createdBy: '1',
+        expenseSummary: { breakdown: [], totalExpenses: 0 },
       },
     ];
 
     (prisma.trip.findMany as jest.Mock).mockResolvedValue(trips);
+    (prisma.expense.groupBy as jest.Mock).mockResolvedValue([]);
 
     mockReq = setupRequest();
     await fetchTripsWithFiltersHandler(mockReq as Request, mockRes as Response);

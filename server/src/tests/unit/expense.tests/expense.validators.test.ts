@@ -24,7 +24,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 50.0,
-          category: 'Food',
+          category: 'food',
           description: 'Lunch at restaurant',
           paidByEmail: 'user@example.com',
           splitAmongEmails: ['friend1@example.com', 'friend2@example.com'],
@@ -40,7 +40,7 @@ describe('Expense Validators Middleware', () => {
         params: {},
         body: {
           amount: 50.0,
-          category: 'Food',
+          category: 'food',
         },
       };
 
@@ -56,7 +56,7 @@ describe('Expense Validators Middleware', () => {
     it('should fail validation if amount is missing', async () => {
       mockReq = {
         params: { tripId: '1' },
-        body: { category: 'Food' },
+        body: { category: 'food' },
       };
 
       const result = await runValidation(mockReq, validateAddExpenseInput);
@@ -71,7 +71,7 @@ describe('Expense Validators Middleware', () => {
     it('should fail validation if amount is negative', async () => {
       mockReq = {
         params: { tripId: '1' },
-        body: { amount: -10, category: 'Food' },
+        body: { amount: -10, category: 'food' },
       };
 
       const result = await runValidation(mockReq, validateAddExpenseInput);
@@ -94,7 +94,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Category must be one of: food, accommodation, travel, other',
+            msg: 'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
           }),
         ]),
       );
@@ -112,7 +112,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Category must be one of: food, accommodation, travel, other',
+            msg: 'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
           }),
         ]),
       );
@@ -186,7 +186,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 100,
-          category: 'travel',
+          category: 'transportation',
         },
       };
 
@@ -199,7 +199,7 @@ describe('Expense Validators Middleware', () => {
         params: { tripId: '1' },
         body: {
           amount: 100,
-          category: 'travel',
+          category: 'food',
           description: 123, // Invalid type
         },
       };

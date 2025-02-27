@@ -147,3 +147,46 @@ export const deleteMultipleExpenses = async (
     throw handlePrismaError(error);
   }
 };
+
+// Fetch expense breakdown for a single or multiple trips
+export const getTripExpensesGrouped = async (tripIds: number | number[]) => {
+  try {
+    const tripIdsArray = Array.isArray(tripIds) ? tripIds : [tripIds];
+
+    const expenseBreakdowns = await prisma.expense.groupBy({
+      by: ['tripId', 'category'],
+      where: { tripId: { in: tripIdsArray } },
+      _sum: { amount: true },
+    });
+
+    // Format the expense data as an object with tripId keys
+    const expenseMap = tripIdsArray.reduce(
+      (acc, id) => {
+        acc[id] = { breakdown: [], totalExpenses: 0 };
+        return acc;
+      },
+      {} as Record<
+        number,
+        {
+          breakdown: { category: string; total: number }[];
+          totalExpenses: number;
+        }
+      >,
+    );
+
+    expenseBreakdowns.forEach(({ tripId, category, _sum }) => {
+      if (expenseMap[tripId]) {
+        expenseMap[tripId].breakdown.push({
+          category,
+          total: _sum.amount ?? 0,
+        });
+        expenseMap[tripId].totalExpenses += _sum.amount ?? 0;
+      }
+    });
+
+    return expenseMap;
+  } catch (error) {
+    console.error('Error deleting multiple expenses:', error);
+    throw handlePrismaError(error);
+  }
+};
