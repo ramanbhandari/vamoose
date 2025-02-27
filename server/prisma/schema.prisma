@@ -115,7 +115,7 @@ model Stay {
 model Expense {
   id          Int      @id @default(autoincrement())
   amount      Float
-  category    String // "food", "travel", "accommodation", "other"
+  category    String // "food", "transportation", "accommodation", "activities", "miscellaneous"
   description String?
   createdAt   DateTime @default(now())
 

@@ -10,6 +10,7 @@ import {
 import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
 import { handleControllerError } from '../utils/errorHandlers.ts';
 import { getTripMember } from '../models/member.model.ts';
+import { getTripExpensesGrouped } from '../models/expense.model.ts';
 import { DateTime } from 'luxon';
 
 interface TripFilters {
@@ -104,8 +105,15 @@ export const fetchSingleTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
+    // Fetch trip details
     const trip = await fetchSingleTrip(userId, tripId);
-    res.status(200).json({ trip });
+
+    // Fetch aggregated expense data
+    const expenseSummary = await getTripExpensesGrouped(tripId);
+
+    res
+      .status(200)
+      .json({ trip: { ...trip, expenseSummary: expenseSummary[tripId] } });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching trip:');
   }
@@ -177,7 +185,21 @@ export const fetchTripsWithFiltersHandler = async (
       Number(limit),
       Number(offset),
     );
-    res.status(200).json({ trips });
+
+    // Get trip IDs and fetch aggregated expense data for all trips
+    const tripIds = trips.map((t) => t.id);
+    const expenseSummaries = await getTripExpensesGrouped(tripIds);
+
+    // Map expense summaries to trips
+    const tripData = trips.map((trip) => ({
+      ...trip,
+      expenseSummary: expenseSummaries[trip.id] || {
+        breakdown: [],
+        totalExpenses: 0,
+      },
+    }));
+
+    res.status(200).json({ trips: tripData });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching filtered trips:');
   }

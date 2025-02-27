@@ -2,34 +2,39 @@
 
 import InviteModal from "@/components/InviteModal";
 import { GroupAdd } from "@mui/icons-material";
-import { Box, Typography, Divider, Button, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Divider,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import { User } from "@supabase/supabase-js";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-interface TripMemberProps{
+interface TripMemberProps {
   members: Array<{ tripId: number; userId: string; role: string }> | undefined;
   user: User | null;
 }
 
-export default function TripMembers({members, user}:TripMemberProps) {
-
+export default function TripMembers({ members, user }: TripMemberProps) {
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
 
   const isLoading = !user || !members;
 
-  const currentUser = members?.find(member => member.userId === user?.id);
+  const currentUser = members?.find((member) => member.userId === user?.id);
   // const otherMembers = members?.filter(member => member.userId !== user?.id);
 
   const canInviteUsers = useCallback(() => {
     return currentUser?.role === "creator" || currentUser?.role === "admin";
-  }, [currentUser]); 
-  
+  }, [currentUser]);
+
   const handleOpenInviteModal = useCallback(() => {
     if (canInviteUsers()) {
       setInviteModalOpen(true);
     }
-  }, [canInviteUsers]); 
+  }, [canInviteUsers]);
 
   const handleCloseInviteModal = () => {
     setInviteModalOpen(false);
@@ -46,7 +51,7 @@ export default function TripMembers({members, user}:TripMemberProps) {
       router.replace(`${pathname}`);
     }
   }, [handleOpenInviteModal, pathname, router, searchParams]);
-  
+
   if (isLoading) {
     return (
       <Box className="flex items-center justify-center min-h-screen">

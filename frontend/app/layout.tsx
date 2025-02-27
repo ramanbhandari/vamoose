@@ -4,6 +4,9 @@ import "./globals.css";
 import ThemeProvider from "./ThemeProvider";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
+import { MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
+import "@mantine/charts/styles.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,11 +39,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pacifico.variable} antialiased`}
       >
-        <ThemeProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-        </ThemeProvider>
+        <MantineProvider>
+          <ThemeProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </ThemeProvider>
+        </MantineProvider>
       </body>
     </html>
   );

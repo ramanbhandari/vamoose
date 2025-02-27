@@ -4,17 +4,17 @@
 
 /* the following light theme and dark theme are applied based on user's system preferences*/
 :root {
-  --background: #F2F3F4;
+  --background: #f2f3f4;
   --foreground: #171717;
   --background-paper: #ffffff;
-  --text: #3A4F6C;
+  --text: #3a4f6c;
 
-  --primary: #FF5A5F;
-  --primary-hover: #FF7377;
-  --secondary: #3A4F6C;
-  --secondary-hover: #FF5A5F;
+  --primary: #ff5a5f;
+  --primary-hover: #ff7377;
+  --secondary: #3a4f6c;
+  --secondary-hover: #ff5a5f;
 
-  --accent: #10B981;
+  --accent: #10b981;
   --error: #e63946;
 
   --font-general: var(--font-geist-sans), sans-serif;
@@ -22,42 +22,41 @@
   --font-brand: var(--font-brand), cursive; /* added for Vamoose! */
 }
 
-@media (prefers-color-scheme: dark)  {
+@media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
     --background-paper: #1a1a1a;
     --text: #ededed;
 
-    --primary: #FF5A5F;
-    --primary-hover: #FF7377;
+    --primary: #ff5a5f;
+    --primary-hover: #ff7377;
     --secondary: #a8dadc;
-    --secondary-hover: #FF7377;
-    
+    --secondary-hover: #ff7377;
+
     --accent: #14b8a6;
     --error: #f28482;
   }
 }
 /* the following are to allow manual override */
 [data-theme="light"] {
-  --background: #F2F3F4;
+  --background: #f2f3f4;
   --foreground: #171717;
   --background-paper: #ffffff;
-  --text: #3A4F6C;
+  --text: #3a4f6c;
 
-  --primary: #FF5A5F;
-  --primary-hover: #FF7377;
-  --secondary: #3A4F6C;
-  --secondary-hover: #FF5A5F;
+  --primary: #ff5a5f;
+  --primary-hover: #ff7377;
+  --secondary: #3a4f6c;
+  --secondary-hover: #ff5a5f;
 
-  --accent: #10B981;
+  --accent: #10b981;
   --error: #e63946;
 
   --font-general: var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
   --font-brand: var(--font-brand), cursive; /* added for Vamoose! */
 }
-
 
 [data-theme="dark"] {
   --background: #0a0a0a;
@@ -65,10 +64,10 @@
   --background-paper: #1a1a1a;
   --text: #ededed;
 
-  --primary: #FF5A5F;
-  --primary-hover: #FF7377;
+  --primary: #ff5a5f;
+  --primary-hover: #ff7377;
   --secondary: #a8dadc;
-  --secondary-hover: #FF7377;
+  --secondary-hover: #ff7377;
 
   --accent: #14b8a6;
   --error: #f28482;
@@ -82,5 +81,7 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-general);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }

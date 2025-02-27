@@ -11,8 +11,16 @@ export const validateAddExpenseInput = checkExact([
 
   body('category')
     .toLowerCase()
-    .isIn(['food', 'accommodation', 'travel', 'other'])
-    .withMessage('Category must be one of: food, accommodation, travel, other'),
+    .isIn([
+      'food',
+      'accommodation',
+      'transportation',
+      'activities',
+      'miscellaneous',
+    ])
+    .withMessage(
+      'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
+    ),
 
   body('description')
     .optional()

@@ -13,39 +13,35 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { useParams } from "next/navigation"; 
+import { useParams } from "next/navigation";
 import apiClient from "@/utils/apiClient";
 
 interface InviteModalProps {
-    open: boolean;
-    onClose: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
 interface ApiError {
-    response: {
-        data: {
-            error: string;
-            inviteUrl?: string;
-        };
+  response: {
+    data: {
+      error: string;
+      inviteUrl?: string;
     };
+  };
 }
 
-
-export default function InviteModal({
-  open,
-  onClose,
-}:InviteModalProps){
-  const params = useParams(); 
-  const tripId = params.tripId as string; 
+export default function InviteModal({ open, onClose }: InviteModalProps) {
+  const params = useParams();
+  const tripId = params.tripId as string;
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [inviteUrl, setInviteUrl] = useState(""); 
+  const [inviteUrl, setInviteUrl] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "info" as "success" | "error" | "info", 
+    severity: "info" as "success" | "error" | "info",
   });
 
   const validateEmail = (email: string) => {
@@ -65,30 +61,33 @@ export default function InviteModal({
 
     setLoading(true);
     try {
-      const response = await apiClient.post(
-        `/trips/${tripId}/invites/create`,
-        { email }
-      );
+      const response = await apiClient.post(`/trips/${tripId}/invites/create`, {
+        email,
+      });
 
-      setInviteUrl(response.data.inviteUrl); 
+      setInviteUrl(response.data.inviteUrl);
       setSnackbar({
         open: true,
-        message: "Invite created successfully! Share this link with the explorer.",
+        message:
+          "Invite created successfully! Share this link with the explorer.",
         severity: "success",
       });
     } catch (error) {
-        const apiError = error as ApiError;
+      const apiError = error as ApiError;
       if (apiError.response?.data?.error === "Invite already exists.") {
         setInviteUrl(apiError.response?.data?.inviteUrl || "");
         setSnackbar({
           open: true,
-          message: "An invite already exists for this email. Here's the link to share.",
+          message:
+            "An invite already exists for this email. Here's the link to share.",
           severity: "info",
         });
       } else {
         setSnackbar({
           open: true,
-          message: apiError.response?.data?.error || "Something went wrong. Please try again.",
+          message:
+            apiError.response?.data?.error ||
+            "Something went wrong. Please try again.",
           severity: "error",
         });
       }
@@ -98,7 +97,7 @@ export default function InviteModal({
   };
 
   const handleCopyInviteUrl = () => {
-    navigator.clipboard.writeText(inviteUrl); 
+    navigator.clipboard.writeText(inviteUrl);
     setSnackbar({
       open: true,
       message: "Link copied to clipboard!",
@@ -107,15 +106,14 @@ export default function InviteModal({
   };
 
   const handleClose = () => {
-    if(loading)
-    {
-        return;
+    if (loading) {
+      return;
     }
 
-    setEmail(""); 
-    setError(""); 
-    setInviteUrl(""); 
-    onClose(); 
+    setEmail("");
+    setError("");
+    setInviteUrl("");
+    onClose();
   };
 
   const handleCloseSnackbar = () => {
@@ -147,7 +145,7 @@ export default function InviteModal({
             }}
           >
             <Typography variant="h6" fontWeight={700}>
-                Invite an Explorer
+              Invite an Explorer
             </Typography>
             <IconButton onClick={handleClose}>
               <CloseIcon />
@@ -229,8 +227,7 @@ export default function InviteModal({
         >
           {snackbar.message}
         </Alert>
-
       </Snackbar>
     </>
   );
-};
+}
