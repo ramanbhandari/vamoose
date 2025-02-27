@@ -725,34 +725,36 @@ function TripHeader({ tripData, currentUser }: TripHeaderProps) {
           </Box>
         ) : (
           <>
-            {isCreator && <Tooltip
-              title="Edit"
-              arrow
-              slotProps={{
-                tooltip: {
-                  sx: {
-                    bgcolor: theme.palette.secondary.main,
-                    color: theme.palette.background.default,
-                  },
-                },
-              }}
-            >
-              <IconButton
-                onClick={() => setIsEditMode(true)}
-                sx={{
-                  background: "none",
-                  color: "white",
-                  transition: "transform 0.3s, color 0.5s",
-                  "&:hover": {
-                    background: "none",
-                    transform: "scale(1.2)",
-                    color: "var(--accent)",
+            {isCreator && (
+              <Tooltip
+                title="Edit"
+                arrow
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      bgcolor: theme.palette.secondary.main,
+                      color: theme.palette.background.default,
+                    },
                   },
                 }}
               >
-                <Edit fontSize="large" />
-              </IconButton>
-            </Tooltip>}
+                <IconButton
+                  onClick={() => setIsEditMode(true)}
+                  sx={{
+                    background: "none",
+                    color: "white",
+                    transition: "transform 0.3s, color 0.5s",
+                    "&:hover": {
+                      background: "none",
+                      transform: "scale(1.2)",
+                      color: "var(--accent)",
+                    },
+                  }}
+                >
+                  <Edit fontSize="large" />
+                </IconButton>
+              </Tooltip>
+            )}
 
             <Tooltip
               title={isCreator ? "Delete Trip" : "Leave Trip"}

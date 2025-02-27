@@ -47,7 +47,7 @@ interface TripCardProps {
   tripData: TripData;
 }
 
-export default function TripCard ({
+export default function TripCard({
   tripId,
   title,
   userId,
@@ -112,7 +112,7 @@ export default function TripCard ({
         >
           {isCreator && (
             <Tooltip
-              title='Edit'
+              title="Edit"
               arrow
               slotProps={{
                 tooltip: {
@@ -124,7 +124,7 @@ export default function TripCard ({
               }}
             >
               <IconButton
-                size='small'
+                size="small"
                 onClick={handleEdit}
                 sx={{
                   background: "none",
@@ -155,7 +155,7 @@ export default function TripCard ({
             }}
           >
             <IconButton
-              size='small'
+              size="small"
               onClick={() => setDeleteDialogOpen(true)}
               aria-label={isCreator ? "Delete trip" : "Leave trip"}
               sx={{
@@ -175,7 +175,7 @@ export default function TripCard ({
         </Box>
 
         <CardMedia
-          component='img'
+          component="img"
           image={cardImage}
           alt={title}
           sx={{
@@ -203,15 +203,15 @@ export default function TripCard ({
             height: "100%",
           }}
         >
-          <Typography variant='h6' sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             {title}
           </Typography>
-          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
+          <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
             {props.destination}
           </Typography>
-          <Typography variant='caption'>{`${props.startDate} – ${props.endDate}`}</Typography>
+          <Typography variant="caption">{`${props.startDate} – ${props.endDate}`}</Typography>
           <Button
-            variant='contained'
+            variant="contained"
             sx={{
               mt: 2,
               bgcolor: "rgba(255, 255, 255, 0.2)",
@@ -251,7 +251,7 @@ export default function TripCard ({
       >
         <Alert
           onClose={() => setSuccessSnackbarOpen(false)}
-          severity='success'
+          severity="success"
           sx={{ width: "100%" }}
         >
           Trip has been successfully deleted!
