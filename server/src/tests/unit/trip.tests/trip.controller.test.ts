@@ -201,7 +201,7 @@ describe('Trip Controller - fetchSingleTripHandler', () => {
       budget: 500,
       createdBy: '1',
       members: [{ userId: '1', role: 'creator' }],
-      expenseSummary: { '1': { breakdown: [], totalExpenses: 0 } },
+      expenseSummary: { breakdown: [], totalExpenses: 0 },
     };
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue(tripData);

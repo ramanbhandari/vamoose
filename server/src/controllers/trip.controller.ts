@@ -111,7 +111,9 @@ export const fetchSingleTripHandler = async (req: Request, res: Response) => {
     // Fetch aggregated expense data
     const expenseSummary = await getTripExpensesGrouped(tripId);
 
-    res.status(200).json({ trip: { ...trip, expenseSummary } });
+    res
+      .status(200)
+      .json({ trip: { ...trip, expenseSummary: expenseSummary[tripId] } });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching trip:');
   }
