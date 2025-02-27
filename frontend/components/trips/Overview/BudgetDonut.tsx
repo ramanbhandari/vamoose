@@ -15,16 +15,27 @@ interface BudgetCategory {
   color: string;
 }
 
+interface ExpenseBreakdown {
+  category: string;
+  total: number;
+}
+
+interface ExpensesSummary {
+  breakdown: ExpenseBreakdown[];
+  totalExpenses: number;
+}
+
 interface BudgetDonutProps {
   budget: number;
   isEditMode: boolean;
-  tripDetails: {
+  expenseSummary: ExpensesSummary;
+  tripDetails?: {
     budget: string;
     [key: string]: string;
   };
-  handleBudgetChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleBudgetBlur: () => void;
-  setTripDetails: React.Dispatch<
+  handleBudgetChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBudgetBlur?: () => void;
+  setTripDetails?: React.Dispatch<
     React.SetStateAction<{
       name: string;
       destination: string;
@@ -37,19 +48,37 @@ interface BudgetDonutProps {
   >;
 }
 
+const getCategoryColor = (category: string) => {
+  const categoryColors: Record<string, string> = {
+    accommodation: "#9CA3AF", // Indigo
+    transportation: "#ff696d", // Primary Red
+    activities: "#14B8A6", // Teal
+    food: "#F59E0B", // Amber
+    miscellaneous: "#8B5CF6", // Purple
+  };
+
+  return categoryColors[category] || "#9CA3AF";
+};
+
 export default function BudgetDonut({
   budget,
   isEditMode,
+  expenseSummary,
   tripDetails,
   handleBudgetChange,
   handleBudgetBlur,
 }: BudgetDonutProps) {
+  console.log(expenseSummary);
+  const usedBudget = expenseSummary?.totalExpenses || 0;
+  const unusedBudget = budget - usedBudget > 0 ? budget - usedBudget : 0;
+
   const budgetCategories: BudgetCategory[] = [
-    { name: "Accommodation", value: 40, color: "#6366F1" }, // Indigo
-    { name: "Transportation", value: 25, color: "#ff696d" }, // primary
-    { name: "Activities", value: 20, color: "#14B8A6" }, // Teal
-    { name: "Food", value: 10, color: "#F59E0B" }, // Amber
-    { name: "Other", value: 5, color: "#8B5CF6" }, // Purple
+    { name: "Unused Budget", value: unusedBudget, color: "#6366F1" },
+    ...expenseSummary.breakdown.map((item) => ({
+      name: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+      value: item.total,
+      color: getCategoryColor(item.category),
+    })),
   ];
 
   const theme = useTheme();
@@ -74,7 +103,7 @@ export default function BudgetDonut({
         <DonutChart
           data={budgetCategories.map((category) => ({
             name: category.name,
-            value: budget * (category.value / 100),
+            value: category.value,
             color: isEditMode ? "#808080" : category.color,
           }))}
           paddingAngle={5}
@@ -126,7 +155,7 @@ export default function BudgetDonut({
             <TextField
               variant="standard"
               type="text"
-              value={tripDetails.budget}
+              value={tripDetails?.budget}
               onChange={handleBudgetChange}
               onBlur={handleBudgetBlur}
               slotProps={{
