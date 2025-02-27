@@ -54,7 +54,7 @@ describe('Expense API - Add Expense', () => {
     params: { tripId: '1' },
     body: {
       amount: 100,
-      category: 'Food',
+      category: 'food',
       description: 'Lunch',
       paidByEmail: 'payer@example.com',
       splitAmongEmails: ['user1@example.com', 'user2@example.com'],
@@ -102,7 +102,7 @@ describe('Expense API - Add Expense', () => {
     },
     {
       scenario: 'Missing amount field',
-      overrides: { body: { amount: undefined, category: 'Food' } },
+      overrides: { body: { amount: undefined, category: 'food' } },
       expectedStatus: 400,
       expectedMessage: 'Missing required fields',
     },
@@ -269,7 +269,7 @@ describe('Expense API - Fetch Single Expense', () => {
     const fakeExpense = {
       id: 9,
       amount: 100,
-      category: 'Food',
+      category: 'food',
       description: 'Lunch at a restaurant',
       createdAt: '2025-02-21T01:22:44.505Z',
       tripId: 1,
@@ -386,7 +386,7 @@ describe('Expense API - Delete Single Expense', () => {
     const expenseData = {
       id: 1,
       amount: 100,
-      category: 'Food',
+      category: 'food',
       description: 'Lunch at a restaurant',
       createdAt: new Date().toISOString(),
       tripId: 1,
@@ -446,7 +446,7 @@ describe('Expense API - Delete Single Expense', () => {
     const expenseData = {
       id: 1,
       amount: 100,
-      category: 'Food',
+      category: 'food',
       description: 'Lunch at a restaurant',
       createdAt: new Date().toISOString(),
       tripId: 1,
@@ -472,7 +472,7 @@ describe('Expense API - Delete Single Expense', () => {
     const expenseData = {
       id: 1,
       amount: 100,
-      category: 'Food',
+      category: 'food',
       description: 'Lunch at a restaurant',
       createdAt: new Date().toISOString(),
       tripId: 1,
