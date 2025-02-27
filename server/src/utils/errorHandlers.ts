@@ -6,7 +6,7 @@ import {
   DatabaseError,
   BaseError,
   ValidationError,
-} from './errors.js';
+} from '@/utils/errors.js';
 import { Response } from 'express';
 
 export function handlePrismaError(error: unknown): Error {

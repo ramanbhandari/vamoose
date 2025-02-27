@@ -5,8 +5,8 @@ import {
   rejectInvite,
   deleteInvite,
   checkInvite,
-} from '../../../controllers/invitee.controller.js';
-import prisma from '../../../config/prismaClient.js';
+} from '@/controllers/invitee.controller.js';
+import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 

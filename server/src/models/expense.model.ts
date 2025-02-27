@@ -1,6 +1,6 @@
-import prisma from '../config/prismaClient.js';
-import { handlePrismaError } from '../utils/errorHandlers.js';
-import { NotFoundError } from '../utils/errors.js';
+import prisma from '@/config/prismaClient.js';
+import { handlePrismaError } from '@/utils/errorHandlers.js';
+import { NotFoundError } from '@/utils/errors.js';
 
 /**
  * Creates an expense and associated shares in the database.

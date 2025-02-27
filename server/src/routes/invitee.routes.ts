@@ -6,12 +6,12 @@ import {
   acceptInvite,
   rejectInvite,
   checkInvite,
-} from '../controllers/invitee.controller.js';
+} from '@/controllers/invitee.controller.js';
 import {
   validateCreateInviteInput,
   validateInviteParams,
-} from '../middleware/invitee.validators.js';
-import validationErrorHandler from '../middleware/validationErrorHandler.js';
+} from '@/middleware/invitee.validators.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 const router = express.Router({ mergeParams: true });
 

@@ -3,7 +3,7 @@ import tripRouter from './trip.routes.js';
 import expenseRouter from './expense.routes.js';
 import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.js';
 import memberRouter from './member.routes.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware } from '@/middleware/authMiddleware.js';
 
 const router = express.Router();
 

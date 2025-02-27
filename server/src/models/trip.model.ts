@@ -1,7 +1,7 @@
-import { CreateTripInput, UpdateTripInput } from '../interfaces/interfaces.js';
-import prisma from '../config/prismaClient.js';
-import { handlePrismaError } from '../utils/errorHandlers.js';
-import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import { CreateTripInput, UpdateTripInput } from '@/interfaces/interfaces.js';
+import prisma from '@/config/prismaClient.js';
+import { handlePrismaError } from '@/utils/errorHandlers.js';
+import { NotFoundError, ForbiddenError } from '@/utils/errors.js';
 
 // Create a Trip
 export const createTrip = async (tripData: CreateTripInput) => {

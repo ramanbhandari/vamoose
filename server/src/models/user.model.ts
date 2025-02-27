@@ -1,5 +1,5 @@
-import prisma from '../config/prismaClient.js';
-import { handlePrismaError } from '../utils/errorHandlers.js';
+import prisma from '@/config/prismaClient.js';
+import { handlePrismaError } from '@/utils/errorHandlers.js';
 
 // Get user by email
 export const getUserByEmail = async (email: string) => {

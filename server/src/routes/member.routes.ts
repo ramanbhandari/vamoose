@@ -1,5 +1,5 @@
 import express from 'express';
-import validationErrorHandler from '../middleware/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateUpdateTripMemberInput,
   validateFetchSingleTripMember,
@@ -7,7 +7,7 @@ import {
   validateLeaveTripInput,
   validateRemoveTripMemberInput,
   validateBatchRemoveTripMembersInput,
-} from '../middleware/member.validators.js';
+} from '@/middleware/member.validators.js';
 import {
   updateTripMemberHandler,
   getTripMemberHandler,
@@ -15,7 +15,7 @@ import {
   leaveTripHandler,
   removeTripMemberHandler,
   batchRemoveTripMembersHandler,
-} from '../controllers/member.controller.js';
+} from '@/controllers/member.controller.js';
 
 const router = express.Router({ mergeParams: true });
 

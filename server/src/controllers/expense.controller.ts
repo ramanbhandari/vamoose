@@ -3,19 +3,19 @@ import {
   getTripMember,
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
-} from '../models/member.model.js';
-import { isPartOfExpenseSplit } from '../models/expenseShare.model.js';
-import { getUserByEmail, getUsersByEmails } from '../models/user.model.js';
+} from '@/models/member.model.js';
+import { isPartOfExpenseSplit } from '@/models/expenseShare.model.js';
+import { getUserByEmail, getUsersByEmails } from '@/models/user.model.js';
 import {
   addExpense,
   deleteSingleExpense,
   fetchSingleExpense,
   getExpensesForUserFiltered,
   deleteMultipleExpenses,
-} from '../models/expense.model.js';
-import { handleControllerError } from '../utils/errorHandlers.js';
-import { AuthenticatedRequest } from '../interfaces/interfaces';
-import { ForbiddenError, NotFoundError } from '../utils/errors.js';
+} from '@/models/expense.model.js';
+import { handleControllerError } from '@/utils/errorHandlers.js';
+import { AuthenticatedRequest } from '@/interfaces/interfaces';
+import { ForbiddenError, NotFoundError } from '@/utils/errors.js';
 
 /**
  * Add an expense to a trip

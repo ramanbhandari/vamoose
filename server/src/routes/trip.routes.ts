@@ -1,5 +1,5 @@
 import express from 'express';
-import validationErrorHandler from '../middleware/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateCreateTripInput,
   validateDeleteTripInput,
@@ -7,7 +7,7 @@ import {
   validateFetchSingleTrip,
   validateFetchTripsWithFilters,
   validateDeleteMultipleTripsInput,
-} from '../middleware/trip.validators.js';
+} from '@/middleware/trip.validators.js';
 
 import {
   createTripHandler,
@@ -16,7 +16,7 @@ import {
   updateTripHandler,
   fetchSingleTripHandler,
   fetchTripsWithFiltersHandler,
-} from '../controllers/trip.controller.js';
+} from '@/controllers/trip.controller.js';
 
 const router = express.Router();
 

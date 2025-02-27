@@ -6,11 +6,11 @@ import {
   deleteTrip,
   deleteMultipleTrips,
   updateTrip,
-} from '../models/trip.model.js';
-import { AuthenticatedRequest } from '../interfaces/interfaces.js';
-import { handleControllerError } from '../utils/errorHandlers.js';
-import { getTripMember } from '../models/member.model.js';
-import { getTripExpensesGrouped } from '../models/expense.model.js';
+} from '@/models/trip.model.js';
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { handleControllerError } from '@/utils/errorHandlers.js';
+import { getTripMember } from '@/models/member.model.js';
+import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
 
 interface TripFilters {

@@ -1,20 +1,20 @@
 import express from 'express';
 
-import validationErrorHandler from '../middleware/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 import {
   validateAddExpenseInput,
   validateFetchExpense,
   validateDeleteSingleExpense,
   validateDeleteMultipleExpenses,
-} from '../middleware/expense.validators.js';
+} from '@/middleware/expense.validators.js';
 
 import {
   addExpenseHandler,
   fetchSingleExpenseHandler,
   deleteSingleExpenseHandler,
   deleteMultipleExpensesHandler,
-} from '../controllers/expense.controller.js';
+} from '@/controllers/expense.controller.js';
 
 const router = express.Router({ mergeParams: true });
 

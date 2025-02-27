@@ -1,6 +1,6 @@
-import prisma from '../config/prismaClient.js';
-import { handlePrismaError } from '../utils/errorHandlers.js';
-import { CreateInviteInput } from '../interfaces/interfaces.js';
+import prisma from '@/config/prismaClient.js';
+import { handlePrismaError } from '@/utils/errorHandlers.js';
+import { CreateInviteInput } from '@/interfaces/interfaces.js';
 import { PrismaPromise } from '@prisma/client';
 
 // to create a new invite

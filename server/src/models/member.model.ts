@@ -1,7 +1,7 @@
 import { PrismaPromise } from '@prisma/client';
-import prisma from '../config/prismaClient.js';
-import { handlePrismaError } from '../utils/errorHandlers.js';
-import { UpdateTripMemberInput } from '../interfaces/interfaces.js';
+import prisma from '@/config/prismaClient.js';
+import { handlePrismaError } from '@/utils/errorHandlers.js';
+import { UpdateTripMemberInput } from '@/interfaces/interfaces.js';
 
 // Get tripMember by tripId and userId
 export const getTripMember = async (tripId: number, userId: string) => {
