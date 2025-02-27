@@ -1,4 +1,4 @@
-import { authMiddleware } from '../../middleware/authMiddleware.ts';
+import { authMiddleware } from '../../middleware/authMiddleware.js';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 

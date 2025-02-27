@@ -1,5 +1,5 @@
-import prisma from '../config/prismaClient.ts';
-import { handlePrismaError } from '../utils/errorHandlers.ts';
+import prisma from '../config/prismaClient.js';
+import { handlePrismaError } from '../utils/errorHandlers.js';
 
 // Gets a member who shares an expense using expenseId and userId
 export const isPartOfExpenseSplit = async (

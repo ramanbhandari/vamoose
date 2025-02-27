@@ -3,10 +3,10 @@ import {
   fetchSingleExpenseHandler,
   deleteSingleExpenseHandler,
   deleteMultipleExpensesHandler,
-} from '../../../controllers/expense.controller.ts';
+} from '../../../controllers/expense.controller.js';
 import { Request, Response } from 'express';
-import prisma from '../../../config/prismaClient.ts';
-import { NotFoundError } from '../../../utils/errors.ts';
+import prisma from '../../../config/prismaClient.js';
+import { NotFoundError } from '../../../utils/errors.js';
 
 jest.mock('../../../config/prismaClient.ts', () => ({
   __esModule: true,

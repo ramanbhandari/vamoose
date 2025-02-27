@@ -3,7 +3,7 @@ import {
   validateFetchExpense,
   validateDeleteSingleExpense,
   validateDeleteMultipleExpenses,
-} from '../../../middleware/expense.validators.ts';
+} from '../../../middleware/expense.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 
