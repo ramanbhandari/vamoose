@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Avatar,
   Box,
@@ -17,6 +17,11 @@ import {
   TextField,
   Alert,
   Snackbar,
+  Tooltip,
+  Popper,
+  List,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 
 import {
@@ -47,7 +52,8 @@ import apiClient from "@/utils/apiClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
-//import DestinationField from "@/app/trips/create/DestinationField";
+
+import { formatISO } from "date-fns";
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
 
@@ -92,6 +98,25 @@ interface PollProps {
   question: string;
   votes: number;
   onClick?: () => void;
+}
+
+interface ApiResponse {
+  features: {
+    properties: {
+      name: string;
+      country: string;
+    };
+    geometry: {
+      coordinates: [number, number]; // [longitude, latitude]
+    };
+  }[];
+}
+
+interface CitySuggestion {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
 }
 
 const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
@@ -253,6 +278,8 @@ function TripHeader({ tripData }: TripHeaderProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
 
   const [tripDetails, setTripDetails] = useState<{
     name: string;
@@ -322,6 +349,14 @@ function TripHeader({ tripData }: TripHeaderProps) {
 
   const handleCancel = () => {
     setIsEditMode(false);
+    // remove the edit=true param after cancel if it exists
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("edit");
+
+    router.replace(`${window.location.pathname}?${params.toString()}`, {
+      scroll: false,
+    });
+
     handleReset();
     setErrors([]);
   };
@@ -468,6 +503,85 @@ function TripHeader({ tripData }: TripHeaderProps) {
     );
   }
 
+  const handleStartDateChange = (newValue: Date | null) => {
+    if (newValue) {
+      const formattedDate = formatISO(newValue, { representation: "date" });
+
+      setTripDetails({ ...tripDetails, startDate: formattedDate });
+    }
+  };
+
+  const handleEndDateChange = (newValue: Date | null) => {
+    if (newValue) {
+      const formattedDate = formatISO(newValue, { representation: "date" });
+
+      setTripDetails({ ...tripDetails, endDate: formattedDate });
+    }
+  };
+
+  const parseLocalDate = (dateString: string | null) => {
+    if (!dateString) return null;
+
+    const cleanDate = dateString.split("T")[0];
+    const date = parseISO(cleanDate);
+
+    const parsedDate = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    );
+
+    if (isNaN(parsedDate.getTime())) {
+      console.error("Invalid date parsed:", parsedDate);
+      return null;
+    }
+
+    return parsedDate;
+  };
+
+  const handleDestinationChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+
+    setTripDetails((prev) => ({
+      ...prev,
+      destination: value ?? "",
+    }));
+
+    if (value.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(value)}&limit=5`
+      );
+      const data: ApiResponse = await response.json();
+
+      setSuggestions(
+        data.features.map((place) => ({
+          name: place.properties.name,
+          country: place.properties.country,
+          lat: place.geometry.coordinates[1],
+          lon: place.geometry.coordinates[0],
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching city suggestions:", error);
+    }
+  };
+
+  const handleSelectCity = (city: CitySuggestion) => {
+    if (!city || !city.name || !city.country) return;
+
+    setTripDetails((prev) => ({
+      ...prev,
+      destination: `${city.name}, ${city.country}`,
+    }));
+
+    setSuggestions([]);
+  };
+
   return (
     <GradientHeader
       theme={theme}
@@ -496,6 +610,142 @@ function TripHeader({ tripData }: TripHeaderProps) {
         },
       }}
     >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          mt: -4,
+          mb: 4,
+        }}
+      >
+        {isEditMode ? (
+          <Box display="flex" gap={0}>
+            <Tooltip
+              title="Cancel"
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: theme.palette.secondary.main,
+                    color: theme.palette.background.default,
+                  },
+                },
+              }}
+            >
+              <IconButton
+                onClick={handleCancel}
+                sx={{
+                  background: "none",
+                  color: "white",
+                  transition: "transform 0.3s, color 0.5s",
+                  "&:hover": {
+                    background: "none",
+                    transform: "scale(1.2)",
+                    color: "primary.main",
+                  },
+                }}
+              >
+                <Close fontSize="large" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip
+              title="Save"
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: theme.palette.secondary.main,
+                    color: theme.palette.background.default,
+                  },
+                },
+              }}
+            >
+              <IconButton
+                onClick={() => {
+                  handleSave();
+                  setIsEditMode(false);
+                }}
+                disabled={loading}
+                sx={{
+                  background: "none",
+                  color: "white",
+                  transition: "transform 0.3s, color 0.5s",
+                  "&:hover": {
+                    background: "none",
+                    transform: "scale(1.2)",
+                    color: "var(--accent)",
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  <Save fontSize="large" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : (
+          <Tooltip
+            title="Edit"
+            arrow
+            slotProps={{
+              tooltip: {
+                sx: {
+                  bgcolor: theme.palette.secondary.main,
+                  color: theme.palette.background.default,
+                },
+              },
+            }}
+          >
+            <IconButton
+              onClick={() => setIsEditMode(true)}
+              sx={{
+                background: "none",
+                color: "white",
+                transition: "transform 0.3s, color 0.5s",
+                "&:hover": {
+                  background: "none",
+                  transform: "scale(1.2)",
+                  color: "var(--accent)",
+                },
+              }}
+            >
+              <Edit fontSize="large" />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Tooltip
+          title="Delete"
+          arrow
+          slotProps={{
+            tooltip: {
+              sx: {
+                bgcolor: theme.palette.secondary.main,
+                color: theme.palette.background.default,
+              },
+            },
+          }}
+        >
+          <IconButton
+            onClick={() => setDeleteDialogOpen(true)}
+            sx={{
+              background: "none",
+              color: "primary.main",
+              transition: "transform 0.3s, color 0.5s",
+              cursor: "pointer",
+              "&:hover": {
+                transform: "scale(1.2)",
+                background: "none",
+              },
+            }}
+          >
+            <Delete fontSize="large" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
       {/* Success Snackbar */}
       <Snackbar
         open={!!successMessage}
@@ -588,87 +838,6 @@ function TripHeader({ tripData }: TripHeaderProps) {
           )}
         </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mt: -4,
-          }}
-         >
-          {isEditMode ? (
-                  <Box display="flex" gap={0}>
-                    <IconButton
-                      onClick={handleCancel}
-                      sx={{
-                        background: "none",
-                        color: "white",
-                        transition: "transform 0.3s, color 0.5s",
-                        "&:hover": {
-                          background: "none",
-                          transform: "scale(1.2)",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      <Close />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        handleSave();
-                        setIsEditMode(false);
-                      }}
-                      disabled={loading}
-                      sx={{
-                        background: "none",
-                        color: "white",
-                        transition: "transform 0.3s, color 0.5s",
-                        "&:hover": {
-                          background: "none",
-                          transform: "scale(1.2)",
-                          color: "var(--accent)",
-                        },
-                      }}
-                    >
-                      {loading ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        <Save />
-                      )}
-                    </IconButton>
-                  </Box>
-                ) : (
-                  <IconButton
-                    onClick={() => setIsEditMode(true)}
-                    sx={{
-                      background: "none",
-                      color: "white",
-                      transition: "transform 0.3s, color 0.5s",
-                      "&:hover": {
-                        background: "none",
-                        transform: "scale(1.2)",
-                        color: "var(--accent)"
-                      },
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                )}
-          <IconButton
-            onClick={() => setDeleteDialogOpen(true)}
-            sx={{
-              background: "none",
-              color: "primary.main",
-              transition: "transform 0.3s, color 0.5s",
-              cursor: "pointer",
-              "&:hover": {
-                transform: "scale(1.2)",
-                background: "none"
-              },
-            }}
-          >
-            <Delete/>
-          </IconButton>
-        </Box>
         <ConfirmationDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
@@ -703,7 +872,16 @@ function TripHeader({ tripData }: TripHeaderProps) {
                         letterSpacing: "-1.5px",
                         color: "white",
                       },
-                      "& .MuiFormHelperText-root": { color: "purple" },
+                      "& .MuiFormHelperText-root": { color: "white" },
+                      "& .MuiInput-underline:before": {
+                        borderBottom: "1px solid white !important",
+                      },
+                      "& .MuiInput-underline:hover:before": {
+                        borderBottom: "2px solid white !important",
+                      },
+                      "& .MuiInput-underline:after": {
+                        borderBottom: "2px solid white",
+                      },
                       mb: 2,
                     }}
                     onChange={(e) =>
@@ -752,6 +930,16 @@ function TripHeader({ tripData }: TripHeaderProps) {
                         color: "white",
                         fontSize: "1rem",
                       },
+                      "& .MuiInput-underline:before": {
+                        borderBottom: "1px solid white !important",
+                      },
+                      "& .MuiInput-underline:hover:before": {
+                        borderBottom: "2px solid white !important",
+                      },
+                      "& .MuiInput-underline:after": {
+                        borderBottom: "2px solid white",
+                      },
+                      "& .MuiFormHelperText-root": { color: "white" },
                     }}
                   />
                 ) : (
@@ -759,15 +947,12 @@ function TripHeader({ tripData }: TripHeaderProps) {
                     variant="body1"
                     sx={{
                       color: "white",
-                      opacity: 0.9,
+                      opacity: 0.7,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
-                      "&:hover": {
-                        opacity: 1,
-                      },
                     }}
                   >
                     {tripDetails.description || "No description provided"}
@@ -804,19 +989,8 @@ function TripHeader({ tripData }: TripHeaderProps) {
                     {isEditMode ? (
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
-                          value={
-                            tripDetails.startDate
-                              ? new Date(tripDetails.startDate)
-                              : null
-                          }
-                          onChange={(newDate) => {
-                            if (newDate) {
-                              setTripDetails({
-                                ...tripDetails,
-                                startDate: newDate.toISOString(),
-                              });
-                            }
-                          }}
+                          value={parseLocalDate(tripDetails.startDate)}
+                          onChange={handleStartDateChange}
                           sx={{
                             width: "0.8",
                             "& .MuiInputBase-root": {
@@ -877,19 +1051,8 @@ function TripHeader({ tripData }: TripHeaderProps) {
                     {isEditMode ? (
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
-                          value={
-                            tripDetails.endDate
-                              ? new Date(tripDetails.endDate)
-                              : null
-                          }
-                          onChange={(newDate) => {
-                            if (newDate) {
-                              setTripDetails({
-                                ...tripDetails,
-                                endDate: newDate.toISOString(),
-                              });
-                            }
-                          }}
+                          value={parseLocalDate(tripDetails.endDate)}
+                          onChange={handleEndDateChange}
                           sx={{
                             width: "0.8",
                             "& .MuiInputBase-root": {
@@ -947,40 +1110,87 @@ function TripHeader({ tripData }: TripHeaderProps) {
               }}
             >
               {isEditMode ? (
-                <TextField
-                  variant="standard"
-                  required={true}
-                  error={!tripDetails.destination}
-                  placeholder="Destination"
-                  slotProps={{
-                    input: {
-                      spellCheck: "false",
-                      autoCorrect: "off",
-                    },
-                  }}
-                  value={tripDetails.destination}
-                  onChange={(e) =>
-                    setTripDetails({
-                      ...tripDetails,
-                      destination: e.target.value,
-                    })
-                  }
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      color: "white",
-                      "& fieldset": { borderColor: "rgba(255, 255, 255, 0.5)" },
-                      "&:hover fieldset": { borderColor: "white" },
-                      "&.Mui-focused fieldset": { borderColor: "white" },
-                    },
-                    "& .MuiInputBase-input": {
-                      padding: "10px 14px",
-                      color: "white",
-                      fontWeight: 600,
-                      fontSize: "1.1rem",
-                      alignItems: "left",
-                    },
-                  }}
-                />
+                <>
+                  <TextField
+                    variant="standard"
+                    required={true}
+                    error={!tripDetails.destination}
+                    placeholder="Destination"
+                    slotProps={{
+                      input: {
+                        spellCheck: "false",
+                        autoCorrect: "off",
+                      },
+                    }}
+                    value={tripDetails.destination}
+                    onChange={handleDestinationChange}
+                    inputRef={(el) => (inputRef.current = el)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "white",
+                        "& fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.5)",
+                        },
+                        "&:hover fieldset": { borderColor: "white" },
+                        "&.Mui-focused fieldset": { borderColor: "white" },
+                      },
+                      "& .MuiInputBase-input": {
+                        padding: "10px 14px",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "1.1rem",
+                        alignItems: "left",
+                      },
+                      "& .MuiInput-underline:before": {
+                        borderBottom: "1px solid white !important",
+                      },
+                      "& .MuiInput-underline:hover:before": {
+                        borderBottom: "2px solid white !important",
+                      },
+                      "& .MuiInput-underline:after": {
+                        borderBottom: "2px solid white",
+                      },
+                    }}
+                  />
+                  <Popper
+                    open={suggestions.length > 0}
+                    anchorEl={inputRef.current}
+                    placement="bottom-start"
+                    disablePortal
+                    style={{ zIndex: 1300 }}
+                    modifiers={[
+                      {
+                        name: "preventOverflow",
+                        options: {
+                          boundary: "window",
+                        },
+                      },
+                      {
+                        name: "flip",
+                        options: {
+                          fallbackPlacements: ["bottom-end", "top-start"],
+                        },
+                      },
+                    ]}
+                  >
+                    <Paper
+                      style={{ width: inputRef.current?.clientWidth || 300 }}
+                    >
+                      <List>
+                        {suggestions.map((city, index) => (
+                          <ListItemButton
+                            key={index}
+                            onClick={() => handleSelectCity(city)}
+                          >
+                            <ListItemText
+                              primary={`${city.name}, ${city.country}`}
+                            />
+                          </ListItemButton>
+                        ))}
+                      </List>
+                    </Paper>
+                  </Popper>
+                </>
               ) : (
                 <LocationPill label={tripData?.destination || ""} />
               )}
@@ -991,11 +1201,13 @@ function TripHeader({ tripData }: TripHeaderProps) {
             <Box
               sx={{
                 display: "flex",
-                justifyContent: { xs: "center", md: "flex-start" },
-                mt: { xs: 2, md: 0 },
-                ml: { xs: 0, md: "4rem" },
+                justifyContent: { xs: "center", md: "flex-end" },
+                mt: { xs: 4, md: 0 },
+                width: "100%",
                 position: "relative",
-                width: "300px",
+                [theme.breakpoints.up("md")]: {
+                  justifyContent: "flex-end",
+                },
               }}
             >
               <BudgetDonut

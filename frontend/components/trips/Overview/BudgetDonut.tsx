@@ -1,4 +1,11 @@
-import { Box, Typography, TextField, InputAdornment } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  InputAdornment,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { DonutChart } from "@mantine/charts";
 import { Text, Box as MantineBox } from "@mantine/core";
 
@@ -45,32 +52,38 @@ export default function BudgetDonut({
     { name: "Other", value: 5, color: "#8B5CF6" }, // Purple
   ];
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   return (
     <>
       <Box
         sx={{
           position: "relative",
-          backgroundColor: "rgba(0, 0, 0, 0.45)",
-          backdropFilter: "blur(10px)",
-          borderRadius: "100%",
-          ml: "6rem",
-          transition: "transform 0.2s ease-in-out",
-          "&:hover": {
-            transform: "scale(1.05)",
-          },
+          width: 140,
+          height: 140,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
+          // zIndex: 2,
+          marginTop: isEditMode ? "20px" : "0",
         }}
       >
         <DonutChart
           data={budgetCategories.map((category) => ({
             name: category.name,
             value: budget * (category.value / 100),
-            color: category.color,
+            color: isEditMode ? "#808080" : category.color,
           }))}
+          paddingAngle={5}
           tooltipDataSource="segment"
-          size={200}
-          thickness={50}
+          size={isEditMode ? (isMobile ? 200 : 220) : isMobile ? 160 : 180}
+          thickness={isMobile ? 25 : 30}
+          withTooltip={isEditMode ? false : true}
           tooltipProps={{
-            position: { x: 50, y: 205 },
+            // position: "right",
             content: ({ payload }) => {
               if (payload && payload[0]) {
                 const data = payload[0].payload;
@@ -83,22 +96,12 @@ export default function BudgetDonut({
                       color: "#fff",
                       borderRadius: "15px",
                       boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                      "& > *": {
-                        color: `${
-                          data.color === "#FFEEAD" || data.color === "#96CEB4"
-                            ? "#333"
-                            : "#fff"
-                        } !important`,
-                      },
                     }}
                   >
                     <Text size="sm" fw={500}>
-                      {data.name}
+                      {data.name} ({((data.value / budget) * 100).toFixed(1)}%)
                     </Text>
-                    <Text size="xs">${data.value.toLocaleString()}</Text>
-                    <Text size="xs">
-                      {((data.value / budget) * 100).toFixed(1)}%
-                    </Text>
+                    <Text size="sm">${data.value.toLocaleString()}</Text>
                   </MantineBox>
                 );
               }
@@ -112,11 +115,11 @@ export default function BudgetDonut({
             position: "absolute",
             top: "50%",
             left: "50%",
-            transform: `translate(-50%, ${isEditMode ? "-350%" : "-50%"})`,
+            transform: `translate(-50%, -50%)`,
             textAlign: "center",
-            width: "60%",
+            width: isMobile ? "80%" : "100%",
             transition: "transform 0.3s ease-in-out",
-            
+            zIndex: isEditMode ? 0 : -2,
           }}
         >
           {isEditMode ? (
@@ -130,7 +133,10 @@ export default function BudgetDonut({
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Typography variant="h5" sx={{ color: "white" }}>
+                      <Typography
+                        variant={isMobile ? "h5" : "h4"}
+                        sx={{ color: "white" }}
+                      >
                         $
                       </Typography>
                     </InputAdornment>
@@ -138,12 +144,22 @@ export default function BudgetDonut({
                 },
               }}
               sx={{
-                width: "80%",
+                width: "100%",
+                color: "white",
                 "& .MuiInputBase-input": {
                   color: "white",
-                  textAlign: "right",
-                  fontSize: "1.5rem",
+                  textAlign: "center",
+                  fontSize: isMobile ? "1.7rem" : "2.0rem",
                   fontWeight: 700,
+                },
+                "& .MuiInput-underline:before": {
+                  borderBottom: "1px solid white !important",
+                },
+                "& .MuiInput-underline:hover:before": {
+                  borderBottom: "2px solid white !important",
+                },
+                "& .MuiInput-underline:after": {
+                  borderBottom: "2px solid white",
                 },
               }}
             />
