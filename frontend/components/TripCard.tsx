@@ -9,13 +9,31 @@ import {
   IconButton,
   Snackbar,
   Alert,
+  Tooltip,
+  useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Delete, ExitToApp } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import apiClient from "@/utils/apiClient";
 import ConfirmationDialog from "./ConfirmationDialog";
+import { getUserInfo } from "@/app/util/userHelper";
+import { User } from "@supabase/supabase-js";
+
+interface TripData {
+  id: number;
+  name: string;
+  description: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  members: Array<{ tripId: number; userId: string; role: string }>;
+  expenses: Array<[]>;
+  stays: Array<[]>;
+  imageUrl?: string;
+}
 
 interface TripCardProps {
   tripId: number;
@@ -24,22 +42,27 @@ interface TripCardProps {
   endDate: string;
   destination: string;
   imageUrl?: string;
-  onDelete?: (tripId: number) => void;
+  onDelete: (tripId: number) => void;
+  userId: string;
+  tripData: TripData;
 }
 
 export default function TripCard ({
   tripId,
   title,
-  startDate,
-  endDate,
-  destination,
-  imageUrl,
-  onDelete,
+  userId,
+  tripData,
+  ...props
 }: TripCardProps) {
   const router = useRouter();
-  const cardImage = imageUrl ? imageUrl : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
+  const theme = useTheme();
+  const cardImage = props.imageUrl
+    ? props.imageUrl
+    : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const userInfo = getUserInfo({ id: userId } as User);
+  const isCreator = userInfo?.isCreator(tripData);
 
   const handleViewTrip = () => {
     router.push(`/trips/${tripId}`);
@@ -49,16 +72,12 @@ export default function TripCard ({
     router.push(`/trips/${tripId}?edit=true`);
   };
 
-  const handleDelete = async () => {
+  const handleLeaveTrip = async () => {
     try {
-      await apiClient.delete(`/trips/${tripId}`);
-      if (onDelete) {
-        onDelete(tripId);
-      }
-      setDeleteDialogOpen(false);
-      setSuccessSnackbarOpen(true);
+      await apiClient.delete(`/trips/${tripId}/members/leave`);
+      props.onDelete(tripId);
     } catch (error) {
-      console.error("Error deleting trip:", error);
+      console.error("Error leaving trip:", error);
     }
   };
 
@@ -91,38 +110,68 @@ export default function TripCard ({
             padding: "2px",
           }}
         >
-          <IconButton
-            size='small'
-            onClick={handleEdit}
-            sx={{
-              background: "none",
-              color: "white",
-              transition: "transform 0.3s, color 0.5s",
-              "&:hover": {
-                background: "none",
-                transform: "scale(1.2)",
-                color: "var(--accent)",
+          {isCreator && (
+            <Tooltip
+              title='Edit'
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: theme.palette.secondary.main,
+                    color: theme.palette.background.default,
+                  },
+                },
+              }}
+            >
+              <IconButton
+                size='small'
+                onClick={handleEdit}
+                sx={{
+                  background: "none",
+                  color: "white",
+                  transition: "transform 0.3s, color 0.5s",
+                  "&:hover": {
+                    background: "none",
+                    transform: "scale(1.2)",
+                    color: "var(--accent)",
+                  },
+                }}
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          <Tooltip
+            title={isCreator ? "Delete Trip" : "Leave Trip"}
+            arrow
+            slotProps={{
+              tooltip: {
+                sx: {
+                  bgcolor: theme.palette.secondary.main,
+                  color: theme.palette.background.default,
+                },
               },
             }}
           >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            size='small'
-            onClick={() => setDeleteDialogOpen(true)}
-            sx={{
-              background: "none",
-              color: "white",
-              transition: "transform 0.3s, color 0.5s",
-              "&:hover": {
+            <IconButton
+              size='small'
+              onClick={() => setDeleteDialogOpen(true)}
+              aria-label={isCreator ? "Delete trip" : "Leave trip"}
+              sx={{
                 background: "none",
-                transform: "scale(1.2)",
-                color: "primary.main",
-              },
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+                color: "white",
+                transition: "transform 0.3s, color 0.5s",
+                "&:hover": {
+                  background: "none",
+                  transform: "scale(1.2)",
+                  color: "primary.main",
+                },
+              }}
+            >
+              {isCreator ? <Delete /> : <ExitToApp />}
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <CardMedia
@@ -158,9 +207,9 @@ export default function TripCard ({
             {title}
           </Typography>
           <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
-            {destination}
+            {props.destination}
           </Typography>
-          <Typography variant='caption'>{`${startDate} – ${endDate}`}</Typography>
+          <Typography variant='caption'>{`${props.startDate} – ${props.endDate}`}</Typography>
           <Button
             variant='contained'
             sx={{
@@ -182,9 +231,15 @@ export default function TripCard ({
       <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
-        title='Delete Trip'
-        message={`Are you sure you want to delete "${title}"?`}
+        onConfirm={
+          isCreator ? () => props.onDelete(tripId) : () => handleLeaveTrip()
+        }
+        title={isCreator ? "Delete Trip" : "Leave Trip"}
+        message={
+          isCreator
+            ? `Are you sure you want to delete "${title}"?`
+            : `Are you sure you want to leave "${title}"?`
+        }
       />
 
       {/* Success Snackbar */}

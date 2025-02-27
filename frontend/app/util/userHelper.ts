@@ -11,7 +11,7 @@ interface TripData {
   members: Array<{ tripId: number; userId: string; role: string }>;
   expenses: Array<[]>;
   stays: Array<[]>;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 interface UserInfo {
@@ -28,23 +28,24 @@ export function getUserInfo(user: User | null): UserInfo | null {
   return {
     id: user.id,
     email: user.email,
-    
+
     isCreator: (tripData: TripData | null) => {
-      return tripData?.members.some(
-        member => member.userId === user.id && member.role === 'creator'
-      ) ?? false;
+      return (
+        tripData?.members.some(
+          (member) => member.userId === user.id && member.role === "creator"
+        ) ?? false
+      );
     },
-    
+
     isMember: (tripData: TripData | null) => {
-      return tripData?.members.some(
-        member => member.userId === user.id
-      ) ?? false;
+      return (
+        tripData?.members.some((member) => member.userId === user.id) ?? false
+      );
     },
-    
+
     getRole: (tripData: TripData | null) => {
-      return tripData?.members.find(
-        member => member.userId === user.id
-      )?.role;
-    }
+      return tripData?.members.find((member) => member.userId === user.id)
+        ?.role;
+    },
   };
 }

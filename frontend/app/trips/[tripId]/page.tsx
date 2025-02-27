@@ -43,40 +43,40 @@ const sections = [
   {
     id: "overview",
     label: "Overview",
-    icon: <DashboardIcon fontSize='medium' />,
+    icon: <DashboardIcon fontSize="medium" />,
   },
-  { id: "dates", label: "Dates", icon: <EventIcon fontSize='medium' /> },
+  { id: "dates", label: "Dates", icon: <EventIcon fontSize="medium" /> },
   {
     id: "destinations",
     label: "Destinations",
-    icon: <PlaceIcon fontSize='medium' />,
+    icon: <PlaceIcon fontSize="medium" />,
   },
-  { id: "stays", label: "Stays", icon: <HotelIcon fontSize='medium' /> },
+  { id: "stays", label: "Stays", icon: <HotelIcon fontSize="medium" /> },
   {
     id: "expenses",
     label: "Expenses",
-    icon: <CalculateIcon fontSize='medium' />,
+    icon: <CalculateIcon fontSize="medium" />,
   },
   {
     id: "activities",
     label: "Activities",
-    icon: <DirectionsRunIcon fontSize='medium' />,
+    icon: <DirectionsRunIcon fontSize="medium" />,
   },
-  { id: "polls", label: "Polls", icon: <PollIcon fontSize='medium' /> },
+  { id: "polls", label: "Polls", icon: <PollIcon fontSize="medium" /> },
   {
     id: "itinerary",
     label: "Itinerary",
-    icon: <CalendarTodayIcon fontSize='medium' />,
+    icon: <CalendarTodayIcon fontSize="medium" />,
   },
   {
     id: "packing",
     label: "Packing List",
-    icon: <WorkIcon fontSize='medium' />,
+    icon: <WorkIcon fontSize="medium" />,
   },
   {
     id: "members",
     label: "Members",
-    icon: <GroupIcon fontSize='medium' />,
+    icon: <GroupIcon fontSize="medium" />,
   },
 ];
 
@@ -94,7 +94,7 @@ interface TripData {
   imageUrl: string;
 }
 
-export default function TripSummaryPage () {
+export default function TripSummaryPage() {
   const params = useParams();
   const tripId = params?.tripId;
 
@@ -190,8 +190,8 @@ export default function TripSummaryPage () {
         }}
       >
         <Typography
-          variant='h2'
-          color='error'
+          variant="h2"
+          color="error"
           sx={{
             fontWeight: "700",
             fontFamily: "apple-system",
@@ -238,7 +238,7 @@ export default function TripSummaryPage () {
         }}
       >
         <Dock
-          items={sections.map(section => ({
+          items={sections.map((section) => ({
             id: section.id,
             label: section.label,
             icon: section.icon,
@@ -249,7 +249,7 @@ export default function TripSummaryPage () {
           magnification={90}
           // convert activeSection into index
           activeIndex={sections.findIndex(
-            section => section.id === activeSection
+            (section) => section.id === activeSection
           )}
           isDarkMode={theme.palette.mode === "dark"}
         />
