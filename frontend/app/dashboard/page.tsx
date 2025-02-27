@@ -114,6 +114,12 @@ export default function Dashboard() {
       )
     );
   };
+
+  const handleTripDelete = (deletedTripId: number) => {
+    setUpcomingTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
+    setPastTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
+  };
+
   // skeleton resembling our acutal page
   if (loading) {
     return (
@@ -301,6 +307,7 @@ export default function Dashboard() {
                     endDate={formatDate(trip.endDate)}
                     destination={trip.destination}
                     imageUrl={trip.imageUrl}
+                    onDelete={handleTripDelete}
                   />
                 </Grid>
               ))}
@@ -327,6 +334,7 @@ export default function Dashboard() {
                     endDate={formatDate(trip.endDate)}
                     destination={trip.destination}
                     imageUrl={trip.imageUrl}
+                    onDelete={handleTripDelete}
                   />
                 </Grid>
               ))}

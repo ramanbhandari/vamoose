@@ -1,8 +1,8 @@
 "use client";
 
 import { IconButton, useTheme, Tooltip } from "@mui/material";
-import NightlightIcon from '@mui/icons-material/Nightlight';
-import WbSunnyIcon from '@mui/icons-material/WbSunny';
+import NightlightIcon from "@mui/icons-material/Nightlight";
+import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
