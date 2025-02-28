@@ -7,9 +7,9 @@ import {
   deleteManyTripMembers,
   getTripMemberCount,
   getManyTripMembersFilteredByUserId,
-} from '../models/member.model.ts';
-import { AuthenticatedRequest } from '../interfaces/interfaces.ts';
-import { handleControllerError } from '../utils/errorHandlers.ts';
+} from '@/models/member.model.js';
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { handleControllerError } from '@/utils/errorHandlers.js';
 
 /**
  * Update just trip member role for now until some other fields are added.

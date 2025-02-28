@@ -1,4 +1,4 @@
-import validationErrorHandler from '../../middleware/validationErrorHandler.ts';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 

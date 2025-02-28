@@ -5,10 +5,10 @@ import {
   updateTripHandler,
   fetchSingleTripHandler,
   fetchTripsWithFiltersHandler,
-} from '../../../controllers/trip.controller.ts';
-import prisma from '../../../config/prismaClient.ts';
+} from '@/controllers/trip.controller.js';
+import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
-import { NotFoundError } from '../../../utils/errors.ts';
+import { NotFoundError } from '@/utils/errors.js';
 
 // Mock Prisma client functions
 // Add models->functions you want to mock here

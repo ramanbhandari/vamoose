@@ -5,8 +5,8 @@ import {
   leaveTripHandler,
   removeTripMemberHandler,
   batchRemoveTripMembersHandler,
-} from '../../../controllers/member.controller.ts';
-import prisma from '../../../config/prismaClient.ts';
+} from '@/controllers/member.controller.js';
+import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 
 jest.mock('../../../config/prismaClient', () => ({

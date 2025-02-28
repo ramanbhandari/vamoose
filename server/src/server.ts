@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import appRouter from './routes/appRouter.ts';
-import prisma from './config/prismaClient.ts';
+import appRouter from './routes/appRouter.js';
+import prisma from './config/prismaClient.js';
 import cors from 'cors';
 // import connectMongoDB from './db/mongo.js'; // lint error, commenting to stop it
 
