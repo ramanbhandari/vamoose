@@ -2,6 +2,7 @@
 
 import {
   Card,
+  Chip,
   Typography,
   Button,
   CardMedia,
@@ -66,6 +67,7 @@ interface TripCardProps {
 export default function TripCard({ tripData, onDelete }: TripCardProps) {
   const router = useRouter();
   const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { setNotification } = useNotificationStore();
@@ -125,6 +127,35 @@ export default function TripCard({ tripData, onDelete }: TripCardProps) {
           },
         }}
       >
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            zIndex: 1,
+          }}
+        >
+          {userInfo && (
+            <Chip
+              label={userInfo.getRole(tripData)?.toUpperCase()}
+              sx={{
+                backgroundColor: isCreator
+                  ? theme.palette.primary.main
+                  : theme.palette.secondary.main,
+                color:
+                  isDarkMode && !isCreator
+                    ? theme.palette.background.paper
+                    : theme.palette.primary.contrastText,
+                fontWeight: 600,
+                fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                height: { xs: 24, sm: 28 },
+                "& .MuiChip-label": {
+                  px: { xs: 1, sm: 1.5 },
+                },
+              }}
+            />
+          )}
+        </Box>
         <Box
           sx={{
             position: "absolute",
