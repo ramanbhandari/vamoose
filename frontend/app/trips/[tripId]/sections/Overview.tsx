@@ -994,6 +994,7 @@ function TripHeader({ tripData, currentUser }: TripHeaderProps) {
                       {isEditMode ? (
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                           <DatePicker
+                            disablePast
                             value={parseLocalDate(tripDetails.startDate)}
                             onChange={handleStartDateChange}
                             sx={{
@@ -1056,6 +1057,7 @@ function TripHeader({ tripData, currentUser }: TripHeaderProps) {
                       {isEditMode ? (
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                           <DatePicker
+                            disablePast
                             value={parseLocalDate(tripDetails.endDate)}
                             onChange={handleEndDateChange}
                             sx={{
