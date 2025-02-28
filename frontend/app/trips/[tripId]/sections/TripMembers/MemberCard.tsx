@@ -4,7 +4,6 @@ import { Paper, Avatar, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/system";
 import { Member } from "@/types";
 
-// Optionally, you can use styled components to customize your card.
 const StyledCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   textAlign: "center",
