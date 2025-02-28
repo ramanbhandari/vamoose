@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// DATABASE PROVIDER
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DIRECT_URL")
+  extensions = [pgcrypto]
+}
+
+// ─── USER MODEL ─────────────────────────────────────────────────────────────
+model User {
+  id        String   @id @default(uuid()) // Use UUID to match Supabase Auth
+  email     String   @unique
+  fullName  String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdTrips Trip[]
+  tripMembers  TripMember[]
+  tripInvites  TripInvitee[] @relation("CreatorRelation")
+  invitedTrips TripInvitee[] @relation("InvitedUserRelation")
+
+  expenses     Expense[]
+  messages     Message[]
+  polls        Poll[]
+  packingItems PackingItem[]
+  ExpenseShare ExpenseShare[]
+
+  staysBooked Stay[]
+}
+
+// ─── TRIP MODEL ─────────────────────────────────────────────────────────────
+model Trip {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float?
+
+  imageUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String
+  creator   User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  members  TripMember[]
+  invitees TripInvitee[]
+  stays    Stay[]
+
+  expenses    Expense[]
+  itineraries Itinerary[]
+  messages    Message[]
+  polls       Poll[]
+  packingList PackingItem[]
+}
+
+// ─── TRIP MEMBER MODEL ──────────────────────────────────────────────────────
+model TripMember {
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  role   String @default("member") // Possible values: "creator", "admin", "member"
+
+  @@id([tripId, userId])
+}
+
+// ─── TRIP INVITEE MODEL ─────────────────────────────────────────────────────
+model TripInvitee {
+  inviteToken String    @id @default(uuid())
+  tripId      Int
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  email       String
+  createdBy   String
+  creator     User      @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
+  status      String    @default("pending") // Status: pending, accepted, expired
+  expiresAt   DateTime?
+
+  // Optional link to the User model if they exist
+  invitedUserId String?
+  invitedUser   User?   @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, email])
+}
+
+// ─── STAY MODEL ───────────────────────────────────────────────────────────
+model Stay {
+  id           Int      @id @default(autoincrement())
+  tripId       Int
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name         String
+  address      String?
+  checkInDate  DateTime
+  checkOutDate DateTime
+  bookedBy     User?    @relation(fields: [bookedById], references: [id], onDelete: SetNull)
+  bookedById   String?
+  url          String?
+}
+
+// ─── EXPENSE MODEL ─────────────────────────────────────────────────────────
+model Expense {
+  id          Int      @id @default(autoincrement())
+  amount      Float
+  category    String // "food", "transportation", "accommodation", "activities", "miscellaneous"
+  description String?
+  createdAt   DateTime @default(now())
+
+  trip     Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId   Int
+  paidBy   User?   @relation(fields: [paidById], references: [id], onDelete: SetNull)
+  paidById String?
+
+  shares ExpenseShare[]
+}
+
+// ─── EXPENSE SHARE MODEL ────────────────────────────────────────────────────
+model ExpenseShare {
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  share     Float // Amount this user owes
+  settled   Boolean @default(false) // True if payment is completed
+
+  @@id([expenseId, userId])
+}
+
+// ─── ITINERARY MODEL ────────────────────────────────────────────────────────
+model Itinerary {
+  id          Int      @id @default(autoincrement())
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId      Int
+  date        DateTime
+  title       String
+  description String
+  location    String?
+  assignedTo  String?
+  createdAt   DateTime @default(now())
+}
+
+// ─── MESSAGE MODEL ──────────────────────────────────────────────────────────
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    Int
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String
+  createdAt DateTime @default(now())
+}
+
+// ─── POLL MODEL ────────────────────────────────────────────────────────────
+model Poll {
+  id          Int      @id @default(autoincrement())
+  question    String
+  options     Json
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId      Int
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById String?
+  createdAt   DateTime @default(now())
+}
+
+// ─── PACKING LIST MODEL ─────────────────────────────────────────────────────
+model PackingItem {
+  id         Int      @id @default(autoincrement())
+  name       String
+  quantity   Int      @default(1)
+  packed     Boolean  @default(false)
+  assignedTo String?
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId     Int
+  createdAt  DateTime @default(now())
+  User       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     String?
+}

@@ -11,11 +11,11 @@
 - Feature branches are **created from `dev`** and merged back into `dev`.
 - **Branch Naming Convention**:
   ```md
-  {Initials}/feature/{issue #}-{short description}
+  {issue #}-{short description}
   ```
   **Example:**
   ```md
-  RB/feature/12345-fix-expense-calculation
+  12345-fix-expense-calculation
   ```
 
 ### Other updates (eg. Documentation Updates, Workflow updates)
