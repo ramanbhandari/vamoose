@@ -1,49 +1,5 @@
 import { User } from "@supabase/supabase-js";
-
-interface Expense {
-  id: number;
-  amount: number;
-  category: string;
-  description: string;
-  tripId: number;
-  paidBy: {
-    email: string;
-  };
-}
-
-interface Member {
-  tripId: number;
-  userId: string;
-  role: string;
-  user: {
-    email: string;
-  };
-}
-
-interface ExpenseBreakdown {
-  category: string;
-  total: number;
-}
-
-interface ExpensesSummary {
-  breakdown: ExpenseBreakdown[];
-  totalExpenses: number;
-}
-
-interface TripData {
-  id: number;
-  name: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  members: Member[];
-  expenses: Expense[];
-  stays: Array<[]>;
-  imageUrl: string;
-  description: string;
-  expenseSummary: ExpensesSummary;
-}
+import { TripData } from "@/stores/trip-store";
 
 interface UserInfo {
   id: string;
