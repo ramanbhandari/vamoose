@@ -8,7 +8,7 @@ const getTodayDate = () => DateTime.now().toUTC().startOf('day');
 export const validateCreateTripInput = checkExact([
   body('name').isString().notEmpty().withMessage('Trip name is required'),
   body('description')
-    .optional()
+    .optional({ values: 'null' })
     .isString()
     .withMessage('Description must be a string'),
   body('destination')
@@ -39,26 +39,32 @@ export const validateCreateTripInput = checkExact([
       return true;
     }),
   body('budget')
-    .optional()
+    .optional({ values: 'null' })
     .isFloat({ min: 0 })
     .withMessage('Budget must be a positive number'),
-  body('imageUrl').optional().isURL().withMessage('Invalid image URL format'),
+  body('imageUrl')
+    .optional({ values: 'null' })
+    .isURL()
+    .withMessage('Invalid image URL format'),
 ]);
 
 // Validation for Updating a Trip
 export const validateUpdateTripInput = checkExact([
   param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
-  body('name').optional().isString().withMessage('Name must be a string'),
+  body('name')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Name must be a string'),
   body('description')
-    .optional()
+    .optional({ values: 'null' })
     .isString()
     .withMessage('Description must be a string'),
   body('destination')
-    .optional()
+    .optional({ values: 'null' })
     .isString()
     .withMessage('Destination must be a string'),
   body('startDate')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('Invalid start date format')
     .custom((value) => {
@@ -69,7 +75,7 @@ export const validateUpdateTripInput = checkExact([
       return true;
     }),
   body('endDate')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('Invalid end date format')
     .custom((value, { req }) => {
@@ -84,10 +90,13 @@ export const validateUpdateTripInput = checkExact([
       return true;
     }),
   body('budget')
-    .optional()
+    .optional({ values: 'null' })
     .isFloat({ min: 0 })
     .withMessage('Budget must be a positive number'),
-  body('imageUrl').optional().isURL().withMessage('Invalid image URL format'),
+  body('imageUrl')
+    .optional({ values: 'null' })
+    .isURL()
+    .withMessage('Invalid image URL format'),
 ]);
 
 // Validate fetching a single trip
@@ -98,23 +107,23 @@ export const validateFetchSingleTrip = checkExact([
 // Validate fetching multiple trips with filters
 export const validateFetchTripsWithFilters = checkExact([
   query('destination')
-    .optional()
+    .optional({ values: 'null' })
     .isString()
     .withMessage('Destination must be a string'),
 
   query('status')
-    .optional()
+    .optional({ values: 'null' })
     .toLowerCase()
     .isIn(['past', 'current', 'future'])
     .withMessage('Invalid status. Allowed values: past, current, future'),
 
   query('startDate')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('Invalid start date format'),
 
   query('endDate')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('Invalid end date format')
     .custom((value, { req }) => {
@@ -130,12 +139,12 @@ export const validateFetchTripsWithFilters = checkExact([
     }),
 
   query('limit')
-    .optional()
+    .optional({ values: 'null' })
     .isInt({ min: 1 })
     .withMessage('Limit must be a positive number'),
 
   query('offset')
-    .optional()
+    .optional({ values: 'null' })
     .isInt({ min: 0 })
     .withMessage('Offset must be a non-negative number'),
 
