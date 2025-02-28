@@ -65,6 +65,13 @@ export const updateTripMemberHandler = async (req: Request, res: Response) => {
         .json({ error: 'Target member not found in this trip' });
     }
 
+    // Skip update if the role is not actually changing
+    if (targetMember.role === newRole) {
+      return res
+        .status(200)
+        .json({ message: 'No changes made. Role is already set.' });
+    }
+
     // Prevent users from updating their own role
     if (userId === targetUserId) {
       return res.status(403).json({ error: 'You cannot update your own role' });
