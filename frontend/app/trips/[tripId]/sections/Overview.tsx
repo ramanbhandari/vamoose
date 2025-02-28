@@ -155,7 +155,7 @@ const LocationPill = ({ label }: { label: string }) => (
     <Chip
       label={label}
       icon={<FlightLand />}
-      color='secondary'
+      color="secondary"
       sx={{
         px: 3,
         py: 1.5,
@@ -226,13 +226,13 @@ const AdventureCard = ({
         >
           {icon}
         </IconButton>
-        <Typography variant='h5' gutterBottom sx={{ fontWeight: 700 }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
           {title}
         </Typography>
         <Chip
           label={status}
-          color='secondary'
-          size='medium'
+          color="secondary"
+          size="medium"
           sx={{
             fontWeight: 600,
             px: 2,
@@ -260,12 +260,12 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
       onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <PollIcon color='primary' />
+        <PollIcon color="primary" />
         <Box>
-          <Typography variant='h6' sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {question}
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography variant="body2" color="text.secondary">
             {votes} votes received
           </Typography>
         </Box>
@@ -274,7 +274,7 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
   </motion.div>
 );
 
-function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
+function TripHeader({ tripData, currentUser }: TripHeaderProps) {
   const router = useRouter();
   const theme = useTheme();
   const searchParams = useSearchParams();
@@ -454,7 +454,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
     // Don't allow multiple decimal points
     if ((rawValue.match(/\./g) || []).length > 1) return;
 
-    setTripDetails(prev => ({
+    setTripDetails((prev) => ({
       ...prev,
       budget: rawValue,
     }));
@@ -466,7 +466,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
     const number = parseFloat(tripDetails.budget);
     if (isNaN(number)) return;
 
-    setTripDetails(prev => ({
+    setTripDetails((prev) => ({
       ...prev,
       budget: number.toFixed(2),
     }));
@@ -575,7 +575,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
   ) => {
     const value = e.target.value;
 
-    setTripDetails(prev => ({
+    setTripDetails((prev) => ({
       ...prev,
       destination: value ?? "",
     }));
@@ -592,7 +592,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
       const data: ApiResponse = await response.json();
 
       setSuggestions(
-        data.features.map(place => ({
+        data.features.map((place) => ({
           name: place.properties.name,
           country: place.properties.country,
           lat: place.geometry.coordinates[1],
@@ -607,7 +607,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
   const handleSelectCity = (city: CitySuggestion) => {
     if (!city || !city.name || !city.country) return;
 
-    setTripDetails(prev => ({
+    setTripDetails((prev) => ({
       ...prev,
       destination: `${city.name}, ${city.country}`,
     }));
@@ -652,9 +652,9 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
         }}
       >
         {isEditMode ? (
-          <Box display='flex' gap={0}>
+          <Box display="flex" gap={0}>
             <Tooltip
-              title='Cancel'
+              title="Cancel"
               arrow
               slotProps={{
                 tooltip: {
@@ -678,12 +678,12 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                   },
                 }}
               >
-                <Close fontSize='large' />
+                <Close fontSize="large" />
               </IconButton>
             </Tooltip>
 
             <Tooltip
-              title='Save'
+              title="Save"
               arrow
               slotProps={{
                 tooltip: {
@@ -712,9 +712,9 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                 }}
               >
                 {loading ? (
-                  <CircularProgress size={24} color='inherit' />
+                  <CircularProgress size={24} color="inherit" />
                 ) : (
-                  <Save fontSize='large' />
+                  <Save fontSize="large" />
                 )}
               </IconButton>
             </Tooltip>
@@ -723,7 +723,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
           <>
             {isCreator && (
               <Tooltip
-                title='Edit'
+                title="Edit"
                 arrow
                 slotProps={{
                   tooltip: {
@@ -747,7 +747,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                     },
                   }}
                 >
-                  <Edit fontSize='large' />
+                  <Edit fontSize="large" />
                 </IconButton>
               </Tooltip>
             )}
@@ -778,9 +778,9 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                 }}
               >
                 {isCreator ? (
-                  <Delete fontSize='large' />
+                  <Delete fontSize="large" />
                 ) : (
-                  <ExitToApp fontSize='large' />
+                  <ExitToApp fontSize="large" />
                 )}
               </IconButton>
             </Tooltip>
@@ -797,7 +797,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
       >
         <Alert
           onClose={() => setSuccessMessage(null)}
-          severity='success'
+          severity="success"
           sx={{
             width: "100%",
             bgcolor: "background.paper",
@@ -818,7 +818,9 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
           key={index}
           open={true}
           autoHideDuration={2000}
-          onClose={() => setErrors(prev => prev.filter((_, i) => i !== index))}
+          onClose={() =>
+            setErrors((prev) => prev.filter((_, i) => i !== index))
+          }
           anchorOrigin={{
             vertical: "top",
             horizontal: "center",
@@ -829,9 +831,9 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
         >
           <Alert
             onClose={() =>
-              setErrors(prev => prev.filter((_, i) => i !== index))
+              setErrors((prev) => prev.filter((_, i) => i !== index))
             }
-            severity='error'
+            severity="error"
             sx={{
               width: "100%",
               bgcolor: "background.paper",
@@ -861,7 +863,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
         >
           {errors.length > 0 && (
             <Alert
-              severity='error'
+              severity="error"
               sx={{
                 mb: 2,
                 boxShadow: 4,
@@ -890,17 +892,17 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
           }
         />
 
-        <HeaderGrid container alignItems='center' theme={theme}>
+        <HeaderGrid container alignItems="center" theme={theme}>
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
-              <Box display='flex' alignItems='center' gap={2}>
+              <Box display="flex" alignItems="center" gap={2}>
                 {isEditMode ? (
                   <TextField
-                    variant='standard'
+                    variant="standard"
                     required={true}
                     value={tripDetails.name}
                     error={!tripDetails.name}
-                    placeholder='Trip Name'
+                    placeholder="Trip Name"
                     slotProps={{
                       input: {
                         spellCheck: "false",
@@ -928,13 +930,13 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                       },
                       mb: 2,
                     }}
-                    onChange={e =>
+                    onChange={(e) =>
                       setTripDetails({ ...tripDetails, name: e.target.value })
                     }
                   />
                 ) : (
                   <Typography
-                    variant='h1'
+                    variant="h1"
                     sx={{
                       fontSize: { xs: "2.5rem", md: "3.5rem" },
                       fontWeight: 900,
@@ -950,12 +952,12 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
               <Box sx={{ mb: 1 }}>
                 {isEditMode ? (
                   <TextField
-                    variant='standard'
-                    placeholder='Add a trip description'
+                    variant="standard"
+                    placeholder="Add a trip description"
                     value={tripDetails.description}
-                    onChange={e => {
+                    onChange={(e) => {
                       if (e.target.value.length <= 50) {
-                        setTripDetails(prev => ({
+                        setTripDetails((prev) => ({
                           ...prev,
                           description: e.target.value,
                         }));
@@ -988,7 +990,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                   />
                 ) : (
                   <Typography
-                    variant='body1'
+                    variant="body1"
                     sx={{
                       color: "white",
                       opacity: 0.7,
@@ -1005,7 +1007,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
               </Box>
               <Chip
                 label={getTripStatus(tripData.startDate, tripData.endDate)}
-                color='secondary'
+                color="secondary"
                 sx={{
                   borderRadius: 2,
                   //   py: 1,
@@ -1016,7 +1018,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
               />
             </Box>
 
-            <Grid container spacing={1} alignItems='center'>
+            <Grid container spacing={1} alignItems="center">
               <Grid item xs={12} md={6}>
                 <Box
                   sx={{
@@ -1027,7 +1029,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                 >
                   <DateRange sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
                       Departure Date
                     </Typography>
                     {isEditMode ? (
@@ -1071,7 +1073,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                         />
                       </LocalizationProvider>
                     ) : (
-                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatDate(tripData?.startDate)}
                       </Typography>
                     )}
@@ -1089,7 +1091,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                 >
                   <FlightTakeoff sx={{ fontSize: "2rem" }} />
                   <Box>
-                    <Typography variant='h6' sx={{ fontWeight: 500 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 500 }}>
                       Return Date
                     </Typography>
                     {isEditMode ? (
@@ -1133,7 +1135,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                         />
                       </LocalizationProvider>
                     ) : (
-                      <Typography variant='h5' sx={{ fontWeight: 700 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         {formatDate(tripData?.endDate)}
                       </Typography>
                     )}
@@ -1156,10 +1158,10 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
               {isEditMode ? (
                 <>
                   <TextField
-                    variant='standard'
+                    variant="standard"
                     required={true}
                     error={!tripDetails.destination}
-                    placeholder='Destination'
+                    placeholder="Destination"
                     slotProps={{
                       input: {
                         spellCheck: "false",
@@ -1168,7 +1170,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                     }}
                     value={tripDetails.destination}
                     onChange={handleDestinationChange}
-                    inputRef={el => (inputRef.current = el)}
+                    inputRef={(el) => (inputRef.current = el)}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: "white",
@@ -1199,7 +1201,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
                   <Popper
                     open={suggestions.length > 0}
                     anchorEl={inputRef.current}
-                    placement='bottom-start'
+                    placement="bottom-start"
                     disablePortal
                     style={{ zIndex: 1300 }}
                     modifiers={[
@@ -1270,7 +1272,7 @@ function TripHeader ({ tripData, currentUser }: TripHeaderProps) {
   );
 }
 
-export default function TripOverview ({
+export default function TripOverview({
   tripData,
   onSectionChange,
   currentUser,
@@ -1308,7 +1310,7 @@ export default function TripOverview ({
 
   return (
     <motion.div style={{ scale }}>
-      <Container maxWidth='xl' disableGutters>
+      <Container maxWidth="xl" disableGutters>
         <TripHeader tripData={tripData} currentUser={currentUser} />
 
         <Container sx={{ pt: 4 }}>
@@ -1317,7 +1319,7 @@ export default function TripOverview ({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant='h4'
+                    variant="h4"
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -1326,10 +1328,10 @@ export default function TripOverview ({
                       gap: 2,
                     }}
                   >
-                    <Work fontSize='large' />
+                    <Work fontSize="large" />
                     Journey Essentials
                   </Typography>
-                  <Typography variant='body1' color='text.secondary'>
+                  <Typography variant="body1" color="text.secondary">
                     Key components of your upcoming adventure
                   </Typography>
                 </Box>
@@ -1377,7 +1379,7 @@ export default function TripOverview ({
               <SectionContainer theme={theme}>
                 <Box mb={3}>
                   <Typography
-                    variant='h4'
+                    variant="h4"
                     gutterBottom
                     sx={{
                       fontWeight: 700,
@@ -1386,15 +1388,15 @@ export default function TripOverview ({
                       gap: 2,
                     }}
                   >
-                    <Group fontSize='large' />
+                    <Group fontSize="large" />
                     Travel Squad
                   </Typography>
-                  <Typography variant='body1' color='text.secondary'>
+                  <Typography variant="body1" color="text.secondary">
                     {tripData?.members.length} adventurers joining the journey
                   </Typography>
                 </Box>
 
-                <Box display='flex' flexWrap='wrap' gap={3} mb={3}>
+                <Box display="flex" flexWrap="wrap" gap={3} mb={3}>
                   {tripData?.members.map((member, index) => (
                     <MemberAvatar key={index} member={member.role} />
                   ))}
@@ -1403,8 +1405,8 @@ export default function TripOverview ({
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <Button
                     fullWidth
-                    variant='contained'
-                    color='secondary'
+                    variant="contained"
+                    color="secondary"
                     startIcon={<GroupAdd />}
                     sx={{
                       borderRadius: 3,
@@ -1422,7 +1424,7 @@ export default function TripOverview ({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant='h4'
+                variant="h4"
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -1431,10 +1433,10 @@ export default function TripOverview ({
                   gap: 2,
                 }}
               >
-                <Calculate fontSize='large' />
+                <Calculate fontSize="large" />
                 Expenses
               </Typography>
-              <Typography variant='body1' color='text.secondary'>
+              <Typography variant="body1" color="text.secondary">
                 {tripData.expenses.length} expenses
               </Typography>
             </Box>
@@ -1442,8 +1444,8 @@ export default function TripOverview ({
             <motion.div whileHover={{ scale: 1.05 }}>
               <Button
                 fullWidth
-                variant='contained'
-                color='secondary'
+                variant="contained"
+                color="secondary"
                 sx={{
                   borderRadius: 3,
                   py: 1.5,
@@ -1459,7 +1461,7 @@ export default function TripOverview ({
           <SectionContainer theme={theme}>
             <Box mb={3}>
               <Typography
-                variant='h4'
+                variant="h4"
                 gutterBottom
                 sx={{
                   fontWeight: 700,
@@ -1468,10 +1470,10 @@ export default function TripOverview ({
                   gap: 2,
                 }}
               >
-                <PollIcon fontSize='large' />
+                <PollIcon fontSize="large" />
                 Active Polls
               </Typography>
-              <Typography variant='body1' color='text.secondary'>
+              <Typography variant="body1" color="text.secondary">
                 {polls.length} ongoing decisions
               </Typography>
             </Box>
@@ -1491,7 +1493,7 @@ export default function TripOverview ({
           </SectionContainer>
 
           <Typography
-            variant='body1'
+            variant="body1"
             sx={{
               fontStyle: "italic",
               color: "text.secondary",

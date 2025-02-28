@@ -40,7 +40,7 @@ export default function AuthForm() {
   const handleRedirect = () => {
     const inviteRedirect = sessionStorage.getItem("inviteRedirect");
     if (inviteRedirect) {
-      sessionStorage.removeItem("inviteRedirect"); 
+      sessionStorage.removeItem("inviteRedirect");
       router.push(inviteRedirect);
     } else {
       router.push("/dashboard");
