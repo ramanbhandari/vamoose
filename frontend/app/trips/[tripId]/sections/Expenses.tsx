@@ -37,6 +37,7 @@ import {
   DeleteOutline,
   FilterList,
   Person,
+  SportsKabaddi,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
@@ -44,6 +45,7 @@ import apiClient from "@/utils/apiClient";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
 import { useTripStore } from "@/stores/trip-store";
 import { useNotificationStore } from "@/stores/notification-store";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 interface Expense {
   id: number;
@@ -149,12 +151,12 @@ const categories = [
     label: "Accommodation",
     value: "accommodation",
     icon: <Hotel />,
-    color: "#9CA3AF",
+    color: "#3B82F6",
   },
   {
     label: "Activities",
     value: "activities",
-    icon: <AttachMoney />,
+    icon: <SportsKabaddi />,
     color: "#14B8A6",
   },
   {
@@ -176,13 +178,12 @@ export default function Expenses({
 }: ExpensesProps) {
   const theme = useTheme();
   // fetch tripData from our store if it exists, else use the props
-  const { tripData, addExpense, fetchTripData } = useTripStore();
+  const { tripData, addExpense, fetchTripData, deleteExpense, error } =
+    useTripStore();
   const expenses = tripData?.expenses || initialExpenses;
 
   const { setNotification } = useNotificationStore();
 
-  // const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  // const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
@@ -198,6 +199,12 @@ export default function Expenses({
     description: "",
     paidByEmail: "",
   });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  // pendingDelete can be either a single expense id (number) or an array of numbers
+  const [pendingDelete, setPendingDelete] = useState<number | number[] | null>(
+    null
+  );
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
@@ -229,7 +236,7 @@ export default function Expenses({
   // Add Expense API Call
   const handleSubmit = async () => {
     if (!formData.amount || !formData.category) {
-      alert("Please fill in required fieldsss.");
+      setNotification("Please fill in required fields!", "warning");
       return;
     }
 
@@ -284,6 +291,63 @@ export default function Expenses({
     );
   };
 
+  const handleRequestSingleDelete = (expenseId: number) => {
+    setPendingDelete(expenseId);
+    setConfirmOpen(true);
+  };
+
+  // Multiple deletion handler wrapped in confirmation
+  const handleRequestMultipleDelete = () => {
+    if (selected.length === 0) return;
+    setPendingDelete(selected);
+    setConfirmOpen(true);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+    setPendingDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!tripData || pendingDelete === null) return;
+    setLoading(true);
+
+    let response;
+    try {
+      if (Array.isArray(pendingDelete)) {
+        response = await apiClient.delete(`/trips/${tripId}/expenses`, {
+          data: { expenseIds: pendingDelete },
+        });
+      } else {
+        response = await apiClient.delete(
+          `/trips/${tripId}/expenses/${pendingDelete}`
+        );
+      }
+
+      const storeDelete = deleteExpense(
+        response.data.expense
+          ? response.data.expense.id
+          : response.data.validExpenseIds
+      );
+
+      if (storeDelete !== null) {
+        setNotification("Expense(s) deleted successfully!", "success");
+      } else if (error) {
+        setNotification(error, "error");
+      }
+      // Clear selection if multiple deletion
+      if (Array.isArray(pendingDelete)) setSelected([]);
+      await fetchTripData(tripId);
+    } catch (error) {
+      setNotification("Failed to delete expense(s).", "error");
+      console.error("Error deleting expense(s):", error);
+    } finally {
+      setLoading(false);
+      setConfirmOpen(false);
+      setPendingDelete(null);
+    }
+  };
+
   const membersList = Array.from(new Set(members.map((e) => e.user.email))).map(
     (email) => ({
       value: email,
@@ -308,6 +372,18 @@ export default function Expenses({
 
   return (
     <Box key={tripId}>
+      <ConfirmationDialog
+        open={confirmOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message={
+          Array.isArray(pendingDelete)
+            ? `Are you sure you want to delete ${pendingDelete.length} expenses?`
+            : "Are you sure you want to delete this expense?"
+        }
+      />
+
       <GradientHeader
         theme={theme}
         sx={{
@@ -451,6 +527,16 @@ export default function Expenses({
           </Toolbar>
 
           {selected.length > 0 && (
+            // <Button
+            //   variant="contained"
+            //   color="error"
+            //   startIcon={<DeleteOutline />}
+            //   onClick={handleMultipleDelete}
+            //   sx={{ ml: 2 }}
+            // >
+            //   Delete Selected ({selected.length})
+            // </Button>
+
             <Paper
               sx={{
                 p: 1,
@@ -472,7 +558,7 @@ export default function Expenses({
               <Typography variant="body2" color="text.secondary">
                 {selected.length} selected
               </Typography>
-              <IconButton color="error" disabled>
+              <IconButton color="error" onClick={handleRequestMultipleDelete}>
                 <DeleteOutline />
               </IconButton>
             </Paper>
@@ -544,7 +630,11 @@ export default function Expenses({
                       </Box>
                     </Box>
                   </Box>
-                  <IconButton color="error" disabled>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRequestSingleDelete(expense.id)}
+                    disabled={selected.length > 0}
+                  >
                     <DeleteOutline />
                   </IconButton>
                 </ExpenseCard>
@@ -611,6 +701,7 @@ export default function Expenses({
                 multiline
                 rows={3}
                 variant="outlined"
+                onChange={handleChange}
               />
             </Grid>
             <Grid item xs={12}>
