@@ -50,11 +50,11 @@ interface BudgetDonutProps {
 
 const getCategoryColor = (category: string) => {
   const categoryColors: Record<string, string> = {
-    accommodation: "#9CA3AF", // Indigo
-    transportation: "#ff696d", // Primary Red
-    activities: "#14B8A6", // Teal
-    food: "#F59E0B", // Amber
-    miscellaneous: "#8B5CF6", // Purple
+    accommodation: "#3B82F6",
+    transportation: "#ff696d",
+    activities: "#14B8A6",
+    food: "#F59E0B",
+    miscellaneous: "#8B5CF6",
   };
 
   return categoryColors[category] || "#9CA3AF";
@@ -73,7 +73,7 @@ export default function BudgetDonut({
   const unusedBudget = budget - usedBudget > 0 ? budget - usedBudget : 0;
 
   const budgetCategories: BudgetCategory[] = [
-    { name: "Unused Budget", value: unusedBudget, color: "#6366F1" },
+    { name: "Unused Budget", value: unusedBudget, color: "#10B981" },
     ...expenseSummary.breakdown.map((item) => ({
       name: item.category.charAt(0).toUpperCase() + item.category.slice(1),
       value: item.total,
