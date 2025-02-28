@@ -8,7 +8,10 @@ import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotio
 import Image from "next/image";
 import apiClient from "@/utils/apiClient";
 import { format, parseISO } from "date-fns";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/utils/supabase/client";
 import DashboardSkeleton from "./Skeleton";
+import { TripData } from "@/stores/trip-store";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
@@ -43,23 +46,16 @@ const items = [
   "/dashboard/dashboard_21.jpg",
 ];
 
-interface Trip {
-  id: number;
-  name: string;
-  startDate: string;
-  endDate: string;
-  destination: string;
-  imageUrl?: string;
-}
-
 export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   // set loading true so we can first load everything before we show the whole page
   const [loading, setLoading] = useState(true);
-  const [upcomingTrips, setUpcomingTrips] = useState<Trip[]>([]);
-  const [pastTrips, setPastTrips] = useState<Trip[]>([]);
-  const [currentTrips, setCurrentTrips] = useState<Trip[]>([]);
+  //current user
+  const [user, setUser] = useState<User | null>(null);
+  const [upcomingTrips, setUpcomingTrips] = useState<TripData[]>([]);
+  const [pastTrips, setPastTrips] = useState<TripData[]>([]);
+  const [currentTrips, setCurrentTrips] = useState<TripData[]>([]);
 
   const [preloaded, setPreloaded] = useState(false);
 
@@ -98,6 +94,21 @@ export default function Dashboard() {
     };
 
     fetchDataAndPreload();
+  }, [preloaded]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   // preload images since we have quite a lot
@@ -229,6 +240,8 @@ export default function Dashboard() {
                     destination={trip.destination}
                     imageUrl={trip.imageUrl}
                     onDelete={handleTripDelete}
+                    userId={user?.id ?? ""}
+                    tripData={trip}
                   />
                 </Grid>
               ))}
@@ -256,6 +269,8 @@ export default function Dashboard() {
                     destination={trip.destination}
                     imageUrl={trip.imageUrl}
                     onDelete={handleTripDelete}
+                    userId={user?.id ?? ""}
+                    tripData={trip}
                   />
                 </Grid>
               ))}
@@ -283,6 +298,8 @@ export default function Dashboard() {
                     destination={trip.destination}
                     imageUrl={trip.imageUrl}
                     onDelete={handleTripDelete}
+                    userId={user?.id ?? ""}
+                    tripData={trip}
                   />
                 </Grid>
               ))}

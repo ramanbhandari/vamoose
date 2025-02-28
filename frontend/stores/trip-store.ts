@@ -145,3 +145,5 @@ export const useTripStore = create<TripState>((set) => ({
 
   resetError: () => set({ error: null }),
 }));
+
+export type { TripData };

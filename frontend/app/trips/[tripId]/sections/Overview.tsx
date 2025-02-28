@@ -38,6 +38,7 @@ import {
   Save,
   Edit as Edit,
   Delete,
+  ExitToApp,
 } from "@mui/icons-material";
 import { motion, useTransform, useScroll } from "framer-motion";
 import styled from "@emotion/styled";
@@ -50,8 +51,10 @@ import apiClient from "@/utils/apiClient";
 import { useSearchParams, useRouter } from "next/navigation";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
+import { getUserInfo } from "@/utils/userHelper";
 
 import { formatISO } from "date-fns";
+import { User } from "@supabase/supabase-js";
 import { useTripStore } from "@/stores/trip-store";
 import { useNotificationStore } from "@/stores/notification-store";
 const formatDate = (dateString?: string) => {
@@ -105,10 +108,12 @@ interface TripData {
 interface TripOverviewProps {
   tripData: TripData | null;
   onSectionChange: (sectionId: string) => void;
+  currentUser: User | null;
 }
 
 interface TripHeaderProps {
   tripData: TripData;
+  currentUser: User;
 }
 
 interface AdventureCardProps {
@@ -304,7 +309,7 @@ const PollPreviewCard = ({ question, votes, onClick }: PollProps) => (
   </motion.div>
 );
 
-function TripHeader({ tripData }: TripHeaderProps) {
+function TripHeader({ tripData, currentUser }: TripHeaderProps) {
   const router = useRouter();
   const theme = useTheme();
   const searchParams = useSearchParams();
@@ -549,6 +554,40 @@ function TripHeader({ tripData }: TripHeaderProps) {
     }
   };
 
+  const userInfo = getUserInfo(currentUser);
+
+  const isCreator = userInfo?.isCreator(tripData);
+
+  const handleLeaveTrip = async () => {
+    if (!isCreator) {
+      try {
+        await apiClient.delete(`/trips/${tripData?.id}/members/leave`);
+        setNotification("Successfully left the trip!", "success");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const message =
+            error.response?.data?.message || "Unable to leave trip";
+          setNotification(`Error leaving trip: ${message}`, "error");
+          console.error("Axios error leaving trip:", error);
+        } else {
+          setNotification(
+            "Unexpected error occurred while leaving trip",
+            "error"
+          );
+          console.error("Unexpected error leaving trip:", error);
+        }
+      }
+    } else {
+      setNotification(
+        "You cannot leave the trip because you are the creator.",
+        "error"
+      );
+    }
+  };
+
   if (!tripData) {
     return (
       <Box
@@ -731,72 +770,85 @@ function TripHeader({ tripData }: TripHeaderProps) {
               </Tooltip>
             </Box>
           ) : (
-            <Tooltip
-              title="Edit"
-              arrow
-              slotProps={{
-                tooltip: {
-                  sx: {
-                    bgcolor: theme.palette.secondary.main,
-                    color: theme.palette.background.default,
-                  },
-                },
-              }}
-            >
-              <IconButton
-                onClick={() => setIsEditMode(true)}
-                sx={{
-                  background: "none",
-                  color: "white",
-                  transition: "transform 0.3s, color 0.5s",
-                  "&:hover": {
-                    background: "none",
-                    transform: "scale(1.2)",
-                    color: "var(--accent)",
+            <>
+              {isCreator && (
+                <Tooltip
+                  title="Edit"
+                  arrow
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        bgcolor: theme.palette.secondary.main,
+                        color: theme.palette.background.default,
+                      },
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={() => setIsEditMode(true)}
+                    sx={{
+                      background: "none",
+                      color: "white",
+                      transition: "transform 0.3s, color 0.5s",
+                      "&:hover": {
+                        background: "none",
+                        transform: "scale(1.2)",
+                        color: "var(--accent)",
+                      },
+                    }}
+                  >
+                    <Edit fontSize="large" />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              <Tooltip
+                title={isCreator ? "Delete Trip" : "Leave Trip"}
+                arrow
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      bgcolor: theme.palette.secondary.main,
+                      color: theme.palette.background.default,
+                    },
                   },
                 }}
               >
-                <Edit fontSize="large" />
-              </IconButton>
-            </Tooltip>
+                <IconButton
+                  onClick={() => setDeleteDialogOpen(true)}
+                  sx={{
+                    background: "none",
+                    color: "primary.main",
+                    transition: "transform 0.3s, color 0.5s",
+                    cursor: "pointer",
+                    "&:hover": {
+                      transform: "scale(1.2)",
+                      background: "none",
+                    },
+                  }}
+                >
+                  {isCreator ? (
+                    <Delete fontSize="large" />
+                  ) : (
+                    <ExitToApp fontSize="large" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </>
           )}
-          <Tooltip
-            title="Delete"
-            arrow
-            slotProps={{
-              tooltip: {
-                sx: {
-                  bgcolor: theme.palette.secondary.main,
-                  color: theme.palette.background.default,
-                },
-              },
-            }}
-          >
-            <IconButton
-              onClick={() => setDeleteDialogOpen(true)}
-              sx={{
-                background: "none",
-                color: "primary.main",
-                transition: "transform 0.3s, color 0.5s",
-                cursor: "pointer",
-                "&:hover": {
-                  transform: "scale(1.2)",
-                  background: "none",
-                },
-              }}
-            >
-              <Delete fontSize="large" />
-            </IconButton>
-          </Tooltip>
         </Box>
 
         <Container sx={{ maxHeight: "100vh" }}>
           <ConfirmationDialog
             open={deleteDialogOpen}
             onClose={() => setDeleteDialogOpen(false)}
-            onConfirm={handleDelete}
-            title="Delete Trip"
-            message={`Are you sure you want to delete "${tripData?.name}"?`}
+            onConfirm={isCreator ? handleDelete : handleLeaveTrip}
+            title={isCreator ? "Delete Trip" : "Leave Trip"}
+            message={
+              isCreator
+                ? `Are you sure you want to delete "${tripData?.name}"?`
+                : `Are you sure you want to leave "${tripData?.name}"? You can rejoin later if invited again.`
+            }
           />
 
           <HeaderGrid container alignItems="center" theme={theme}>
@@ -942,6 +994,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
                       {isEditMode ? (
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                           <DatePicker
+                            disablePast
                             value={parseLocalDate(tripDetails.startDate)}
                             onChange={handleStartDateChange}
                             sx={{
@@ -1004,6 +1057,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
                       {isEditMode ? (
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                           <DatePicker
+                            disablePast
                             value={parseLocalDate(tripDetails.endDate)}
                             onChange={handleEndDateChange}
                             sx={{
@@ -1184,6 +1238,7 @@ function TripHeader({ tripData }: TripHeaderProps) {
 export default function TripOverview({
   tripData: initialTripData,
   onSectionChange,
+  currentUser,
 }: TripOverviewProps) {
   const theme = useTheme();
   // fetch tripData from our store if it exists, else use the props
@@ -1223,7 +1278,9 @@ export default function TripOverview({
   return (
     <motion.div style={{ scale }}>
       <Container maxWidth="xl" disableGutters>
-        <TripHeader tripData={tripData} />
+        {currentUser && (
+          <TripHeader tripData={tripData} currentUser={currentUser} />
+        )}
 
         <Container sx={{ pt: 4 }}>
           <Grid container spacing={4}>

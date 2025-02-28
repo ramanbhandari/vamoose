@@ -208,7 +208,11 @@ export default function TripSummaryPage() {
 
       <Container sx={{ flex: 1, mt: 20 }}>
         {activeSection === "overview" && (
-          <Overview tripData={tripData} onSectionChange={handleSectionChange} />
+          <Overview
+            tripData={tripData}
+            onSectionChange={handleSectionChange}
+            currentUser={user}
+          />
         )}
         {activeSection === "dates" && <Dates />}
         {activeSection === "destinations" && <Destinations />}
