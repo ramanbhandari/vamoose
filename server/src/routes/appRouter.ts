@@ -1,9 +1,9 @@
 import express from 'express';
-import tripRouter from './trip.routes.ts';
-import expenseRouter from './expense.routes.ts';
-import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.ts';
-import memberRouter from './member.routes.ts';
-import { authMiddleware } from '../middleware/authMiddleware.ts';
+import tripRouter from './trip.routes.js';
+import expenseRouter from './expense.routes.js';
+import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.js';
+import memberRouter from './member.routes.js';
+import { authMiddleware } from '@/middleware/authMiddleware.js';
 
 const router = express.Router();
 

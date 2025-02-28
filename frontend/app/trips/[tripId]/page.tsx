@@ -34,10 +34,9 @@ import TripMembers from "./sections/TripMembers";
 import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
-import apiClient from "@/utils/apiClient";
 import { supabase } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
-import axios from "axios";
+import { useTripStore } from "@/stores/trip-store";
 
 const sections = [
   {
@@ -80,70 +79,18 @@ const sections = [
   },
 ];
 
-interface TripData {
-  id: number;
-  name: string;
-  description: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  members: Array<{ tripId: number; userId: string; role: string }>;
-  expenses: Array<[]>;
-  stays: Array<[]>;
-  imageUrl: string;
-}
-
 export default function TripSummaryPage() {
   const params = useParams();
-  const tripId = params?.tripId;
+  const tripId = Number(params.tripId);
 
+  const { tripData, loading, error, fetchTripData } = useTripStore();
   const theme = useTheme();
   const [user, setUser] = useState<User | null>(null);
-  const [tripData, setTripData] = useState<TripData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  //   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [activeSection, setActiveSection] = useState("overview");
 
-  const handleSectionChange = (sectionId: string) => {
-    setActiveSection(sectionId);
-  };
-
-  // Gets the trip data from the API
   useEffect(() => {
-    if (!tripId) return;
-    const fetchTrip = async () => {
-      try {
-        const response = await apiClient.get(`/trips/${tripId}`);
-        const trip = response.data.trip;
-
-        setTripData({
-          id: trip.id,
-          name: trip.name,
-          description: trip.description,
-          destination: trip.destination,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          budget: trip.budget,
-          members: trip.members,
-          expenses: trip.expenses,
-          stays: trip.stays,
-          imageUrl: trip.imageUrl,
-        });
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          setErrorMessage("404: TRIP NOT FOUND");
-        }
-        console.error("Error fetching trip data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTrip();
-  }, [tripId]);
+    if (tripId) fetchTripData(tripId);
+  }, [tripId, fetchTripData]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -160,8 +107,12 @@ export default function TripSummaryPage() {
     fetchUser();
   }, []);
 
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
+  };
+
   //Just a loading screen
-  if (isLoading) {
+  if (loading) {
     return (
       <Box
         sx={{
@@ -176,8 +127,7 @@ export default function TripSummaryPage() {
     );
   }
 
-  //If there is an error, show the error message
-  if (errorMessage) {
+  if (error) {
     return (
       <Box
         sx={{
@@ -197,7 +147,7 @@ export default function TripSummaryPage() {
             fontFamily: "apple-system",
           }}
         >
-          {errorMessage}
+          {error}
         </Typography>
       </Box>
     );
@@ -252,6 +202,7 @@ export default function TripSummaryPage() {
             (section) => section.id === activeSection
           )}
           isDarkMode={theme.palette.mode === "dark"}
+          key={`dock-${tripData?.id}`}
         />
       </Box>
 
@@ -266,7 +217,19 @@ export default function TripSummaryPage() {
         {activeSection === "dates" && <Dates />}
         {activeSection === "destinations" && <Destinations />}
         {activeSection === "stays" && <Stays />}
-        {activeSection === "expenses" && <Expenses />}
+        {activeSection === "expenses" && tripData && (
+          <Expenses
+            tripId={tripData.id}
+            tripName={tripData.name}
+            budget={tripData.budget}
+            imageUrl={tripData.imageUrl ?? null}
+            expenses={tripData.expenses}
+            members={tripData.members}
+            tripData={tripData}
+            expenseSummary={tripData.expenseSummary}
+          />
+        )}
+
         {activeSection === "activities" && <Activities />}
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}

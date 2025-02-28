@@ -3,20 +3,14 @@
 import { useEffect, useState } from "react";
 import TripCard from "../../components/TripCard";
 import CreateTripButton from "../../components/CreateTripButton";
-import {
-  Box,
-  Grid,
-  Typography,
-  useMediaQuery,
-  useTheme,
-  Skeleton,
-} from "@mui/material";
+import { Box, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
 import apiClient from "@/utils/apiClient";
 import { format, parseISO } from "date-fns";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/utils/supabase/client";
+import DashboardSkeleton from "./Skeleton";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "No date provided";
@@ -74,35 +68,41 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [upcomingTrips, setUpcomingTrips] = useState<TripData[]>([]);
   const [pastTrips, setPastTrips] = useState<TripData[]>([]);
+  const [currentTrips, setCurrentTrips] = useState<TripData[]>([]);
+
+  const [preloaded, setPreloaded] = useState(false);
 
   // this useEffect fetches Trips data and images
   useEffect(() => {
     const fetchDataAndPreload = async () => {
       try {
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-
-        const formattedToday = today.toISOString().split("T")[0];
-        const formattedYesterday = yesterday.toISOString().split("T")[0];
-
-        // API call for upcoming trips (trips with startDate >= today)
+        // API call for current trips
+        const currentResponse = await apiClient.get(`/trips`, {
+          params: { status: "current" },
+        });
+        // API call for upcoming trips
         const upcomingResponse = await apiClient.get(`/trips`, {
-          params: { startDate: formattedToday },
+          params: { status: "future" },
         });
 
-        // API call for past trips (trips with endDate < today)
+        // API call for past trips
         const pastResponse = await apiClient.get(`/trips`, {
-          params: { endDate: formattedYesterday },
+          params: { status: "past" },
         });
 
         setUpcomingTrips(upcomingResponse.data.trips || []);
         setPastTrips(pastResponse.data.trips || []);
+        setCurrentTrips(currentResponse.data.trips || []);
 
-        await preloadImages(items);
+        if (!preloaded) {
+          await preloadImages(items);
+          setPreloaded(true);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data", error);
+        setLoading(false);
       }
     };
 
@@ -146,86 +146,7 @@ export default function Dashboard() {
 
   // skeleton resembling our acutal page
   if (loading) {
-    return (
-      <Box
-        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-      >
-        <Box
-          sx={{
-            position: "relative",
-            width: "100%",
-            height: isMobile ? "40vh" : "60vh",
-            overflow: "hidden",
-          }}
-        >
-          <Skeleton variant="rectangular" width="100%" height="100%" />
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              textAlign: "center",
-              color: "white",
-              zIndex: 10,
-              width: "90%",
-              maxWidth: "800px",
-            }}
-          >
-            <Skeleton variant="text" width="60%" height={isMobile ? 40 : 60} />
-            <Skeleton variant="text" width="80%" height={20} sx={{ mt: 2 }} />
-            <Skeleton
-              variant="rectangular"
-              width={200}
-              height={50}
-              sx={{ mt: 3, mx: "auto" }}
-            />
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
-            flex: 1,
-            p: { xs: 2, md: 4 },
-            overflow: "auto",
-            width: isMobile ? "100%" : "80%",
-            mx: "auto",
-          }}
-        >
-          <Box sx={{ mb: 5 }}>
-            <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
-            <Grid container spacing={3}>
-              {[...Array(3)].map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height={250}
-                    sx={{ borderRadius: 2 }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          <Box>
-            <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
-            <Grid container spacing={3}>
-              {[...Array(2)].map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height={250}
-                    sx={{ borderRadius: 2 }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Box>
-      </Box>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -316,6 +237,35 @@ export default function Dashboard() {
           mx: "auto",
         }}
       >
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+            Current Trips
+          </Typography>
+          {currentTrips.length > 0 ? (
+            <Grid container spacing={3}>
+              {currentTrips.map((trip, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <TripCard
+                    tripId={trip.id}
+                    title={trip.name}
+                    startDate={formatDate(trip.startDate)}
+                    endDate={formatDate(trip.endDate)}
+                    destination={trip.destination}
+                    imageUrl={trip.imageUrl}
+                    onDelete={handleTripDelete}
+                    userId={user?.id ?? ""}
+                    tripData={trip}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+              No current trips found.
+            </Typography>
+          )}
+        </Box>
+
         <Box sx={{ mb: 5 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Upcoming Trips

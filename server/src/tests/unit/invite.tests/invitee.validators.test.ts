@@ -1,7 +1,7 @@
 import {
   validateCreateInviteInput,
   validateInviteParams,
-} from '../../../middleware/invitee.validators.ts';
+} from '@/middleware/invitee.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

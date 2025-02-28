@@ -683,6 +683,7 @@ export default function CreateTrip() {
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
                         label="Start Date*"
+                        disablePast
                         value={
                           tripDetails.startDate
                             ? parseLocalDate(tripDetails.startDate)
@@ -701,6 +702,7 @@ export default function CreateTrip() {
 
                       <DatePicker
                         label="End Date*"
+                        disablePast
                         value={
                           tripDetails.endDate
                             ? parseLocalDate(tripDetails.endDate)
