@@ -53,7 +53,7 @@ interface UserInfo {
   getRole: (tripData: TripData | null) => string | undefined;
 }
 
-export function getUserInfo (user: User | null): UserInfo | null {
+export function getUserInfo(user: User | null): UserInfo | null {
   if (!user) return null;
 
   return {
@@ -63,19 +63,20 @@ export function getUserInfo (user: User | null): UserInfo | null {
     isCreator: (tripData: TripData | null) => {
       return (
         tripData?.members.some(
-          member => member.userId === user.id && member.role === "creator"
+          (member) => member.userId === user.id && member.role === "creator"
         ) ?? false
       );
     },
 
     isMember: (tripData: TripData | null) => {
       return (
-        tripData?.members.some(member => member.userId === user.id) ?? false
+        tripData?.members.some((member) => member.userId === user.id) ?? false
       );
     },
 
     getRole: (tripData: TripData | null) => {
-      return tripData?.members.find(member => member.userId === user.id)?.role;
+      return tripData?.members.find((member) => member.userId === user.id)
+        ?.role;
     },
   };
 }
