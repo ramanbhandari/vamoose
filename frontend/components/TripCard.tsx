@@ -7,8 +7,6 @@ import {
   CardMedia,
   Box,
   IconButton,
-  Snackbar,
-  Alert,
   Tooltip,
   useTheme,
 } from "@mui/material";
@@ -21,6 +19,7 @@ import ConfirmationDialog from "./ConfirmationDialog";
 import { getUserInfo } from "@/utils/userHelper";
 import { User } from "@supabase/supabase-js";
 import { TripData } from "@/stores/trip-store";
+import { useNotificationStore } from "@/stores/notification-store";
 
 interface TripCardProps {
   tripId: number;
@@ -34,7 +33,7 @@ interface TripCardProps {
   tripData: TripData;
 }
 
-export default function TripCard({
+export default function TripCard ({
   tripId,
   title,
   userId,
@@ -47,9 +46,9 @@ export default function TripCard({
     ? props.imageUrl
     : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
   const userInfo = getUserInfo({ id: userId } as User);
   const isCreator = userInfo?.isCreator(tripData);
+  const { setNotification } = useNotificationStore();
 
   const handleViewTrip = () => {
     router.push(`/trips/${tripId}`);
@@ -64,9 +63,10 @@ export default function TripCard({
       await apiClient.delete(`/trips/${tripId}`);
       setDeleteDialogOpen(false);
       props.onDelete(tripId);
-      setSuccessSnackbarOpen(true);
+      setNotification("Trip has been successfully deleted!", "success");
     } catch (error) {
       console.error("Error deleting trip:", error);
+      setNotification("Failed to delete trip", "error");
     }
   };
 
@@ -75,9 +75,10 @@ export default function TripCard({
       await apiClient.delete(`/trips/${tripId}/members/leave`);
       setDeleteDialogOpen(false);
       props.onDelete(tripId);
-      setSuccessSnackbarOpen(true);
+      setNotification("You successfully left the trip!", "success");
     } catch (error) {
       console.error("Error leaving trip:", error);
+      setNotification("Failed to leave trip", "error");
     }
   };
 
@@ -112,7 +113,7 @@ export default function TripCard({
         >
           {isCreator && (
             <Tooltip
-              title="Edit"
+              title='Edit'
               arrow
               slotProps={{
                 tooltip: {
@@ -124,7 +125,7 @@ export default function TripCard({
               }}
             >
               <IconButton
-                size="small"
+                size='small'
                 onClick={handleEdit}
                 sx={{
                   background: "none",
@@ -155,7 +156,7 @@ export default function TripCard({
             }}
           >
             <IconButton
-              size="small"
+              size='small'
               onClick={() => setDeleteDialogOpen(true)}
               aria-label={isCreator ? "Delete trip" : "Leave trip"}
               sx={{
@@ -175,7 +176,7 @@ export default function TripCard({
         </Box>
 
         <CardMedia
-          component="img"
+          component='img'
           image={cardImage}
           alt={title}
           sx={{
@@ -203,15 +204,15 @@ export default function TripCard({
             height: "100%",
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant='h6' sx={{ fontWeight: 700 }}>
             {title}
           </Typography>
-          <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
+          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
             {props.destination}
           </Typography>
-          <Typography variant="caption">{`${props.startDate} – ${props.endDate}`}</Typography>
+          <Typography variant='caption'>{`${props.startDate} – ${props.endDate}`}</Typography>
           <Button
-            variant="contained"
+            variant='contained'
             sx={{
               mt: 2,
               bgcolor: "rgba(255, 255, 255, 0.2)",
@@ -239,24 +240,6 @@ export default function TripCard({
             : `Are you sure you want to leave "${title}"?`
         }
       />
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={successSnackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSuccessSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSuccessSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {isCreator
-            ? "Trip has been successfully deleted!"
-            : "You successfully left the trip!"}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
