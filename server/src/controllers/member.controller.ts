@@ -11,69 +11,98 @@ import {
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 
+interface RoleHierarchy {
+  [key: string]: number;
+}
+
+// Role hierarchy levels
+const ROLE_HIERARCHY: RoleHierarchy = {
+  creator: 3,
+  admin: 2,
+  member: 1,
+};
+
 /**
  * Update just trip member role for now until some other fields are added.
  * - The trip **creator** can change any member’s role.
  * - An **admin** can only update a **member's** role (not other admins or the creator).
  */
+
 export const updateTripMemberHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
-    const targetUserId = req.params.userId; // The user whose role is being updated
-    const { role } = req.body;
+    const targetUserId = req.params.userId;
+    const { role: newRole }: { role: 'admin' | 'member' } = req.body;
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized Request' });
-      return;
+      return res.status(401).json({ error: 'Unauthorized Request' });
     }
 
     if (isNaN(tripId)) {
-      res.status(400).json({ error: 'Invalid trip ID' });
-      return;
+      return res.status(400).json({ error: 'Invalid trip ID' });
     }
 
-    if (!role || !['admin', 'member'].includes(role)) {
-      res.status(400).json({ error: 'Invalid role update request' });
-      return;
+    if (!newRole || !['admin', 'member'].includes(newRole)) {
+      return res.status(400).json({ error: 'Invalid role update request' });
     }
 
-    // Fetch the requester’s role
-    const requestingMember = await getTripMember(tripId, userId);
+    // Fetch both the requesting member and the target member in parallel
+    const [requestingMember, targetMember] = await Promise.all([
+      getTripMember(tripId, userId),
+      getTripMember(tripId, targetUserId),
+    ]);
+
     if (!requestingMember) {
-      res.status(403).json({ error: 'You are not a member of this trip' });
-      return;
-    }
-
-    // Fetch the target member
-    const targetMember = await getTripMember(tripId, targetUserId);
-    if (!targetMember) {
-      res.status(404).json({ error: 'Target member not found in this trip' });
-      return;
-    }
-
-    // Permission checks
-    if (requestingMember.role === 'creator') {
-      // The creator can update any role
-    } else if (requestingMember.role === 'admin') {
-      if (targetMember.role !== 'member') {
-        res.status(403).json({ error: 'Admins can only update member roles' });
-        return;
-      }
-    } else {
-      res
+      return res
         .status(403)
-        .json({ error: 'Only admins and creators can update roles' });
-      return;
+        .json({ error: 'You are not a member of this trip' });
     }
 
-    // Perform update
+    if (!targetMember) {
+      return res
+        .status(404)
+        .json({ error: 'Target member not found in this trip' });
+    }
+
+    // Prevent users from updating their own role
+    if (userId === targetUserId) {
+      return res.status(403).json({ error: 'You cannot update your own role' });
+    }
+
+    // Get role levels
+    const requesterLevel = ROLE_HIERARCHY[requestingMember.role] ?? 0;
+    const targetLevel = ROLE_HIERARCHY[targetMember.role] ?? 0;
+    const newRoleLevel = ROLE_HIERARCHY[newRole] ?? 0;
+
+    // Prevent modifying an equal or higher role
+    if (requesterLevel <= targetLevel) {
+      return res.status(403).json({
+        error: 'You cannot update someone with an equal or higher role',
+      });
+    }
+
+    // Prevent promoting someone beyond the requester's level
+    if (newRoleLevel > requesterLevel) {
+      return res.status(403).json({
+        error: 'You cannot promote someone to a role higher than your own',
+      });
+    }
+
+    // Ensure only the creator can promote members to admin
+    if (newRole === 'admin' && requestingMember.role !== 'creator') {
+      return res
+        .status(403)
+        .json({ error: 'Only the creator can promote members to admin' });
+    }
+
+    // Perform the update
     const updatedMember = await updateTripMember(tripId, targetUserId, {
-      role,
+      role: newRole,
     });
 
     res.status(200).json({
-      message: `Member role updated successfully`,
+      message: 'Member role updated successfully',
       member: updatedMember,
     });
   } catch (error) {
