@@ -236,7 +236,7 @@ export default function Expenses({
   // Add Expense API Call
   const handleSubmit = async () => {
     if (!formData.amount || !formData.category) {
-      alert("Please fill in required fieldsss.");
+      setNotification("Please fill in required fields!", "warning");
       return;
     }
 
@@ -311,9 +311,26 @@ export default function Expenses({
   const handleConfirmDelete = async () => {
     if (!tripData || pendingDelete === null) return;
     setLoading(true);
+
+    let response;
     try {
-      const resp = deleteExpense(pendingDelete, tripData.id);
-      if (resp !== null) {
+      if (Array.isArray(pendingDelete)) {
+        response = await apiClient.delete(`/trips/${tripId}/expenses`, {
+          data: { expenseIds: pendingDelete },
+        });
+      } else {
+        response = await apiClient.delete(
+          `/trips/${tripId}/expenses/${pendingDelete}`
+        );
+      }
+
+      const storeDelete = deleteExpense(
+        response.data.expense
+          ? response.data.expense.id
+          : response.data.validExpenseIds
+      );
+
+      if (storeDelete !== null) {
         setNotification("Expense(s) deleted successfully!", "success");
       } else if (error) {
         setNotification(error, "error");
@@ -616,6 +633,7 @@ export default function Expenses({
                   <IconButton
                     color="error"
                     onClick={() => handleRequestSingleDelete(expense.id)}
+                    disabled={selected.length > 0}
                   >
                     <DeleteOutline />
                   </IconButton>

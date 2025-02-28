@@ -68,7 +68,6 @@ export default function BudgetDonut({
   handleBudgetChange,
   handleBudgetBlur,
 }: BudgetDonutProps) {
-  console.log(expenseSummary);
   const usedBudget = expenseSummary?.totalExpenses || 0;
   const unusedBudget = budget - usedBudget > 0 ? budget - usedBudget : 0;
 

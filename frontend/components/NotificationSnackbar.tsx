@@ -18,6 +18,10 @@ const iconMapping = {
 export default function NotificationSnackbar() {
   const { message, severity, clearNotification } = useNotificationStore();
 
+  if (severity === "close") {
+    return <></>;
+  }
+
   return (
     <Snackbar
       open={!!message}

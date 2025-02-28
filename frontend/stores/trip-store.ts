@@ -56,7 +56,7 @@ interface TripState {
   error: string | null;
   fetchTripData: (tripId: number) => Promise<void>;
   addExpense: (expense: Expense) => void;
-  deleteExpense: (expenseIds: number | number[], tripId: number) => void;
+  deleteExpense: (expenseIds: number | number[]) => void;
   resetError: () => void;
 }
 
@@ -115,55 +115,32 @@ export const useTripStore = create<TripState>((set) => ({
         : null,
     })),
 
-  deleteExpense: async (expenseIds: number | number[], tripId: number) => {
-    try {
-      if (Array.isArray(expenseIds)) {
-        await apiClient.delete(`/trips/${tripId}/expenses`, {
-          data: { expenseIds: expenseIds },
-        });
-      } else {
-        await apiClient.delete(`/trips/${tripId}/expenses/${expenseIds}`);
-      }
-      // Update the local state by filtering out the deleted expenses
-      set((state) => {
-        if (state.tripData) {
-          let updatedExpenses = state.tripData.expenses;
-          if (Array.isArray(expenseIds)) {
-            updatedExpenses = updatedExpenses.filter(
-              (expense) => !expenseIds.includes(expense.id)
-            );
-          } else {
-            updatedExpenses = updatedExpenses.filter(
-              (expense) => expense.id !== expenseIds
-            );
-          }
-          // Recompute the expense summary based on updatedExpenses
-          const updatedExpenseSummary = computeExpenseSummary(updatedExpenses);
-          return {
-            tripData: {
-              ...state.tripData,
-              expenses: updatedExpenses,
-              expenseSummary: updatedExpenseSummary,
-            },
-          };
+  deleteExpense: async (expenseIds: number | number[]) => {
+    // Update the local state by filtering out the deleted expenses
+    set((state) => {
+      if (state.tripData) {
+        let updatedExpenses = state.tripData.expenses;
+        if (Array.isArray(expenseIds)) {
+          updatedExpenses = updatedExpenses.filter(
+            (expense) => !expenseIds.includes(expense.id)
+          );
+        } else {
+          updatedExpenses = updatedExpenses.filter(
+            (expense) => expense.id !== expenseIds
+          );
         }
-        return {};
-      });
-    } catch (error) {
-      let errorMessage = "Failed to delete Expense(s)";
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 404) {
-          errorMessage = "Expense(s) not found :)";
-        } else if (error.response?.status === 403) {
-          errorMessage = "You do not have access to delete this Expense(s) :/";
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+        // Recompute the expense summary based on updatedExpenses
+        const updatedExpenseSummary = computeExpenseSummary(updatedExpenses);
+        return {
+          tripData: {
+            ...state.tripData,
+            expenses: updatedExpenses,
+            expenseSummary: updatedExpenseSummary,
+          },
+        };
       }
-      set({ error: errorMessage });
-      console.error("Error deleting expense(s):", error);
-      return null;
-    }
+      return {};
+    });
   },
 
   resetError: () => set({ error: null }),
