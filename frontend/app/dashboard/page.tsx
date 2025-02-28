@@ -45,6 +45,17 @@ const items = [
   "/dashboard/dashboard_21.jpg",
 ];
 
+interface Expense {
+  id: number;
+  amount: number;
+  category: string;
+  description: string;
+  tripId: number;
+  paidBy: {
+    email: string;
+  };
+}
+
 interface TripData {
   id: number;
   name: string;
@@ -53,13 +64,25 @@ interface TripData {
   startDate: string;
   endDate: string;
   budget: number;
-  members: Array<{ tripId: number; userId: string; role: string }>;
-  expenses: Array<[]>;
+  members: Array<{
+    tripId: number;
+    userId: string;
+    role: string;
+    user: { email: string };
+  }>;
+  expenses: Expense[];
   stays: Array<[]>;
-  imageUrl?: string;
+  imageUrl: string;
+  expenseSummary: {
+    breakdown: Array<{
+      category: string;
+      total: number;
+    }>;
+    totalExpenses: number;
+  };
 }
 
-export default function Dashboard() {
+export default function Dashboard () {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   // set loading true so we can first load everything before we show the whole page
@@ -128,8 +151,8 @@ export default function Dashboard() {
   const preloadImages = (urls: string[]): Promise<void[]> => {
     return Promise.all(
       urls.map(
-        (url) =>
-          new Promise<void>((resolve) => {
+        url =>
+          new Promise<void>(resolve => {
             const img = new window.Image();
             img.src = url;
             img.onload = () => resolve();
@@ -140,8 +163,8 @@ export default function Dashboard() {
   };
 
   const handleTripDelete = (deletedTripId: number) => {
-    setUpcomingTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
-    setPastTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
+    setUpcomingTrips(trips => trips.filter(t => t.id !== deletedTripId));
+    setPastTrips(trips => trips.filter(t => t.id !== deletedTripId));
   };
 
   // skeleton resembling our acutal page
@@ -160,14 +183,14 @@ export default function Dashboard() {
       >
         {isMobile ? (
           <Image
-            src="/dashboard/dashboard_13.jpg"
-            alt="Static Background"
+            src='/dashboard/dashboard_13.jpg'
+            alt='Static Background'
             fill
             priority
-            className="object-cover"
+            className='object-cover'
           />
         ) : (
-          <GridMotion items={items} gradientColor="background.primary" />
+          <GridMotion items={items} gradientColor='background.primary' />
         )}
 
         <Box
@@ -238,7 +261,7 @@ export default function Dashboard() {
         }}
       >
         <Box sx={{ mb: 5 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+          <Typography variant='h4' sx={{ fontWeight: 700, mb: 2 }}>
             Current Trips
           </Typography>
           {currentTrips.length > 0 ? (
@@ -260,14 +283,14 @@ export default function Dashboard() {
               ))}
             </Grid>
           ) : (
-            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+            <Typography variant='body1' sx={{ color: "text.secondary", mt: 2 }}>
               No current trips found.
             </Typography>
           )}
         </Box>
 
         <Box sx={{ mb: 5 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+          <Typography variant='h4' sx={{ fontWeight: 700, mb: 2 }}>
             Upcoming Trips
           </Typography>
           {upcomingTrips.length > 0 ? (
@@ -289,14 +312,14 @@ export default function Dashboard() {
               ))}
             </Grid>
           ) : (
-            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+            <Typography variant='body1' sx={{ color: "text.secondary", mt: 2 }}>
               No upcoming trips found.
             </Typography>
           )}
         </Box>
 
         <Box sx={{ mb: 5 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+          <Typography variant='h4' sx={{ fontWeight: 700, mb: 2 }}>
             Past Trips
           </Typography>
           {pastTrips.length > 0 ? (
@@ -318,7 +341,7 @@ export default function Dashboard() {
               ))}
             </Grid>
           ) : (
-            <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
+            <Typography variant='body1' sx={{ color: "text.secondary", mt: 2 }}>
               No past trips found.
             </Typography>
           )}
