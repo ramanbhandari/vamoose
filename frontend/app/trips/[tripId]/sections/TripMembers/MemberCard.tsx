@@ -9,7 +9,6 @@ const StyledCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   textAlign: "center",
   borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[3],
   transition: "transform 0.2s ease-in-out",
   cursor: "pointer",
   "&:hover": {
