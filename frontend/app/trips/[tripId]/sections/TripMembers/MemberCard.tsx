@@ -1,6 +1,6 @@
 "use client";
 
-import { Paper, Avatar, Typography, Chip, Box } from "@mui/material";
+import { Paper, Avatar, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/system";
 import { Member } from "@/types";
 
