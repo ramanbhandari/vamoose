@@ -5,6 +5,7 @@ interface UserInfo {
   id: string;
   email?: string;
   isCreator: (tripData: TripData | null) => boolean;
+  isAdmin: (tripData: TripData | null) => boolean;
   isMember: (tripData: TripData | null) => boolean;
   getRole: (tripData: TripData | null) => string | undefined;
 }
@@ -20,6 +21,14 @@ export function getUserInfo(user: User | null): UserInfo | null {
       return (
         tripData?.members.some(
           (member) => member.userId === user.id && member.role === "creator"
+        ) ?? false
+      );
+    },
+
+    isAdmin: (tripData: TripData | null) => {
+      return (
+        tripData?.members.some(
+          (member) => member.userId === user.id && member.role === "admin"
         ) ?? false
       );
     },

@@ -16,53 +16,80 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import apiClient from "@/utils/apiClient";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { getUserInfo } from "@/utils/userHelper";
-import { User } from "@supabase/supabase-js";
-import { TripData } from "@/stores/trip-store";
+import { useUserStore } from "@/stores/user-store";
 import { useNotificationStore } from "@/stores/notification-store";
+import { getUserInfo } from "@/utils/userHelper";
+import { formatDate } from "@/utils/dateFormatter";
 
-interface TripCardProps {
+interface Expense {
+  id: number;
+  amount: number;
+  category: string;
+  description: string;
   tripId: number;
-  title: string;
-  startDate: string;
-  endDate: string;
-  destination: string;
-  imageUrl?: string;
-  onDelete: (tripId: number) => void;
-  userId: string;
-  tripData: TripData;
+  paidBy: {
+    email: string;
+  };
 }
 
-export default function TripCard ({
-  tripId,
-  title,
-  userId,
-  tripData,
-  ...props
-}: TripCardProps) {
+interface TripData {
+  id: number;
+  name: string;
+  description: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  members: Array<{
+    tripId: number;
+    userId: string;
+    role: string;
+    user: { email: string };
+  }>;
+  expenses: Expense[];
+  stays: Array<[]>;
+  imageUrl: string;
+  expenseSummary: {
+    breakdown: Array<{
+      category: string;
+      total: number;
+    }>;
+    totalExpenses: number;
+  };
+}
+
+interface TripCardProps {
+  tripData: TripData;
+  onDelete: (tripId: number) => void;
+}
+
+export default function TripCard({ tripData, onDelete }: TripCardProps) {
   const router = useRouter();
   const theme = useTheme();
-  const cardImage = props.imageUrl
-    ? props.imageUrl
-    : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const userInfo = getUserInfo({ id: userId } as User);
-  const isCreator = userInfo?.isCreator(tripData);
+
   const { setNotification } = useNotificationStore();
+  const user = useUserStore((state) => state.user);
+  const userInfo = user ? getUserInfo(user) : null;
+  const isCreator = userInfo?.isCreator(tripData) ?? false;
+
+  const cardImage = tripData.imageUrl
+    ? tripData.imageUrl
+    : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
 
   const handleViewTrip = () => {
-    router.push(`/trips/${tripId}`);
+    router.push(`/trips/${tripData.id}`);
   };
 
   const handleEdit = () => {
-    router.push(`/trips/${tripId}?edit=true`);
+    router.push(`/trips/${tripData.id}?edit=true`);
   };
 
   const handleDeleteTrip = async () => {
     try {
-      await apiClient.delete(`/trips/${tripId}`);
+      await apiClient.delete(`/trips/${tripData.id}`);
       setDeleteDialogOpen(false);
-      props.onDelete(tripId);
+      onDelete(tripData.id);
       setNotification("Trip has been successfully deleted!", "success");
     } catch (error) {
       console.error("Error deleting trip:", error);
@@ -72,9 +99,9 @@ export default function TripCard ({
 
   const handleLeaveTrip = async () => {
     try {
-      await apiClient.delete(`/trips/${tripId}/members/leave`);
+      await apiClient.delete(`/trips/${tripData.id}/members/leave`);
       setDeleteDialogOpen(false);
-      props.onDelete(tripId);
+      onDelete(tripData.id);
       setNotification("You successfully left the trip!", "success");
     } catch (error) {
       console.error("Error leaving trip:", error);
@@ -113,7 +140,7 @@ export default function TripCard ({
         >
           {isCreator && (
             <Tooltip
-              title='Edit'
+              title="Edit"
               arrow
               slotProps={{
                 tooltip: {
@@ -125,7 +152,7 @@ export default function TripCard ({
               }}
             >
               <IconButton
-                size='small'
+                size="small"
                 onClick={handleEdit}
                 sx={{
                   background: "none",
@@ -156,7 +183,7 @@ export default function TripCard ({
             }}
           >
             <IconButton
-              size='small'
+              size="small"
               onClick={() => setDeleteDialogOpen(true)}
               aria-label={isCreator ? "Delete trip" : "Leave trip"}
               sx={{
@@ -176,9 +203,9 @@ export default function TripCard ({
         </Box>
 
         <CardMedia
-          component='img'
+          component="img"
           image={cardImage}
-          alt={title}
+          alt={tripData.name}
           sx={{
             position: "absolute",
             width: "100%",
@@ -204,15 +231,16 @@ export default function TripCard ({
             height: "100%",
           }}
         >
-          <Typography variant='h6' sx={{ fontWeight: 700 }}>
-            {title}
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {tripData.name}
           </Typography>
-          <Typography variant='subtitle2' sx={{ fontStyle: "italic", my: 1 }}>
-            {props.destination}
+          <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
+            {tripData.destination}
           </Typography>
-          <Typography variant='caption'>{`${props.startDate} – ${props.endDate}`}</Typography>
+          <Typography variant="caption">{`${formatDate(tripData.startDate)} – ${formatDate(tripData.endDate)}`}</Typography>
+
           <Button
-            variant='contained'
+            variant="contained"
             sx={{
               mt: 2,
               bgcolor: "rgba(255, 255, 255, 0.2)",
@@ -236,8 +264,8 @@ export default function TripCard ({
         title={isCreator ? "Delete Trip" : "Leave Trip"}
         message={
           isCreator
-            ? `Are you sure you want to delete "${title}"?`
-            : `Are you sure you want to leave "${title}"?`
+            ? `Are you sure you want to delete "${tripData.name}"?`
+            : `Are you sure you want to leave "${tripData.name}"?`
         }
       />
     </>

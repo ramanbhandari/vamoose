@@ -8,7 +8,6 @@ import { GroupAdd } from "@mui/icons-material";
 import {
   Box,
   Typography,
-  Divider,
   Button,
   CircularProgress,
   DialogTitle,
@@ -18,16 +17,13 @@ import {
   Grid,
   Container,
   useTheme,
-  Tooltip,
-  Avatar,
-  Chip,
 } from "@mui/material";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { GradientHeader } from "./Overview/styled";
-import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { GradientHeader } from "../Overview/styled";
 import { motion } from "framer-motion";
+import MemberCard from "./MemberCard";
 
 interface TripMemberProps {
   tripData: TripData | null;
@@ -162,15 +158,23 @@ export default function TripMembers({ tripData }: TripMemberProps) {
         </Container>
       </GradientHeader>
 
-      <Box mt={4}>
-        <Grid container spacing={2}>
-          {tripData.members.map((member, index) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-              <MemberCard member={member} />
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+            Your Travel Squad
+          </Typography>
+
+          <Box mt={4}>
+            <Grid container spacing={2}>
+              {tripData.members.map((member, index) => (
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <MemberCard member={member} />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
-      </Box>
+          </Box>
+        </Box>
+      </Container>
 
       <InviteModal open={isInviteModalOpen} onClose={handleCloseInviteModal} />
 
