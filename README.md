@@ -31,6 +31,7 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
 
 - [Proposal Document](./Documentation/project_proposal.md)
 - [Test Plan Document](./Documentation/Test_Plan_Sprint_2.pdf)
+- [Sequence Diagrams](./Documentation/Sequence_Diagrams)
 
 ## Installation
 
