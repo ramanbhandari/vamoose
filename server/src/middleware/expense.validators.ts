@@ -23,22 +23,22 @@ export const validateAddExpenseInput = checkExact([
     ),
 
   body('description')
-    .optional()
+    .optional({ values: 'null' })
     .isString()
     .withMessage('Description must be a string'),
 
   body('paidByEmail')
-    .optional()
+    .optional({ values: 'null' })
     .isEmail()
     .withMessage('Invalid email format for paidByEmail'),
 
   body('splitAmongEmails')
-    .optional()
+    .optional({ values: 'null' })
     .isArray({ min: 1 })
     .withMessage('splitAmongEmails must be a non-empty array'),
 
   body('splitAmongEmails.*')
-    .optional()
+    .optional({ values: 'null' })
     .isEmail()
     .withMessage('Each email in splitAmongEmails must be a valid email'),
 ]);

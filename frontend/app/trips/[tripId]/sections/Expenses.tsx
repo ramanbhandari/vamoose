@@ -527,16 +527,6 @@ export default function Expenses({
           </Toolbar>
 
           {selected.length > 0 && (
-            // <Button
-            //   variant="contained"
-            //   color="error"
-            //   startIcon={<DeleteOutline />}
-            //   onClick={handleMultipleDelete}
-            //   sx={{ ml: 2 }}
-            // >
-            //   Delete Selected ({selected.length})
-            // </Button>
-
             <Paper
               sx={{
                 p: 1,

@@ -2,12 +2,15 @@
 
 ## Table of Contents
 
-- [Description](#description)
-- [Documents](#documents)
-- [Installation](#installation)
-- [Contributing](#contributing)
-- [Team](#team)
-- [Meeting Times](#meeting-times)
+- [Vamoose! - Comp 4350](#vamoose---comp-4350)
+  - [Table of Contents](#table-of-contents)
+  - [Description](#description)
+  - [Documents](#documents)
+  - [Installation](#installation)
+  - [Architecture](#architecture)
+  - [Contributing](#contributing)
+  - [Team](#team)
+  - [Meeting Times](#meeting-times)
 
 ## Description
 
@@ -16,7 +19,7 @@
 Key features include:
 
 - **Trip Planning Dashboard**
-- **Expense Tracking**
+- **Expense Tracking & Cost Splitting**
 - **Real-Time Chat & Voting**
 - **Interactive Map & Location Sharing**
 - **Itinerary Builder**
@@ -27,12 +30,24 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
 ## Documents
 
 - [Proposal Document](./Documentation/project_proposal.md)
+- [Test Plan Document](./Documentation/Test_Plan_Sprint_2.pdf)
+- Sequence Diagrams
+  - [Expense_API](./Documentation/SequenceDiagrams/expense_api_sequence_diagram.pdf)
+  - [Invite_API](./Documentation/SequenceDiagrams/invite_api_sequence_diagram.pdf)
+  - [Member_API](./Documentation/SequenceDiagrams/member_api_sequence_diagram.pdf)
+  - [Trip_API](./Documentation/SequenceDiagrams/trip_api_sequence_diagram.pdf)
+
+Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
+
+
+## Installation
+
+- [Frontend](./frontend/README.md)
+- [Backend](./server//README.md)
 
 ## Architecture
 
 ![Architecture](./Diagrams/Vamoose-Architecture.jpg)
-
-## Installation
 
 ## Contributing
 
@@ -41,26 +56,26 @@ Please follow the [Contributing Guidelines](./Documentation/CONTRIBUTING.md).
 ## Team
 
 - **Raman Bhandari** (Team Lead)  
-  Email: bhandar1@myumanitoba.ca  
+  Email: <bhandar1@myumanitoba.ca>  
   **Roles:** Full Stack and Testing
 
 - **Pritha Das**  
-  Email: dasp4@myumanitoba.ca  
+  Email: <dasp4@myumanitoba.ca>  
   **Roles:** Backend Focused
 
 - **Chukwunaza Chukwuocha** (Chuks)  
-  Email: chukwuo1@myumanitoba.ca  
+  Email: <chukwuo1@myumanitoba.ca>  
   **Roles:** Backend Focused
 
 - **Anmolpreet Khangura**
-  Email: khangura@myumanitoba.ca  
+  Email: <khangura@myumanitoba.ca>  
   **Roles:** Full Stack
 
 - **Anmolpreet Singh**  
-  Email: sin121@myumanitoba.ca  
+  Email: <sin121@myumanitoba.ca>  
   **Roles:** Full Stack
 
 ## Meeting Times
 
 - **Tuesday:** 6:00 PM
-- **Saturday:** 2:00 PM
+- **Saturday:** 12:00 PM

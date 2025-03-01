@@ -7,17 +7,9 @@ import { Box, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
 import apiClient from "@/utils/apiClient";
-import { format, parseISO } from "date-fns";
 import DashboardSkeleton from "./Skeleton";
-
-const formatDate = (dateString?: string) => {
-  if (!dateString) return "No date provided";
-
-  const date = parseISO(dateString);
-  const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-
-  return format(localDate, "MMM dd, yyyy");
-};
+import { useNotificationStore } from "@/stores/notification-store";
+import { getMessages } from "./messages";
 
 const items = [
   "/dashboard/dashboard_1.jpg",
@@ -43,13 +35,41 @@ const items = [
   "/dashboard/dashboard_21.jpg",
 ];
 
-interface Trip {
+interface Expense {
+  id: number;
+  amount: number;
+  category: string;
+  description: string;
+  tripId: number;
+  paidBy: {
+    email: string;
+  };
+}
+
+interface TripData {
   id: number;
   name: string;
+  description: string;
+  destination: string;
   startDate: string;
   endDate: string;
-  destination: string;
-  imageUrl?: string;
+  budget: number;
+  members: Array<{
+    tripId: number;
+    userId: string;
+    role: string;
+    user: { email: string };
+  }>;
+  expenses: Expense[];
+  stays: Array<[]>;
+  imageUrl: string;
+  expenseSummary: {
+    breakdown: Array<{
+      category: string;
+      total: number;
+    }>;
+    totalExpenses: number;
+  };
 }
 
 export default function Dashboard() {
@@ -57,11 +77,13 @@ export default function Dashboard() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   // set loading true so we can first load everything before we show the whole page
   const [loading, setLoading] = useState(true);
-  const [upcomingTrips, setUpcomingTrips] = useState<Trip[]>([]);
-  const [pastTrips, setPastTrips] = useState<Trip[]>([]);
-  const [currentTrips, setCurrentTrips] = useState<Trip[]>([]);
+
+  const [upcomingTrips, setUpcomingTrips] = useState<TripData[]>([]);
+  const [pastTrips, setPastTrips] = useState<TripData[]>([]);
+  const [currentTrips, setCurrentTrips] = useState<TripData[]>([]);
 
   const [preloaded, setPreloaded] = useState(false);
+  const { setNotification } = useNotificationStore();
 
   // this useEffect fetches Trips data and images
   useEffect(() => {
@@ -92,6 +114,10 @@ export default function Dashboard() {
 
         setLoading(false);
       } catch (error) {
+        setNotification(
+          "Error fetching trips, please refresh or login again",
+          "error"
+        );
         console.error("Error fetching data", error);
         setLoading(false);
       }
@@ -116,6 +142,7 @@ export default function Dashboard() {
   };
 
   const handleTripDelete = (deletedTripId: number) => {
+    setCurrentTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
     setUpcomingTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
     setPastTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
   };
@@ -181,7 +208,7 @@ export default function Dashboard() {
               textShadow: "3px 3px 8px rgba(0,0,0,0.7)",
             }}
           >
-            Welcome to Vamoose!
+            {getMessages.welcome}
           </Typography>
           <Typography
             variant={isMobile ? "body1" : "h6"}
@@ -189,7 +216,7 @@ export default function Dashboard() {
               textShadow: "2px 2px 6px rgba(0,0,0,0.9)",
             }}
           >
-            Your personalized trip planner for all your adventures.
+            {getMessages.tagline}
           </Typography>
           <Box
             sx={{
@@ -215,81 +242,57 @@ export default function Dashboard() {
       >
         <Box sx={{ mb: 5 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-            Current Trips
+            {getMessages.currentTrips}
           </Typography>
           {currentTrips.length > 0 ? (
             <Grid container spacing={3}>
               {currentTrips.map((trip, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <TripCard
-                    tripId={trip.id}
-                    title={trip.name}
-                    startDate={formatDate(trip.startDate)}
-                    endDate={formatDate(trip.endDate)}
-                    destination={trip.destination}
-                    imageUrl={trip.imageUrl}
-                    onDelete={handleTripDelete}
-                  />
+                  <TripCard tripData={trip} onDelete={handleTripDelete} />
                 </Grid>
               ))}
             </Grid>
           ) : (
             <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
-              No current trips found.
+              {getMessages.noCurrentTrips}
             </Typography>
           )}
         </Box>
 
         <Box sx={{ mb: 5 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-            Upcoming Trips
+            {getMessages.futureTrips}
           </Typography>
           {upcomingTrips.length > 0 ? (
             <Grid container spacing={3}>
               {upcomingTrips.map((trip, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <TripCard
-                    tripId={trip.id}
-                    title={trip.name}
-                    startDate={formatDate(trip.startDate)}
-                    endDate={formatDate(trip.endDate)}
-                    destination={trip.destination}
-                    imageUrl={trip.imageUrl}
-                    onDelete={handleTripDelete}
-                  />
+                  <TripCard tripData={trip} onDelete={handleTripDelete} />
                 </Grid>
               ))}
             </Grid>
           ) : (
             <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
-              No upcoming trips found.
+              {getMessages.noUpcomingTrips}
             </Typography>
           )}
         </Box>
 
         <Box sx={{ mb: 5 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-            Past Trips
+            {getMessages.pastTrips}
           </Typography>
           {pastTrips.length > 0 ? (
             <Grid container spacing={3}>
               {pastTrips.map((trip, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <TripCard
-                    tripId={trip.id}
-                    title={trip.name}
-                    startDate={formatDate(trip.startDate)}
-                    endDate={formatDate(trip.endDate)}
-                    destination={trip.destination}
-                    imageUrl={trip.imageUrl}
-                    onDelete={handleTripDelete}
-                  />
+                  <TripCard tripData={trip} onDelete={handleTripDelete} />
                 </Grid>
               ))}
             </Grid>
           ) : (
             <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
-              No past trips found.
+              {getMessages.noPastTrips}
             </Typography>
           )}
         </Box>

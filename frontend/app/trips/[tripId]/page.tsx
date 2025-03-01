@@ -22,7 +22,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import CalculateIcon from "@mui/icons-material/Calculate";
 
 // Section Components
-import Overview from "./sections/Overview";
+import Overview from "./sections/Overview/index";
 import Dates from "./sections/Dates";
 import Destinations from "./sections/Destinations";
 import Stays from "./sections/Stays";
@@ -30,12 +30,10 @@ import Activities from "./sections/Activities";
 import Polls from "./sections/Polls";
 import Itinerary from "./sections/Itinerary";
 import PackingList from "./sections/PackingList";
-import TripMembers from "./sections/TripMembers";
+import TripMembers from "./sections/TripMembers/index";
 import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
-import { supabase } from "@/utils/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { useTripStore } from "@/stores/trip-store";
 
 const sections = [
@@ -82,34 +80,19 @@ const sections = [
 export default function TripSummaryPage() {
   const params = useParams();
   const tripId = Number(params.tripId);
+  const theme = useTheme();
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
-  const theme = useTheme();
-  const [user, setUser] = useState<User | null>(null);
+
   const [activeSection, setActiveSection] = useState("overview");
-
-  useEffect(() => {
-    if (tripId) fetchTripData(tripId);
-  }, [tripId, fetchTripData]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   const handleSectionChange = (sectionId: string) => {
     setActiveSection(sectionId);
   };
+
+  useEffect(() => {
+    if (tripId) fetchTripData(tripId);
+  }, [tripId, fetchTripData]);
 
   //Just a loading screen
   if (loading) {
@@ -230,9 +213,7 @@ export default function TripSummaryPage() {
         {activeSection === "polls" && <Polls />}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
-        {activeSection === "members" && (
-          <TripMembers members={tripData?.members} user={user} />
-        )}
+        {activeSection === "members" && <TripMembers tripData={tripData} />}
       </Container>
     </Box>
   );
