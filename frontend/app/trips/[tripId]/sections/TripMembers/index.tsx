@@ -33,7 +33,7 @@ import ConfirmationDialog from "@/components/ConfirmationDialog";
 import apiClient from "@/utils/apiClient";
 
 interface TripMemberProps {
-  tripData: TripData;
+  tripData: TripData | null;
 }
 
 export default function TripMembers({
@@ -43,8 +43,22 @@ export default function TripMembers({
   const { setNotification } = useNotificationStore();
 
   // fetch tripData from our store if it exists, else use the props
-  const { fetchTripData, deleteMember, error } = useTripStore();
-  const tripData = initialTripData;
+  const {
+    tripData: dataFromStore,
+    fetchTripData,
+    deleteMember,
+    error,
+  } = useTripStore();
+  const tripData = initialTripData || dataFromStore;
+  const [isLoading, setIsLoading] = useState(!tripData);
+
+  useEffect(() => {
+    if (tripData) {
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
+  }, [tripData]);
 
   const [selected, setSelected] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -55,7 +69,6 @@ export default function TripMembers({
 
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
   const [isNotAllowedDialogOpen, setNotAllowedDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const user = useUserStore((state) => state.user);
 
@@ -103,7 +116,7 @@ export default function TripMembers({
     );
   }
   // process the members of this trip to establish who they can delete based on roles heirarchy Creator -> Admin -> Member
-  const processedMembers = tripData.members.map((member) => {
+  const processedMembers = tripData?.members.map((member) => {
     const isCurrentUser = member.userId === userInfo?.id;
     let deletable = false;
     let showCheckbox = false;
@@ -134,6 +147,7 @@ export default function TripMembers({
   };
 
   const handleSelectAll = () => {
+    if (!tripData) return;
     setSelected((prev) =>
       prev.length === tripData.members.length
         ? []
@@ -215,11 +229,11 @@ export default function TripMembers({
       <GradientHeader
         theme={theme}
         sx={{
-          background: tripData.imageUrl
+          background: tripData?.imageUrl
             ? "none"
             : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
 
-          "&::after": tripData.imageUrl
+          "&::after": tripData?.imageUrl
             ? {
                 content: '""',
                 position: "absolute",
@@ -249,7 +263,7 @@ export default function TripMembers({
             }}
           >
             <Typography variant="h4" fontWeight="bold">
-              {tripData.name}
+              {tripData?.name}
             </Typography>
 
             <Grid item xs={12} md={4} order={{ xs: 1, md: 2 }}>
@@ -305,9 +319,10 @@ export default function TripMembers({
               }}
             >
               <Checkbox
-                checked={selected.length === tripData.members.length}
+                checked={selected.length === tripData?.members.length}
                 indeterminate={
                   selected.length > 0 &&
+                  tripData !== null &&
                   selected.length < tripData.members.length
                 }
                 onChange={handleSelectAll}
@@ -323,7 +338,7 @@ export default function TripMembers({
 
           <Box mt={4}>
             <Grid container spacing={2}>
-              {processedMembers.map((member) => (
+              {processedMembers?.map((member) => (
                 <Grid item xs={12} sm={6} md={4} key={member.userId}>
                   <MemberCard
                     member={member}
