@@ -222,8 +222,8 @@ export default function TripMembers({
         title="Confirm Deletion"
         message={
           Array.isArray(pendingDelete)
-            ? `Are you sure you want to delete ${pendingDelete.length} expenses?`
-            : "Are you sure you want to delete this expense?"
+            ? `Are you sure you want to delete ${pendingDelete.length} Members?`
+            : `Are you sure you want to remove this member?`
         }
       />
       <GradientHeader
