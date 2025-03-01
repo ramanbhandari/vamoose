@@ -10,18 +10,19 @@ import {
   MenuItem,
   IconButton,
   ListItemIcon,
+  CircularProgress,
 } from "@mui/material";
 import { LogoutTwoTone } from "@mui/icons-material";
 import ThemeToggle from "../ThemeToggle";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
-import { User } from "@supabase/supabase-js";
-import { logout } from "@/app/dashboard/actions";
+import { useUserStore } from "@/stores/user-store";
 import { usePathname, useRouter } from "next/navigation";
 import AnimatedMenuIcon from "./hamAnimIcon";
-
+import { useNotificationStore } from "@/stores/notification-store";
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, logoutUser, setUser } = useUserStore();
+  const { setNotification } = useNotificationStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
@@ -61,8 +62,9 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    setUser(null);
+    handleMenuClose();
+    await logoutUser();
+    setNotification("Successfully Logged out!", "success");
     router.replace("/login");
   };
 
@@ -115,14 +117,13 @@ export default function Navbar() {
                     <Link href="/dashboard">Dashboard</Link>
                   </MenuItem>
                 )}
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    handleLogout();
-                  }}
-                >
+                <MenuItem onClick={handleLogout} disabled={loading}>
                   <ListItemIcon>
-                    <LogoutTwoTone />
+                    {loading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <LogoutTwoTone />
+                    )}
                   </ListItemIcon>
                   Logout
                 </MenuItem>

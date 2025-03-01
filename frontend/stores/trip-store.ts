@@ -57,6 +57,7 @@ interface TripState {
   fetchTripData: (tripId: number) => Promise<void>;
   addExpense: (expense: Expense) => void;
   deleteExpense: (expenseIds: number | number[]) => void;
+  deleteMember: (memberIds: string | string[]) => void;
   resetError: () => void;
 }
 
@@ -136,6 +137,32 @@ export const useTripStore = create<TripState>((set) => ({
             ...state.tripData,
             expenses: updatedExpenses,
             expenseSummary: updatedExpenseSummary,
+          },
+        };
+      }
+      return {};
+    });
+  },
+
+  deleteMember: async (memberIds: string | string[]) => {
+    // Update the local state by filtering out the deleted members
+    set((state) => {
+      if (state.tripData) {
+        let updatedMembers = state.tripData.members;
+        if (Array.isArray(memberIds)) {
+          updatedMembers = updatedMembers.filter(
+            (member) => !memberIds.includes(member.userId)
+          );
+        } else {
+          updatedMembers = updatedMembers.filter(
+            (member) => member.userId !== memberIds
+          );
+        }
+
+        return {
+          tripData: {
+            ...state.tripData,
+            members: updatedMembers,
           },
         };
       }
