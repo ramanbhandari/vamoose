@@ -31,6 +31,14 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
 
 - [Proposal Document](./Documentation/project_proposal.md)
 - [Test Plan Document](./Documentation/Test_Plan_Sprint_2.pdf)
+- Sequence Diagrams
+  - [Expense_API](./Documentation/SequenceDiagrams/expense_api_sequence_diagram.pdf)
+  - [Invite_API](./Documentation/SequenceDiagrams/invite_api_sequence_diagram.pdf)
+  - [Member_API](./Documentation/SequenceDiagrams/member_api_sequence_diagram.pdf)
+  - [Trip_API](./Documentation/SequenceDiagrams/trip_api_sequence_diagram.pdf)
+
+Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
+
 
 ## Installation
 
