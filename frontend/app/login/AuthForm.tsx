@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import {
   Button,
@@ -24,9 +23,12 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import { getMessages } from "./messages";
+import { useUserStore } from "@/stores/user-store";
+import { useNotificationStore } from "@/stores/notification-store";
 
 export default function AuthForm() {
-  const router = useRouter();
+  const { setNotification } = useNotificationStore();
+  const { fetchUser } = useUserStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,10 +42,12 @@ export default function AuthForm() {
   const handleRedirect = () => {
     const inviteRedirect = sessionStorage.getItem("inviteRedirect");
     if (inviteRedirect) {
-      sessionStorage.removeItem("inviteRedirect"); 
-      router.push(inviteRedirect);
+      sessionStorage.removeItem("inviteRedirect"); // this giving RSC error in console which is a know issue in Nextjs, couldnt find any other fix
+      // router.push(inviteRedirect);
+      window.location.href = inviteRedirect;
     } else {
-      router.push("/dashboard");
+      // router.push("/dashboard"); // this giving RSC error in console which is a know issue in Nextjs, couldnt find any other fix
+      window.location.href = "/dashboard";
     }
   };
 
@@ -65,6 +69,9 @@ export default function AuthForm() {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
       }
+      // immediately feteh user so we keep the store updated
+      await fetchUser();
+      setNotification("Login successful. Welcome!", "success");
 
       handleRedirect();
     } catch (err: unknown) {
@@ -78,13 +85,12 @@ export default function AuthForm() {
 
   const handleGoogleLogin = async () => {
     setFormLoading(true);
+    setError(null);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
       });
       if (error) throw error;
-
-      handleRedirect();
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -251,7 +257,11 @@ export default function AuthForm() {
             "&:hover": { borderColor: "primary.main", color: "primary.main" },
           }}
         >
-          {getMessages.googleButtonText}
+          {formLoading ? (
+            <CircularProgress size={20} />
+          ) : (
+            getMessages.googleButtonText
+          )}
         </Button>
 
         <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>

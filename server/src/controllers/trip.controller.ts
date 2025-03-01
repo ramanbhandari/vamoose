@@ -48,9 +48,9 @@ export const createTripHandler = async (req: Request, res: Response) => {
     }
 
     // Parse dates
-    const startDate = DateTime.fromISO(start).startOf('day');
-    const endDate = DateTime.fromISO(end).endOf('day');
-    const today = DateTime.now().startOf('day');
+    const startDate = DateTime.fromISO(start).toUTC().startOf('day');
+    const endDate = DateTime.fromISO(end).toUTC().endOf('day');
+    const today = DateTime.now().toUTC().startOf('day');
 
     if (!startDate.isValid || !endDate.isValid) {
       res.status(400).json({ error: 'Invalid start or end date format' });
@@ -143,7 +143,7 @@ export const fetchTripsWithFiltersHandler = async (
     }
 
     const filters: TripFilters = {};
-    const today = DateTime.now().startOf('day');
+    const today = DateTime.now().toUTC().startOf('day');
 
     // Handle destination filtering
     if (destination) {
@@ -166,6 +166,7 @@ export const fetchTripsWithFiltersHandler = async (
       if (startDate) {
         filters.startDate = {
           gte: DateTime.fromISO(startDate as string)
+            .toUTC()
             .startOf('day')
             .toJSDate(),
         };
@@ -173,6 +174,7 @@ export const fetchTripsWithFiltersHandler = async (
       if (endDate) {
         filters.endDate = {
           lte: DateTime.fromISO(endDate as string)
+            .toUTC()
             .endOf('day')
             .toJSDate(),
         };
@@ -300,10 +302,16 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     }
 
     if (tripData.startDate) {
-      tripData.startDate = DateTime.fromISO(tripData.startDate).toJSDate();
+      tripData.startDate = DateTime.fromISO(tripData.startDate)
+        .toUTC()
+        .startOf('day')
+        .toJSDate();
     }
     if (tripData.endDate) {
-      tripData.endDate = DateTime.fromISO(tripData.endDate).toJSDate();
+      tripData.endDate = DateTime.fromISO(tripData.endDate)
+        .toUTC()
+        .endOf('day')
+        .toJSDate();
     }
 
     // Fetch the trip to verify membership and role

@@ -2,63 +2,112 @@
 
 import {
   Card,
+  Chip,
   Typography,
   Button,
   CardMedia,
   Box,
   IconButton,
-  Snackbar,
-  Alert,
+  Tooltip,
+  useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Delete, ExitToApp } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import apiClient from "@/utils/apiClient";
 import ConfirmationDialog from "./ConfirmationDialog";
+import { useUserStore } from "@/stores/user-store";
+import { useNotificationStore } from "@/stores/notification-store";
+import { getUserInfo } from "@/utils/userHelper";
+import { formatDate } from "@/utils/dateFormatter";
 
-interface TripCardProps {
+interface Expense {
+  id: number;
+  amount: number;
+  category: string;
+  description: string;
   tripId: number;
-  title: string;
-  startDate: string;
-  endDate: string;
-  destination: string;
-  imageUrl?: string;
-  onDelete?: (tripId: number) => void; // Optional callback for parent component updates
+  paidBy: {
+    email: string;
+  };
 }
 
-export default function TripCard({
-  tripId,
-  title,
-  startDate,
-  endDate,
-  destination,
-  imageUrl,
-  onDelete,
-}: TripCardProps) {
+interface TripData {
+  id: number;
+  name: string;
+  description: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  members: Array<{
+    tripId: number;
+    userId: string;
+    role: string;
+    user: { email: string };
+  }>;
+  expenses: Expense[];
+  stays: Array<[]>;
+  imageUrl: string;
+  expenseSummary: {
+    breakdown: Array<{
+      category: string;
+      total: number;
+    }>;
+    totalExpenses: number;
+  };
+}
+
+interface TripCardProps {
+  tripData: TripData;
+  onDelete: (tripId: number) => void;
+}
+
+export default function TripCard({ tripData, onDelete }: TripCardProps) {
   const router = useRouter();
-  const cardImage = imageUrl ? imageUrl : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+
+  const { setNotification } = useNotificationStore();
+  const user = useUserStore((state) => state.user);
+  const userInfo = user ? getUserInfo(user) : null;
+  const isCreator = userInfo?.isCreator(tripData) ?? false;
+
+  const cardImage = tripData.imageUrl
+    ? tripData.imageUrl
+    : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
 
   const handleViewTrip = () => {
-    router.push(`/trips/${tripId}`);
+    router.push(`/trips/${tripData.id}`);
   };
 
   const handleEdit = () => {
-    router.push(`/trips/${tripId}?edit=true`);
+    router.push(`/trips/${tripData.id}?edit=true`);
   };
 
-  const handleDelete = async () => {
+  const handleDeleteTrip = async () => {
     try {
-      await apiClient.delete(`/trips/${tripId}`);
-      if (onDelete) {
-        onDelete(tripId);
-      }
+      await apiClient.delete(`/trips/${tripData.id}`);
       setDeleteDialogOpen(false);
-      setSuccessSnackbarOpen(true);
+      onDelete(tripData.id);
+      setNotification("Trip has been successfully deleted!", "success");
     } catch (error) {
       console.error("Error deleting trip:", error);
+      setNotification("Failed to delete trip", "error");
+    }
+  };
+
+  const handleLeaveTrip = async () => {
+    try {
+      await apiClient.delete(`/trips/${tripData.id}/members/leave`);
+      setDeleteDialogOpen(false);
+      onDelete(tripData.id);
+      setNotification("You successfully left the trip!", "success");
+    } catch (error) {
+      console.error("Error leaving trip:", error);
+      setNotification("Failed to leave trip", "error");
     }
   };
 
@@ -82,6 +131,35 @@ export default function TripCard({
           sx={{
             position: "absolute",
             top: 8,
+            left: 8,
+            zIndex: 1,
+          }}
+        >
+          {userInfo && (
+            <Chip
+              label={userInfo.getRole(tripData)?.toUpperCase()}
+              sx={{
+                backgroundColor: isCreator
+                  ? theme.palette.primary.main
+                  : theme.palette.secondary.main,
+                color:
+                  isDarkMode && !isCreator
+                    ? theme.palette.background.paper
+                    : theme.palette.primary.contrastText,
+                fontWeight: 600,
+                fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                height: { xs: 24, sm: 28 },
+                "& .MuiChip-label": {
+                  px: { xs: 1, sm: 1.5 },
+                },
+              }}
+            />
+          )}
+        </Box>
+        <Box
+          sx={{
+            position: "absolute",
+            top: 8,
             right: 8,
             zIndex: 1,
             display: "flex",
@@ -91,44 +169,74 @@ export default function TripCard({
             padding: "2px",
           }}
         >
-          <IconButton
-            size="small"
-            onClick={handleEdit}
-            sx={{
-              background: "none",
-              color: "white",
-              transition: "transform 0.3s, color 0.5s",
-              "&:hover": {
-                background: "none",
-                transform: "scale(1.2)",
-                color: "var(--accent)",
+          {isCreator && (
+            <Tooltip
+              title="Edit"
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: theme.palette.secondary.main,
+                    color: theme.palette.background.default,
+                  },
+                },
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={handleEdit}
+                sx={{
+                  background: "none",
+                  color: "white",
+                  transition: "transform 0.3s, color 0.5s",
+                  "&:hover": {
+                    background: "none",
+                    transform: "scale(1.2)",
+                    color: "var(--accent)",
+                  },
+                }}
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          <Tooltip
+            title={isCreator ? "Delete Trip" : "Leave Trip"}
+            arrow
+            slotProps={{
+              tooltip: {
+                sx: {
+                  bgcolor: theme.palette.secondary.main,
+                  color: theme.palette.background.default,
+                },
               },
             }}
           >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => setDeleteDialogOpen(true)}
-            sx={{
-              background: "none",
-              color: "white",
-              transition: "transform 0.3s, color 0.5s",
-              "&:hover": {
+            <IconButton
+              size="small"
+              onClick={() => setDeleteDialogOpen(true)}
+              aria-label={isCreator ? "Delete trip" : "Leave trip"}
+              sx={{
                 background: "none",
-                transform: "scale(1.2)",
-                color: "primary.main",
-              },
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+                color: "white",
+                transition: "transform 0.3s, color 0.5s",
+                "&:hover": {
+                  background: "none",
+                  transform: "scale(1.2)",
+                  color: "primary.main",
+                },
+              }}
+            >
+              {isCreator ? <Delete /> : <ExitToApp />}
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <CardMedia
           component="img"
           image={cardImage}
-          alt={title}
+          alt={tripData.name}
           sx={{
             position: "absolute",
             width: "100%",
@@ -155,12 +263,13 @@ export default function TripCard({
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {title}
+            {tripData.name}
           </Typography>
           <Typography variant="subtitle2" sx={{ fontStyle: "italic", my: 1 }}>
-            {destination}
+            {tripData.destination}
           </Typography>
-          <Typography variant="caption">{`${startDate} – ${endDate}`}</Typography>
+          <Typography variant="caption">{`${formatDate(tripData.startDate)} – ${formatDate(tripData.endDate)}`}</Typography>
+
           <Button
             variant="contained"
             sx={{
@@ -182,26 +291,14 @@ export default function TripCard({
       <ConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
-        title="Delete Trip"
-        message={`Are you sure you want to delete "${title}"?`}
+        onConfirm={isCreator ? handleDeleteTrip : handleLeaveTrip}
+        title={isCreator ? "Delete Trip" : "Leave Trip"}
+        message={
+          isCreator
+            ? `Are you sure you want to delete "${tripData.name}"?`
+            : `Are you sure you want to leave "${tripData.name}"?`
+        }
       />
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={successSnackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSuccessSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSuccessSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          Trip has been successfully deleted!
-        </Alert>
-      </Snackbar>
     </>
   );
 }
