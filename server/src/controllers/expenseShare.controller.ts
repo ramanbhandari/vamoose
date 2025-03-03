@@ -65,9 +65,8 @@ export const getTripDebtsSummaryHandler = async (
             acc[owedBy].settled.push(debtDetail);
           } else {
             acc[owedBy].outstanding.push(debtDetail);
+            acc[owedBy].totalOwed += share.share;
           }
-
-          acc[owedBy].totalOwed += share.share;
         }
         return acc;
       },
@@ -149,9 +148,8 @@ export const getUserDebtDetailsHandler = async (
           settled.push(debtDetail);
         } else {
           outstanding.push(debtDetail);
+          totalOwed += share.share;
         }
-
-        totalOwed += share.share;
       }
     });
 
