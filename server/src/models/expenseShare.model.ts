@@ -29,7 +29,7 @@ export const fetchExpenseSharesForTrip = async (tripId: number) => {
         expense: {
           select: {
             description: true,
-            paidBy: { select: { email: true } },
+            paidBy: { select: { email: true, id: true } },
             category: true,
           },
         },
@@ -56,7 +56,7 @@ export const fetchExpenseSharesForUser = async (
         expense: {
           select: {
             description: true,
-            paidBy: { select: { email: true } },
+            paidBy: { select: { email: true, id: true } },
             category: true,
           },
         },

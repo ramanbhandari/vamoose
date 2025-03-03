@@ -56,7 +56,10 @@ export const getTripDebtsSummaryHandler = async (
           }
 
           const debtDetail: TripDebtDetail = {
-            creditor: owedTo,
+            expenseShareId: share.expenseId,
+            debtorId: share.userId,
+            creditorEmail: owedTo,
+            creditorId: share.expense.paidBy?.id ?? '',
             amount: share.share,
             description: share.expense.description,
             category: share.expense.category,
@@ -67,9 +70,8 @@ export const getTripDebtsSummaryHandler = async (
             acc[owedBy].settled.push(debtDetail);
           } else {
             acc[owedBy].outstanding.push(debtDetail);
+            acc[owedBy].totalOwed += share.share;
           }
-
-          acc[owedBy].totalOwed += share.share;
         }
         return acc;
       },
@@ -84,7 +86,7 @@ export const getTripDebtsSummaryHandler = async (
     );
 
     const summaryArray = Object.entries(summary).map(([email, details]) => ({
-      email,
+      debtorEmail: email,
       ...details,
     }));
 
@@ -140,7 +142,10 @@ export const getUserDebtDetailsHandler = async (
       const owedTo = share.expense.paidBy?.email ?? '';
       if (share.user.email !== owedTo) {
         const debtDetail: TripDebtDetail = {
-          creditor: owedTo,
+          expenseShareId: share.expenseId,
+          debtorId: share.userId,
+          creditorEmail: owedTo,
+          creditorId: share.expense.paidBy?.id ?? '',
           amount: share.share,
           description: share.expense.description,
           category: share.expense.category,
@@ -151,13 +156,14 @@ export const getUserDebtDetailsHandler = async (
           settled.push(debtDetail);
         } else {
           outstanding.push(debtDetail);
+          totalOwed += share.share;
         }
-
-        totalOwed += share.share;
       }
     });
 
-    res.status(200).json({ details: { outstanding, settled, totalOwed } });
+    res.status(200).json({
+      details: { outstanding, settled, totalOwed },
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching user debt details:');
   }

@@ -32,7 +32,10 @@ export interface UpdateTripMemberInput {
 }
 
 export interface TripDebtDetail {
-  creditor: string;
+  expenseShareId: number;
+  debtorId: string;
+  creditorEmail: string;
+  creditorId: string;
   amount: number;
   description?: string | null;
   category?: string;
