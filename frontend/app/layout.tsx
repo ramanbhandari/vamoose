@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "./ThemeProvider";
 import Navbar from "../components/navbar/Navbar";
 import Footer from "../components/footer/Footer";
+import Providers from "./providers";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/charts/styles.css";
@@ -43,9 +44,11 @@ export default function RootLayout({
         <MantineProvider>
           <ThemeProvider>
             <Navbar />
-            <main>{children}</main>
-            <Footer />
-            <NotificationSnackbar />
+            <Providers>
+              <main>{children}</main>
+              <Footer />
+              <NotificationSnackbar />
+            </Providers>
           </ThemeProvider>
         </MantineProvider>
       </body>
