@@ -1,6 +1,7 @@
 import express from 'express';
 import tripRouter from './trip.routes.js';
 import expenseRouter from './expense.routes.js';
+import expenseShareRouter from './expenseShare.routes.js';
 import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.js';
 import memberRouter from './member.routes.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
@@ -17,6 +18,7 @@ router.use(authMiddleware);
 
 router.use('/trips', tripRouter);
 router.use('/trips/:tripId/expenses', expenseRouter);
+router.use('/trips/:tripId/expenseShares', expenseShareRouter);
 router.use('/trips/:tripId/invites', inviteRouter);
 router.use('/trips/:tripId/members', memberRouter);
 

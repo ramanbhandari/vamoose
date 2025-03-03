@@ -46,7 +46,7 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       name: 'Test Trip',
       description: 'A fun test trip',
       destination: 'Hawaii',
-      startDate: getXDaysFromToday(0).toISOString(),
+      startDate: getXDaysFromToday(1).toISOString(),
       endDate: getXDaysFromToday(7).toISOString(),
       budget: 500,
       ...bodyOverrides, // Allows customization for different test cases

@@ -30,3 +30,14 @@ export interface CreateInviteInput {
 export interface UpdateTripMemberInput {
   role?: 'admin' | 'member';
 }
+
+export interface TripDebtDetail {
+  expenseShareId: number;
+  debtorId: string;
+  creditorEmail: string;
+  creditorId: string;
+  amount: number;
+  description?: string | null;
+  category?: string;
+  settled: boolean;
+}
