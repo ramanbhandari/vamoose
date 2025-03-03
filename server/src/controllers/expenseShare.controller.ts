@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
-import { getTripMember } from '@/models/member.model.js';
-
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import {
-  getTripDebtsSummary,
-  getUserDebtDetails,
+  fetchExpenseSharesForTrip,
+  fetchExpenseSharesForUser,
 } from '@/models/expenseShare.model.js';
+import { getTripMember } from '@/models/member.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces';
+import { TripDebtDetail } from '@/interfaces/interfaces.js';
 
 /**
- * Get a summary of debts for a specific trip
- * Includes both outstanding and settled debts
+ * Get a detailed summary of all debts within a trip
  */
 export const getTripDebtsSummaryHandler = async (
   req: Request,
@@ -38,9 +37,56 @@ export const getTripDebtsSummaryHandler = async (
       return;
     }
 
-    const summary = await getTripDebtsSummary(tripId);
+    const expenseShares = await fetchExpenseSharesForTrip(tripId);
 
-    res.status(200).json({ summary });
+    const summary = expenseShares.reduce(
+      (acc, share) => {
+        const owedBy = share.user.email;
+        const owedTo = share.expense.paidBy?.email ?? '';
+
+        if (owedBy !== owedTo) {
+          if (!acc[owedBy]) {
+            acc[owedBy] = {
+              outstanding: [],
+              settled: [],
+              totalOwed: 0,
+            };
+          }
+
+          const debtDetail: TripDebtDetail = {
+            creditor: owedTo,
+            amount: share.share,
+            description: share.expense.description,
+            category: share.expense.category,
+            settled: share.settled,
+          };
+
+          if (share.settled) {
+            acc[owedBy].settled.push(debtDetail);
+          } else {
+            acc[owedBy].outstanding.push(debtDetail);
+          }
+
+          acc[owedBy].totalOwed += share.share;
+        }
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          outstanding: TripDebtDetail[];
+          settled: TripDebtDetail[];
+          totalOwed: number;
+        }
+      >,
+    );
+
+    const summaryArray = Object.entries(summary).map(([email, details]) => ({
+      email,
+      ...details,
+    }));
+
+    res.status(200).json({ summary: summaryArray });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching trip debts summary:');
   }
@@ -76,16 +122,40 @@ export const getUserDebtDetailsHandler = async (
       return;
     }
 
-    // Fetch the target member
     const targetMember = await getTripMember(tripId, targetUserId);
     if (!targetMember) {
       res.status(404).json({ error: 'Target member not found in this trip' });
       return;
     }
 
-    const details = await getUserDebtDetails(tripId, targetUserId);
+    const expenseShares = await fetchExpenseSharesForUser(tripId, targetUserId);
 
-    res.status(200).json({ details });
+    const outstanding: TripDebtDetail[] = [];
+    const settled: TripDebtDetail[] = [];
+    let totalOwed = 0;
+
+    expenseShares.forEach((share) => {
+      const owedTo = share.expense.paidBy?.email ?? '';
+      if (share.user.email !== owedTo) {
+        const debtDetail: TripDebtDetail = {
+          creditor: owedTo,
+          amount: share.share,
+          description: share.expense.description,
+          category: share.expense.category,
+          settled: share.settled,
+        };
+
+        if (share.settled) {
+          settled.push(debtDetail);
+        } else {
+          outstanding.push(debtDetail);
+        }
+
+        totalOwed += share.share;
+      }
+    });
+
+    res.status(200).json({ details: { outstanding, settled, totalOwed } });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching user debt details:');
   }
