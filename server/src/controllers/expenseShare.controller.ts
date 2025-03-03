@@ -55,7 +55,9 @@ export const getTripDebtsSummaryHandler = async (
 
           const debtDetail: TripDebtDetail = {
             expenseShareId: share.expenseId,
-            creditor: owedTo,
+            debtorId: share.userId,
+            creditorEmail: owedTo,
+            creditorId: share.expense.paidBy?.id ?? '',
             amount: share.share,
             description: share.expense.description,
             category: share.expense.category,
@@ -82,7 +84,7 @@ export const getTripDebtsSummaryHandler = async (
     );
 
     const summaryArray = Object.entries(summary).map(([email, details]) => ({
-      email,
+      debtorEmail: email,
       ...details,
     }));
 
@@ -139,7 +141,9 @@ export const getUserDebtDetailsHandler = async (
       if (share.user.email !== owedTo) {
         const debtDetail: TripDebtDetail = {
           expenseShareId: share.expenseId,
-          creditor: owedTo,
+          debtorId: share.userId,
+          creditorEmail: owedTo,
+          creditorId: share.expense.paidBy?.id ?? '',
           amount: share.share,
           description: share.expense.description,
           category: share.expense.category,
@@ -155,7 +159,9 @@ export const getUserDebtDetailsHandler = async (
       }
     });
 
-    res.status(200).json({ details: { outstanding, settled, totalOwed } });
+    res.status(200).json({
+      details: { outstanding, settled, totalOwed },
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching user debt details:');
   }

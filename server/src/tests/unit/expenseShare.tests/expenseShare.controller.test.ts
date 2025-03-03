@@ -42,10 +42,11 @@ describe('Trip Debt Summary Controller', () => {
   ];
   const mockTripDebtSummary = [
     {
-      email: 'debtor1@test.com',
+      debtorEmail: 'debtor1@test.com',
       outstanding: [
         {
-          creditor: 'creditor1@test.com',
+          creditorEmail: 'creditor1@test.com',
+          creditorId: '',
           amount: 100,
           description: 'Dinner at the resort',
           category: 'food',
@@ -62,7 +63,8 @@ describe('Trip Debt Summary Controller', () => {
         {
           amount: 100,
           category: 'food',
-          creditor: 'creditor1@test.com',
+          creditorId: '',
+          creditorEmail: 'creditor1@test.com',
           description: 'Dinner at the resort',
           settled: false,
         },
