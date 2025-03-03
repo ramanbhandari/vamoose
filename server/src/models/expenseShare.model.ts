@@ -95,24 +95,51 @@ export const getExpenseSharesByIds = async (
   }
 };
 
-/**
- * Settle expense shares by marking them as settled
- */
+export const fetchExpenseShares = async (
+  expensesToSettle: { expenseId: number; debtorUserId: string }[],
+  tripId: number,
+) => {
+  return await prisma.expenseShare.findMany({
+    where: {
+      OR: expensesToSettle.map((pair) => ({
+        expenseId: pair.expenseId,
+        userId: pair.debtorUserId,
+        expense: { tripId },
+        settled: false,
+      })),
+    },
+    include: {
+      expense: {
+        select: {
+          paidById: true,
+        },
+      },
+    },
+  });
+};
+
 export const settleExpenseShares = async (
-  shareIds: number[],
+  expensesToSettle: { expenseId: number; debtorUserId: string }[],
   tripId: number,
 ) => {
   try {
-    return await prisma.expenseShare.updateMany({
-      where: {
-        expenseId: { in: shareIds },
-        expense: { tripId },
-        settled: false,
-      },
-      data: { settled: true },
-    });
+    const updatePromises = expensesToSettle.map((pair) =>
+      prisma.expenseShare.update({
+        where: {
+          expenseId_userId: {
+            expenseId: pair.expenseId,
+            userId: pair.debtorUserId,
+          },
+          expense: { tripId },
+        },
+        data: { settled: true },
+      }),
+    );
+
+    const results = await Promise.all(updatePromises);
+    return { count: results.length };
   } catch (error) {
-    console.error('Error settling expense shares:', error);
+    console.error('Error settling expense shares by pairs:', error);
     throw new Error('Failed to settle expense shares');
   }
 };

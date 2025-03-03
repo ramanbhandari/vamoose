@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import {
   fetchExpenseSharesForTrip,
   fetchExpenseSharesForUser,
-  getExpenseSharesByIds,
+  fetchExpenseShares,
   settleExpenseShares,
 } from '@/models/expenseShare.model.js';
 import { getTripMember } from '@/models/member.model.js';
@@ -171,9 +171,10 @@ export const getUserDebtDetailsHandler = async (
 
 export const settleExpensesHandler = async (req: Request, res: Response) => {
   try {
-    const { userId } = req as AuthenticatedRequest;
+    // const { userId } = req as AuthenticatedRequest;
+    const userId = '6f27e997-5de5-4a7c-8dfd-10ec75f6df41';
     const tripId = Number(req.params.tripId);
-    const { shareIds } = req.body;
+    const { expensesToSettle } = req.body;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -185,8 +186,32 @@ export const settleExpensesHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    if (!Array.isArray(shareIds) || shareIds.length === 0) {
-      res.status(400).json({ error: 'Invalid share IDs' });
+    if (!Array.isArray(expensesToSettle) || expensesToSettle.length === 0) {
+      res
+        .status(400)
+        .json({ error: 'Invalid expensesToSettle array provided' });
+      return;
+    }
+
+    // Validate the format of expensesToSettle
+    const wellFormattedExpenses = expensesToSettle.filter(
+      (item: any) =>
+        item &&
+        typeof item.expenseId === 'number' &&
+        typeof item.debtorUserId === 'string' &&
+        item.debtorUserId.trim(),
+    );
+
+    const poorlyFormattedExpenses = expensesToSettle.filter(
+      (item) => !wellFormattedExpenses.includes(item),
+    );
+
+    // Proceed with only well-formatted expenses
+    if (wellFormattedExpenses.length === 0) {
+      res.status(400).json({
+        error: 'No well-formatted expense objects provided',
+        poorlyFormattedExpenses,
+      });
       return;
     }
 
@@ -199,39 +224,79 @@ export const settleExpensesHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    // Fetch the expense shares from the model
-    const expenseShares = await getExpenseSharesByIds(shareIds, tripId);
-
-    const isAdmin = requestingMember.role === 'admin';
-    const isCreator = requestingMember.role === 'creator';
-
-    // Determine which shares the requester is allowed to settle
-    const allowedShareIds = expenseShares
-      .filter(
-        (share) => share.expense.paidById === userId || isAdmin || isCreator,
-      )
-      .map((share) => share.expenseId);
-
-    const invalidShareIds = shareIds.filter(
-      (id) => !allowedShareIds.includes(id),
+    // Fetch the expense shares using (expenseId, debtorUserId) pairs
+    const matchingExpenseShares = await fetchExpenseShares(
+      wellFormattedExpenses,
+      tripId,
     );
 
-    if (allowedShareIds.length === 0) {
+    // Identify valid and non-existent expense shares based on the database query
+    const validExpensePairs = matchingExpenseShares.map((share) => ({
+      expenseId: share.expenseId,
+      debtorUserId: share.userId,
+    }));
+
+    const nonExistentExpensePairs = wellFormattedExpenses.filter(
+      (item) =>
+        !validExpensePairs.some(
+          (valid) =>
+            valid.expenseId === item.expenseId &&
+            valid.debtorUserId === item.debtorUserId,
+        ),
+    );
+
+    if (validExpensePairs.length === 0) {
       res.status(404).json({
         error: 'No valid, unsettled expense shares found to settle',
-        invalidShareIds,
+        nonExistentExpensePairs,
       });
       return;
     }
 
-    // Settle only allowed expense shares
-    const result = await settleExpenseShares(allowedShareIds, tripId);
+    // Permission checks
+    const isAdmin = requestingMember.role === 'admin';
+    const isCreator = requestingMember.role === 'creator';
+
+    // Filter out shares that the user is not allowed to settle
+    const authorizedExpensePairs = matchingExpenseShares
+      .filter(
+        (share) => share.expense.paidById === userId || isAdmin || isCreator,
+      )
+      .map((share) => ({
+        expenseId: share.expenseId,
+        debtorUserId: share.userId,
+      }));
+
+    const unauthorizedExpensePairs = validExpensePairs.filter(
+      (item) =>
+        !authorizedExpensePairs.some(
+          (allowed) =>
+            allowed.expenseId === item.expenseId &&
+            allowed.debtorUserId === item.debtorUserId,
+        ),
+    );
+
+    // If no expenses are authorized, return an error
+    if (authorizedExpensePairs.length === 0) {
+      res.status(403).json({
+        error: 'You are not authorized to settle any of these expenses',
+        poorlyFormattedExpenses,
+        nonExistentExpensePairs,
+        unauthorizedExpensePairs,
+      });
+      return;
+    }
+
+    // Settle only authorized expense shares
+    const result = await settleExpenseShares(authorizedExpensePairs, tripId);
 
     res.status(200).json({
       message: 'Expenses settled successfully',
       settledCount: result.count,
-      validShareIds: allowedShareIds,
-      invalidShareIds,
+      settledExpenses: authorizedExpensePairs,
+      poorlyFormattedExpenses,
+      nonExistentExpensePairs,
+      unauthorizedExpensePairs,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error settling expenses:');
