@@ -68,3 +68,51 @@ export const fetchExpenseSharesForUser = async (
     throw handlePrismaError(error);
   }
 };
+
+/**
+ * Fetch expense shares by their IDs for a specific trip
+ */
+export const getExpenseSharesByIds = async (
+  shareIds: number[],
+  tripId: number,
+) => {
+  try {
+    return await prisma.expenseShare.findMany({
+      where: {
+        expenseId: { in: shareIds },
+        expense: { tripId },
+        settled: false,
+      },
+      include: {
+        expense: {
+          select: { paidById: true },
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching expense shares by IDs:', error);
+    throw new Error('Failed to fetch expense shares');
+  }
+};
+
+/**
+ * Settle expense shares by marking them as settled
+ */
+export const settleExpenseShares = async (
+  shareIds: number[],
+  tripId: number,
+) => {
+  try {
+    return await prisma.expenseShare.updateMany({
+      where: {
+        expenseId: { in: shareIds },
+        expense: { tripId },
+        settled: false,
+      },
+      data: { settled: true },
+    });
+  } catch (error) {
+    console.error('Error settling expense shares:', error);
+    throw new Error('Failed to settle expense shares');
+  }
+};

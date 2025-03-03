@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
   getTripDebtsSummaryHandler,
   getUserDebtDetailsHandler,
+  settleExpensesHandler,
 } from '@/controllers/expenseShare.controller.js';
 import prisma from '@/config/prismaClient.js';
 
@@ -14,6 +15,7 @@ jest.mock('../../../config/prismaClient', () => ({
     },
     expenseShare: {
       findMany: jest.fn(),
+      updateMany: jest.fn(),
     },
   },
 }));
@@ -176,4 +178,164 @@ describe('Trip Debt Summary Controller', () => {
       },
     );
   });
+});
+
+describe('settleExpensesHandler', () => {
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1' },
+    body: { shareIds: [1, 2, 3] },
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    res = { status: statusMock, json: jsonMock } as Partial<Response>;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return 401 if the user is not authenticated', async () => {
+    req = setupRequest({ userId: undefined });
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if trip ID is invalid', async () => {
+    req = setupRequest({
+      params: { tripId: 'invalid' },
+    });
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 400 if share IDs are invalid', async () => {
+    req = setupRequest({
+      body: { shareIds: 'not-an-array' },
+    });
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid share IDs' });
+  });
+
+  it('should return 403 if the user is not a trip member', async () => {
+    req = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip: 1',
+    });
+  });
+
+  it('should return 403 if the user lacks permission to settle expenses', async () => {
+    req = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'member',
+    });
+    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
+      { expenseId: 1, expense: { paidById: 'another-user' } },
+    ]);
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error:
+        'Only the expense creditor, an admin, or the trip creator can settle expenses',
+    });
+  });
+
+  it('should settle valid expenses and return invalid ones', async () => {
+    req = setupRequest({
+      body: { shareIds: [1, 2, 3, 4] },
+    });
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'admin',
+    });
+    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
+      { expenseId: 1, expense: { paidById: 'user-123' } },
+      { expenseId: 3, expense: { paidById: 'user-123' } },
+    ]);
+
+    (prisma.expenseShare.updateMany as jest.Mock).mockResolvedValue({
+      count: 2,
+    });
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Expenses settled successfully',
+      settledCount: 2,
+      invalidShareIds: [2, 4],
+    });
+  });
+
+  it('should handle unexpected errors gracefully', async () => {
+    req = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database Error'),
+    );
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'An unexpected database error occurred.',
+    });
+  });
+
+  it.each([
+    {
+      overrides: { params: { tripId: '1' }, body: { shareIds: [] } },
+      expectedError: 'Invalid share IDs',
+    },
+    {
+      overrides: { params: { tripId: '1' }, body: { shareIds: 'invalid' } },
+      expectedError: 'Invalid share IDs',
+    },
+    {
+      overrides: { params: { tripId: 'invalid' }, body: { shareIds: [1] } },
+      expectedError: 'Invalid trip ID',
+    },
+  ])(
+    'should handle invalid inputs: $input',
+    async ({ overrides, expectedError }) => {
+      req = setupRequest(overrides);
+
+      // const setupRequest = (overrides = {}) => ({
+      //   userId: 'test-user-id',
+      //   params: { tripId: '1' },
+      //   body: { shareIds: [1, 2, 3] },
+      //   ...overrides,
+      // });
+
+      await settleExpensesHandler(req as Request, res as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(400);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedError });
+    },
+  );
 });
