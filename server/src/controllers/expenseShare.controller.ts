@@ -54,6 +54,7 @@ export const getTripDebtsSummaryHandler = async (
           }
 
           const debtDetail: TripDebtDetail = {
+            expenseShareId: share.expenseId,
             creditor: owedTo,
             amount: share.share,
             description: share.expense.description,
@@ -137,6 +138,7 @@ export const getUserDebtDetailsHandler = async (
       const owedTo = share.expense.paidBy?.email ?? '';
       if (share.user.email !== owedTo) {
         const debtDetail: TripDebtDetail = {
+          expenseShareId: share.expenseId,
           creditor: owedTo,
           amount: share.share,
           description: share.expense.description,
