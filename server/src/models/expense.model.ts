@@ -1,4 +1,5 @@
 import prisma from '@/config/prismaClient.js';
+import { UpdateExpenseInput } from '@/interfaces/interfaces';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError } from '@/utils/errors.js';
 
@@ -187,6 +188,65 @@ export const getTripExpensesGrouped = async (tripIds: number | number[]) => {
     return expenseMap;
   } catch (error) {
     console.error('Error deleting multiple expenses:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Update an expense
+export const updateExpense = async (
+  tripId: number,
+  expenseId: number,
+  updateData: UpdateExpenseInput
+) => {
+  try {
+    const existingExpense = await prisma.expense.findUnique({
+      where: {
+        id: expenseId,
+        tripId: tripId, 
+      },
+      include: { shares: true },
+    });
+
+    if (!existingExpense) {
+      throw new NotFoundError('Expense not found');
+    }
+
+    if (updateData.splitAmongUserIds) {
+      if (updateData.amount === undefined) {
+        throw new Error('Amount must be provided when updating shares.');
+      }
+      const shareAmount = parseFloat(
+        (updateData.amount / updateData.splitAmongUserIds.length).toFixed(2)
+      );
+
+      await prisma.expenseShare.deleteMany({
+        where: { expenseId: expenseId },
+      });
+
+      await prisma.expenseShare.createMany({
+        data: updateData.splitAmongUserIds.map((userId) => ({
+          expenseId: expenseId,
+          userId,
+          share: shareAmount,
+        })),
+      });
+    }
+
+    // Update the expense
+    const updatedExpense = await prisma.expense.update({
+      where: { id: expenseId, tripId: tripId },
+      data: {
+        amount: updateData.amount,
+        category: updateData.category,
+        description: updateData.description,
+        paidById: updateData.paidById,
+      },
+      include: { shares: true }, 
+    });
+
+    return updatedExpense;
+  } catch (error) {
+    console.error('Error updating expense:', error);
     throw handlePrismaError(error);
   }
 };

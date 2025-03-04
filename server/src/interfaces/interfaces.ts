@@ -41,3 +41,15 @@ export interface TripDebtDetail {
   category?: string;
   settled: boolean;
 }
+
+// Expenses Interface
+export interface CreateExpenseInput {
+  tripId: number;
+  amount: number;
+  category: string;
+  description?: string | null;
+  paidById?: string
+  splitAmongUserIds: string[];
+}
+
+export type UpdateExpenseInput = Partial<CreateExpenseInput>;

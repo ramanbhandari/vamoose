@@ -7,6 +7,7 @@ import {
   validateFetchExpense,
   validateDeleteSingleExpense,
   validateDeleteMultipleExpenses,
+  validateUpdateExpense,
 } from '@/middleware/expense.validators.js';
 
 import {
@@ -14,6 +15,7 @@ import {
   fetchSingleExpenseHandler,
   deleteSingleExpenseHandler,
   deleteMultipleExpensesHandler,
+  updateExpenseHandler,
 } from '@/controllers/expense.controller.js';
 
 const router = express.Router({ mergeParams: true });
@@ -44,6 +46,14 @@ router
     validateDeleteMultipleExpenses,
     validationErrorHandler,
     deleteMultipleExpensesHandler,
+  )
+
+  // Update an expense in trip
+  .patch(
+    '/:expenseId',
+    validateUpdateExpense,
+    validationErrorHandler,
+    updateExpenseHandler,
   );
 
 export default router;
