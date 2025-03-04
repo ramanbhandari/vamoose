@@ -5,7 +5,7 @@ import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateTripDebtSummaryInput,
   validateUserDebtSummaryInput,
-  validateSettleExpenses,
+  validateSettleExpensesInput,
 } from '@/middleware/expenseShare.validators';
 
 import {
@@ -36,7 +36,7 @@ router
   //  Settle expenses for a trip
   .patch(
     '/settle',
-    validateSettleExpenses,
+    validateSettleExpensesInput,
     validationErrorHandler,
     settleExpensesHandler,
   );

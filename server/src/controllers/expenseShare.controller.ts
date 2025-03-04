@@ -171,8 +171,7 @@ export const getUserDebtDetailsHandler = async (
 
 export const settleExpensesHandler = async (req: Request, res: Response) => {
   try {
-    // const { userId } = req as AuthenticatedRequest;
-    const userId = '6f27e997-5de5-4a7c-8dfd-10ec75f6df41';
+    const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
     const { expensesToSettle } = req.body;
 

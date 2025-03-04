@@ -14,7 +14,7 @@ const router = express.Router();
 router.use('/trips/invites', nonAuthInviteRouter);
 
 // Apply authMiddleware globally to all routes
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.use('/trips', tripRouter);
 router.use('/trips/:tripId/expenses', expenseRouter);

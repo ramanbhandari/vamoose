@@ -1,6 +1,6 @@
 import { body, checkExact, param } from 'express-validator';
 
-// Validator for /owed-summary/:userId
+// Validator for /debt-summary/:userId
 export const validateUserDebtSummaryInput = checkExact([
   param('tripId')
     .isInt({ min: 1 })
@@ -9,14 +9,14 @@ export const validateUserDebtSummaryInput = checkExact([
   param('userId').isString().notEmpty().withMessage('User ID is required'),
 ]);
 
-// Validator for /owed-summary
+// Validator for /debt-summary
 export const validateTripDebtSummaryInput = checkExact([
   param('tripId')
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a positive integer'),
 ]);
 
-export const validateSettleExpenses = checkExact([
+export const validateSettleExpensesInput = checkExact([
   param('tripId')
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a valid number'),

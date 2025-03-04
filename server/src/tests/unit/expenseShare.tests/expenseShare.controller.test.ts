@@ -15,7 +15,7 @@ jest.mock('../../../config/prismaClient', () => ({
     },
     expenseShare: {
       findMany: jest.fn(),
-      updateMany: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -182,16 +182,37 @@ describe('Trip Debt Summary Controller', () => {
   });
 });
 
-describe('settleExpensesHandler', () => {
+describe('Settle Expenses Controller', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let statusMock: jest.Mock;
   let jsonMock: jest.Mock;
 
+  const mockExpenseShares = [
+    {
+      expenseId: 1,
+      userId: 'debtor1',
+      expense: { paidById: 'creditor1' },
+    },
+    {
+      expenseId: 2,
+      userId: 'debtor2',
+      expense: { paidById: 'creditor1' },
+    },
+  ];
+
+  const mockRequestingMember = { role: 'creator' };
+
   const setupRequest = (overrides = {}) => ({
-    userId: 'test-user-id',
+    userId: 'creditor1',
     params: { tripId: '1' },
-    body: { shareIds: [1, 2, 3] },
+    body: {
+      expensesToSettle: [
+        { expenseId: 1, debtorUserId: 'debtor1' },
+        { expenseId: 2, debtorUserId: 'debtor2' },
+        { expenseId: 3, debtorUserId: 'invalidDebtor' }, // Invalid
+      ],
+    },
     ...overrides,
   });
 
@@ -205,39 +226,68 @@ describe('settleExpensesHandler', () => {
     jest.clearAllMocks();
   });
 
-  it('should return 401 if the user is not authenticated', async () => {
-    req = setupRequest({ userId: undefined });
-    await settleExpensesHandler(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(401);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
-  });
-
-  it('should return 400 if trip ID is invalid', async () => {
-    req = setupRequest({
-      params: { tripId: 'invalid' },
-    });
-
-    await settleExpensesHandler(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
-  });
-
-  it('should return 400 if share IDs are invalid', async () => {
-    req = setupRequest({
-      body: { shareIds: 'not-an-array' },
-    });
-
-    await settleExpensesHandler(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid share IDs' });
-  });
-
-  it('should return 403 if the user is not a trip member', async () => {
+  it('should settle valid expenses and ignore invalid ones', async () => {
     req = setupRequest();
 
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(
+      mockRequestingMember,
+    );
+    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue(
+      mockExpenseShares,
+    );
+    (prisma.expenseShare.update as jest.Mock).mockResolvedValue({ count: 2 });
+
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Expenses settled successfully',
+      settledCount: 2,
+      settledExpenses: [
+        { expenseId: 1, debtorUserId: 'debtor1' },
+        { expenseId: 2, debtorUserId: 'debtor2' },
+      ],
+      poorlyFormattedExpenses: [],
+      nonExistentExpensePairs: [
+        { expenseId: 3, debtorUserId: 'invalidDebtor' },
+      ],
+      unauthorizedExpensePairs: [],
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'Invalid userId',
+      overrides: { userId: undefined },
+      expectedStatus: 401,
+      expectedMessage: 'Unauthorized Request',
+    },
+    {
+      scenario: 'Invalid tripId',
+      overrides: { params: { tripId: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip ID',
+    },
+    {
+      scenario: 'Invalid expensesToSettle format',
+      overrides: { body: { expensesToSettle: 'invalid-format' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid expensesToSettle array provided',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, expectedStatus, expectedMessage }) => {
+      req = setupRequest(overrides);
+
+      await settleExpensesHandler(req as Request, res as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
+
+  it('should handle unauthorized user trying to settle expenses', async () => {
+    req = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
 
     await settleExpensesHandler(req as Request, res as Response);
@@ -248,96 +298,51 @@ describe('settleExpensesHandler', () => {
     });
   });
 
-  it('should return 403 if the user lacks permission to settle expenses', async () => {
+  it('should handle no valid expenses found to settle', async () => {
     req = setupRequest();
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(
+      mockRequestingMember,
+    );
+    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([]);
 
+    await settleExpensesHandler(req as Request, res as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid, unsettled expense shares found to settle',
+      nonExistentExpensePairs: [
+        { expenseId: 1, debtorUserId: 'debtor1' },
+        { expenseId: 2, debtorUserId: 'debtor2' },
+        { expenseId: 3, debtorUserId: 'invalidDebtor' },
+      ],
+    });
+  });
+
+  it('should handle unauthorized expense settlement attempts', async () => {
+    req = setupRequest({ userId: 'not-the-creditor' });
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
       role: 'member',
     });
-    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
-      { expenseId: 1, expense: { paidById: 'another-user' } },
-    ]);
+    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue(
+      mockExpenseShares,
+    );
 
     await settleExpensesHandler(req as Request, res as Response);
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'Only the expense creditor, an admin, or the trip creator can settle expenses',
+      error: 'You are not authorized to settle any of these expenses',
+      unauthorizedExpensePairs: [
+        { expenseId: 1, debtorUserId: 'debtor1' },
+        { expenseId: 2, debtorUserId: 'debtor2' },
+      ],
+      poorlyFormattedExpenses: [],
+      nonExistentExpensePairs: [
+        {
+          debtorUserId: 'invalidDebtor',
+          expenseId: 3,
+        },
+      ],
     });
   });
-
-  it('should settle valid expenses and return invalid ones', async () => {
-    req = setupRequest({
-      body: { shareIds: [1, 2, 3, 4] },
-    });
-
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-      role: 'admin',
-    });
-    (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([
-      { expenseId: 1, expense: { paidById: 'user-123' } },
-      { expenseId: 3, expense: { paidById: 'user-123' } },
-    ]);
-
-    (prisma.expenseShare.updateMany as jest.Mock).mockResolvedValue({
-      count: 2,
-    });
-
-    await settleExpensesHandler(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Expenses settled successfully',
-      settledCount: 2,
-      invalidShareIds: [2, 4],
-    });
-  });
-
-  it('should handle unexpected errors gracefully', async () => {
-    req = setupRequest();
-
-    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
-      new Error('Database Error'),
-    );
-
-    await settleExpensesHandler(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'An unexpected database error occurred.',
-    });
-  });
-
-  it.each([
-    {
-      overrides: { params: { tripId: '1' }, body: { shareIds: [] } },
-      expectedError: 'Invalid share IDs',
-    },
-    {
-      overrides: { params: { tripId: '1' }, body: { shareIds: 'invalid' } },
-      expectedError: 'Invalid share IDs',
-    },
-    {
-      overrides: { params: { tripId: 'invalid' }, body: { shareIds: [1] } },
-      expectedError: 'Invalid trip ID',
-    },
-  ])(
-    'should handle invalid inputs: $input',
-    async ({ overrides, expectedError }) => {
-      req = setupRequest(overrides);
-
-      // const setupRequest = (overrides = {}) => ({
-      //   userId: 'test-user-id',
-      //   params: { tripId: '1' },
-      //   body: { shareIds: [1, 2, 3] },
-      //   ...overrides,
-      // });
-
-      await settleExpensesHandler(req as Request, res as Response);
-
-      expect(statusMock).toHaveBeenCalledWith(400);
-      expect(jsonMock).toHaveBeenCalledWith({ error: expectedError });
-    },
-  );
 });
