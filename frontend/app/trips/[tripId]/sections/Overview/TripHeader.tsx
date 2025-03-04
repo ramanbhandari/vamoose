@@ -82,7 +82,8 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
   const user = useUserStore((state) => state.user);
 
   const userInfo = user ? getUserInfo(user) : null;
-  const isCreator = userInfo?.isCreator(tripData);
+  const isCreator = userInfo?.isCreator(tripData) ?? false;
+  const isAdmin = userInfo?.isAdmin(tripData) ?? false;
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -468,7 +469,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
           </Box>
         ) : (
           <>
-            {isCreator && (
+            {(isCreator || isAdmin) && (
               <Tooltip
                 title="Edit"
                 arrow

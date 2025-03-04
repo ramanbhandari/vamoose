@@ -125,7 +125,6 @@ export const updateTrip = async (
     return await prisma.trip.update({
       where: {
         id: tripId,
-        createdBy: userId, // Ensure only the creator can update
       },
       data: {
         ...updateData,
