@@ -13,6 +13,7 @@ export interface Poll {
   tripId: number;
   createdBy: string;
   status: "active" | "expired";
+  winner: PollOption;
 }
 
 export interface PollsProps {

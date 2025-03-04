@@ -18,9 +18,13 @@ import {
   People,
   Public,
   Event,
+  CheckCircle,
+  EmojiEvents,
+  EmojiPeople,
 } from "@mui/icons-material";
 import { Poll } from "./types";
 import { useTheme } from "@mui/material/styles";
+import { formatDate } from "@/utils/dateFormatter";
 
 interface PollListProps {
   polls: Poll[];
@@ -62,7 +66,6 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                     background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
                   }}
                 >
-                  {/* Status Ribbon */}
                   <Box
                     sx={{
                       position: "absolute",
@@ -71,11 +74,12 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                       backgroundColor:
                         poll.status === "active"
                           ? theme.palette.success.main
-                          : theme.palette.error.main,
+                          : theme.palette.primary.main,
                       transform: "rotate(45deg)",
                       width: 120,
                       textAlign: "center",
                       py: 0.5,
+                      zIndex: 1,
                     }}
                   >
                     <Typography
@@ -86,7 +90,14 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 2,
+                      mt: 1,
+                    }}
+                  >
                     <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 2 }}>
                       {getStatusIcon(poll.status)}
                     </Avatar>
@@ -95,12 +106,22 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                     </Typography>
                   </Box>
 
-                  <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
                     <Event
                       sx={{ mr: 1, color: theme.palette.text.secondary }}
                     />
                     <Typography variant="caption">
-                      Expires: {new Date(poll.expiresAt).toLocaleDateString()}
+                      Expires: {formatDate(poll.expiresAt)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{ mt: 1, mb: 2, display: "flex", alignItems: "center" }}
+                  >
+                    <EmojiPeople
+                      sx={{ mr: 1, color: theme.palette.text.secondary }}
+                    />
+                    <Typography variant="caption">
+                      Created By: {poll.createdBy}
                     </Typography>
                   </Box>
 
@@ -125,6 +146,18 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                             cursor:
                               poll.status === "active" ? "pointer" : "default",
                             transition: "transform 0.2s",
+                            position: "relative",
+                            ...(poll.status === "expired" &&
+                            poll.winner?.id === option.id
+                              ? {
+                                  border: `2px solid ${theme.palette.success.main}`,
+                                  borderRadius: 2,
+                                  p: 1.5,
+                                  ml: -1.5,
+                                  mr: -1.5,
+                                  background: `linear-gradient(45deg, ${theme.palette.success.light}22 30%, ${theme.palette.background.paper} 90%)`,
+                                }
+                              : {}),
                             "&:hover":
                               poll.status === "active"
                                 ? {
@@ -136,6 +169,22 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                                 : {},
                           }}
                         >
+                          {/* winner crown badge on the poll option that won*/}
+                          {poll.status === "expired" &&
+                            poll.winner?.id === option.id && (
+                              <EmojiEvents
+                                sx={{
+                                  position: "absolute",
+                                  top: -10,
+                                  right: -10,
+                                  fontSize: 24,
+                                  color: theme.palette.warning.main,
+                                  zIndex: 2,
+                                  transform: "rotate(25deg)",
+                                }}
+                              />
+                            )}
+
                           <Box
                             sx={{
                               display: "flex",
@@ -145,15 +194,47 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                           >
                             <Typography
                               variant="body2"
-                              sx={{ fontWeight: 600, mr: 1 }}
+                              sx={{
+                                fontWeight: 600,
+                                mr: 1,
+                                ...(poll.status === "expired" &&
+                                poll.winner?.id === option.id
+                                  ? {
+                                      color: theme.palette.success.dark,
+                                    }
+                                  : {}),
+                              }}
                             >
                               {option.text}
+                              {poll.status === "expired" &&
+                                poll.winner?.id === option.id && (
+                                  <CheckCircle
+                                    sx={{
+                                      fontSize: 16,
+                                      ml: 1,
+                                      color: theme.palette.success.main,
+                                      verticalAlign: "text-bottom",
+                                    }}
+                                  />
+                                )}
                             </Typography>
                             <Chip
                               label={`${option.votes} votes`}
                               size="small"
                               icon={<HowToVote fontSize="small" />}
-                              sx={{ ml: "auto" }}
+                              sx={{
+                                ml: "auto",
+                                ...(poll.status === "expired" &&
+                                poll.winner?.id === option.id
+                                  ? {
+                                      bgcolor: theme.palette.success.main,
+                                      color: "common.white",
+                                      "& .MuiChip-icon": {
+                                        color: "common.white",
+                                      },
+                                    }
+                                  : {}),
+                              }}
                             />
                           </Box>
                           <LinearProgress
@@ -169,7 +250,9 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                                 bgcolor:
                                   poll.status === "active"
                                     ? theme.palette.primary.main
-                                    : theme.palette.text.disabled,
+                                    : poll.winner?.id === option.id
+                                      ? theme.palette.success.main
+                                      : theme.palette.text.disabled,
                               },
                             }}
                           />
@@ -178,29 +261,42 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
                     })}
                   </Box>
 
-                  <Fade in={poll.status === "expired"}>
+                  {poll.status === "expired" && poll.winner && (
                     <Box
                       sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        bgcolor: "rgba(255,255,255,0.9)",
+                        mt: 2,
+                        pt: 2,
+                        borderTop: `1px solid ${theme.palette.divider}`,
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        pointerEvents: "none",
+                        gap: 1.5,
                       }}
                     >
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.palette.text.disabled }}
-                      >
-                        Voting Closed
-                      </Typography>
+                      <EmojiEvents
+                        sx={{
+                          color: theme.palette.warning.main,
+                          fontSize: 24,
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {poll.winner.text} won!
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {poll.winner.votes} votes •
+                          {(
+                            (poll.winner.votes /
+                              poll.options.reduce(
+                                (sum, o) => sum + o.votes,
+                                0
+                              )) *
+                            100
+                          ).toFixed(1)}
+                          %
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Fade>
+                  )}
                 </Paper>
               </Slide>
             </Grid>
