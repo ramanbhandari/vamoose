@@ -16,7 +16,7 @@ This is the Node.js (Express) backend for Vamoose!, a personalized trip planner 
 The backend is located in the `server/` folder of the repository. It follows a structured layout:
 
 | Folder         | Description                                                                                                    |
-|----------------|----------------------------------------------------------------------------------------------------------------|
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
 | `config/`      | Contains Prisma Client configuration for database interaction.                                                 |
 | `controllers/` | Handles business logic for trips, members, invitations, and expenses.                                          |
 | `interfaces/`  | Defines TypeScript interfaces for better type safety.                                                          |
@@ -109,6 +109,22 @@ docker run -p 8000:8000 vamoose-backend
 
 The backend will be accessible at `http://localhost:8000`.
 
+### Running the Full Application with Docker
+
+To run both the **frontend** and **server** together using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+Stopping the Application
+
+Press **CTRL + C** or run:
+
+```sh
+docker-compose down
+```
+
 ## 🧪 Testing
 
 The backend uses Jest for unit testing.
@@ -138,7 +154,7 @@ npm run test
 API documentation is not available yet, but here are some key endpoints:
 
 | Endpoint                                     | Method | Description                               |
-|----------------------------------------------|--------|-------------------------------------------|
+| -------------------------------------------- | ------ | ----------------------------------------- |
 | `/api/trips`                                 | POST   | Create a new trip                         |
 | `/api/trips/:tripId`                         | GET    | Fetch a single trip                       |
 | `/api/trips/`                                | GET    | Fetch multiple trips                      |

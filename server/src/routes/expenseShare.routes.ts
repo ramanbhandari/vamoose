@@ -5,12 +5,12 @@ import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateTripDebtSummaryInput,
   validateUserDebtSummaryInput,
-} from '@/middleware/expenseShare.validators';
+} from '@/middleware/expenseShare.validators.js';
 
 import {
   getTripDebtsSummaryHandler,
   getUserDebtDetailsHandler,
-} from '@/controllers/expenseShare.controller';
+} from '@/controllers/expenseShare.controller.js';
 
 const router = express.Router({ mergeParams: true });
 
