@@ -109,6 +109,22 @@ docker run -p 8000:8000 vamoose-backend
 
 The backend will be accessible at `http://localhost:8000`.
 
+### Running the Full Application with Docker
+
+To run both the **frontend** and **server** together using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+Stopping the Application
+
+Press **CTRL + C** or run:
+
+```sh
+docker-compose down
+```
+
 ## 🧪 Testing
 
 The backend uses Jest for unit testing.
