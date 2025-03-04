@@ -45,7 +45,7 @@ import apiClient from "@/utils/apiClient";
 import { useTripStore } from "@/stores/trip-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import { TripData, Expense, Member, ExpensesSummary } from "@/stores/trip-store";
+import { TripData, Expense, Member, ExpensesSummary } from "@/types";
 
 
 export interface ExpensesProps {
