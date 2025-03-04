@@ -74,6 +74,7 @@ export default function TripCard({ tripData, onDelete }: TripCardProps) {
   const user = useUserStore((state) => state.user);
   const userInfo = user ? getUserInfo(user) : null;
   const isCreator = userInfo?.isCreator(tripData) ?? false;
+  const isAdmin = userInfo?.isAdmin(tripData) ?? false;
 
   const cardImage = tripData.imageUrl
     ? tripData.imageUrl
@@ -169,7 +170,7 @@ export default function TripCard({ tripData, onDelete }: TripCardProps) {
             padding: "2px",
           }}
         >
-          {isCreator && (
+          {(isCreator || isAdmin) && (
             <Tooltip
               title="Edit"
               arrow
