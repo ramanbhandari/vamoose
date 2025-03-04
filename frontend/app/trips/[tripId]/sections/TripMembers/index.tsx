@@ -139,6 +139,12 @@ export default function TripMembers({
   });
 
   const handleSelect = (userId: string) => {
+    if (!processedMembers) return;
+    const member = processedMembers.find((m) => m.userId === userId);
+
+    // only allow selection for deletable
+    if (!member || !member.deletable) return;
+
     setSelected((prev) =>
       prev.includes(userId)
         ? prev.filter((item) => item !== userId)
@@ -147,11 +153,14 @@ export default function TripMembers({
   };
 
   const handleSelectAll = () => {
-    if (!tripData) return;
+    if (!processedMembers) return;
+    // only allow selection for deletable
+    const deletableMembers = processedMembers
+      .filter((member) => member.deletable)
+      .map((member) => member.userId);
+
     setSelected((prev) =>
-      prev.length === tripData.members.length
-        ? []
-        : tripData.members.map((e) => e.userId)
+      prev.length === deletableMembers.length ? [] : deletableMembers
     );
   };
 
