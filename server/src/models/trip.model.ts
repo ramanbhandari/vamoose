@@ -117,7 +117,6 @@ export const fetchTripsWithFilters = async (
 
 //Update a trip
 export const updateTrip = async (
-  userId: string,
   tripId: number,
   updateData: UpdateTripInput,
 ) => {
