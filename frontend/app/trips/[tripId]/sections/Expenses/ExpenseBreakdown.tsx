@@ -16,9 +16,7 @@ export default function ExpenseBreakdown({ tripId }: { tripId: number }) {
     const fetchExpenseData = async () => {
       try {
         const response = await apiClient.get(`/trips/${tripId}/expenseShares/debt-summary/`);
-        setData(response.data); 
-        console.log(response.data);
-        
+        setData(response.data.summary); 
       } catch (err) {
         setError("Failed to fetch expense data. Please try again later.");
         console.error(err);

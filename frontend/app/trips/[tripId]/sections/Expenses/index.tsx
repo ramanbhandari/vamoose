@@ -123,10 +123,8 @@ export default function Expenses({
             )}
 
             {currentTab === 1 && (
-            <Box>
-                <Typography variant="h6" gutterBottom>
-                Expense Breakdown
-                </Typography>
+            <Box
+              mt={5}>
                 <ExpenseBreakdown tripId={tripId} />
             </Box>
             )}
