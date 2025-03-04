@@ -9,7 +9,6 @@ import {
   LinearProgress,
   Chip,
   Slide,
-  Fade,
 } from "@mui/material";
 import {
   Whatshot,
@@ -31,7 +30,7 @@ interface PollListProps {
   onVote: (pollId: number, optionId: number) => void;
 }
 
-const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
+export default function PollList({ polls, onVote }: PollListProps) {
   const theme = useTheme();
 
   const getStatusIcon = (status: string) => {
@@ -330,6 +329,4 @@ const PollList: React.FC<PollListProps> = ({ polls, onVote }) => {
       </Grid>
     </Box>
   );
-};
-
-export default PollList;
+}

@@ -39,11 +39,11 @@ interface CreatePollDialogProps {
   }) => void;
 }
 
-const CreatePollDialog: React.FC<CreatePollDialogProps> = ({
+export default function CreatePollDialog({
   open,
   onClose,
   onCreate,
-}) => {
+}: CreatePollDialogProps) {
   const theme = useTheme();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
@@ -297,6 +297,4 @@ const CreatePollDialog: React.FC<CreatePollDialogProps> = ({
       </LocalizationProvider>
     </FloatingDialog>
   );
-};
-
-export default CreatePollDialog;
+}

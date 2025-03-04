@@ -16,7 +16,7 @@ interface PollItemProps {
   onVote: (pollId: number, optionId: number) => void;
 }
 
-const PollItem: React.FC<PollItemProps> = ({ poll, onVote }) => {
+export default function PollItem({ poll, onVote }: PollItemProps) {
   const theme = useTheme();
   return (
     <PollCard theme={theme} sx={{ my: 2 }}>
@@ -56,6 +56,4 @@ const PollItem: React.FC<PollItemProps> = ({ poll, onVote }) => {
       </Typography>
     </PollCard>
   );
-};
-
-export default PollItem;
+}

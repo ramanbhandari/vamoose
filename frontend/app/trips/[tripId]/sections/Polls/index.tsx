@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Box, Container, Typography, useTheme } from "@mui/material";
-import PollFilters from "./PollFilters";
+// import PollFilters from "./PollFilters";
 import PollList from "./PollList";
 import { fakePolls, fakePollsExpired } from "./constants";
 import { GradientHeader } from "../Overview/styled";
@@ -18,12 +18,7 @@ interface PollsProps {
   members: Member[];
 }
 
-export default function Polls({
-  tripId,
-  tripName,
-  imageUrl,
-  members,
-}: PollsProps) {
+export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
   const theme = useTheme();
   const [polls, setPolls] = useState(fakePolls);
   const [expiredPolls, setExpiredPolls] = useState(fakePollsExpired);
@@ -131,7 +126,6 @@ export default function Polls({
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
         onCreate={(pollData) => {
-          // Handle poll creation here
           console.log("Creating poll:", pollData);
         }}
       />
