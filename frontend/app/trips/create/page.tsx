@@ -25,7 +25,7 @@ import {
 
 import axios from "axios";
 
-import { formatISO } from "date-fns";
+import { formatISO, addDays, parseISO } from "date-fns";
 
 import { MenuItem, Select, InputAdornment } from "@mui/material";
 
@@ -702,6 +702,11 @@ export default function CreateTrip() {
 
                       <DatePicker
                         label="End Date*"
+                        minDate={
+                          tripDetails.startDate
+                            ? addDays(parseISO(tripDetails.startDate), 1)
+                            : undefined
+                        }
                         disablePast
                         value={
                           tripDetails.endDate
