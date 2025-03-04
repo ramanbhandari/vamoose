@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import {
-    getTripMember,
+  getTripMember,
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
