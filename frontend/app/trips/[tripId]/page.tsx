@@ -27,7 +27,7 @@ import Dates from "./sections/Dates";
 import Destinations from "./sections/Destinations";
 import Stays from "./sections/Stays";
 import Activities from "./sections/Activities";
-import Polls from "./sections/Polls";
+import Polls from "./sections/Polls/index";
 import Itinerary from "./sections/Itinerary";
 import PackingList from "./sections/PackingList";
 import TripMembers from "./sections/TripMembers/index";
@@ -210,7 +210,14 @@ export default function TripSummaryPage() {
         )}
 
         {activeSection === "activities" && <Activities />}
-        {activeSection === "polls" && <Polls />}
+        {activeSection === "polls" && tripData && (
+          <Polls
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+            members={tripData.members}
+          />
+        )}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
         {activeSection === "members" && <TripMembers tripData={tripData} />}
