@@ -1,6 +1,8 @@
 name: Frontend CI
 
 on:
+  push:
+    branches: ["*"]
   pull_request:
     branches: [dev, uat, main]
 
@@ -12,29 +14,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Dependencies
+      - name: Build Frontend Docker Image
         run: |
-          cd frontend
-          npm ci
+          docker build --no-cache --target builder -t frontend-ci ./frontend
 
-      - name: Run ESLint
+      - name: Run ESLint in Docker
         run: |
-          cd frontend
-          npm run lint
+          docker run --rm -w /app frontend-ci sh -c "NEXT_TELEMETRY_DISABLED=1 npm run lint"
 
-      - name: Run Tests
+      - name: Run Tests in Docker
         run: |
-          cd frontend
-          npm run test
+          docker run --rm -w /app frontend-ci npm test
 
-      - name: Build Frontend
+      - name: Verify Build in Docker
         run: |
-          cd frontend
-          npm run build
+          docker run --rm -w /app frontend-ci npm run build

@@ -77,6 +77,22 @@ docker run -p 3000:3000 vamoose-frontend
 
 Open http://localhost:3000 to view the app.
 
+### Running the Full Application with Docker
+
+To run both the **frontend** and **server** together using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+Stopping the Application
+
+Press **CTRL + C** or run:
+
+```sh
+docker-compose down
+```
+
 ## Additional Scripts
 
 ### Linting
