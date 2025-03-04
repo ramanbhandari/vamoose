@@ -60,7 +60,7 @@ export const fetchSingleTrip = async (
     const isAuthorized =
       allowNonMembersToView ||
       trip.createdBy === userId ||
-      trip.members.some(m => m.userId === userId);
+      trip.members.some((m) => m.userId === userId);
 
     if (!isAuthorized) {
       throw new ForbiddenError('You are not authorized to view this trip');
