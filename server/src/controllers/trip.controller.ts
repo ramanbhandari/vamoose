@@ -331,7 +331,7 @@ export const updateTripHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    const updatedTrip = await updateTrip(userId, tripId, tripData);
+    const updatedTrip = await updateTrip(tripId, tripData);
     res
       .status(200)
       .json({ message: 'Trip updated successfully', trip: updatedTrip });
