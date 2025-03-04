@@ -31,7 +31,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-import { formatISO } from "date-fns";
+import { addDays, formatISO, parseISO } from "date-fns";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
@@ -754,6 +754,11 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                           disablePast
+                          minDate={
+                            tripDetails.startDate
+                              ? addDays(parseISO(tripDetails.startDate), 1)
+                              : undefined
+                          }
                           value={parseLocalDate(tripDetails.endDate)}
                           onChange={handleEndDateChange}
                           sx={{
