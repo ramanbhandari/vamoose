@@ -16,7 +16,7 @@ jobs:
 
       - name: Build Frontend Docker Image
         run: |
-          docker build --no-cache -t frontend-ci ./frontend
+          docker build --no-cache --target builder -t frontend-ci ./frontend
 
       - name: Run ESLint in Docker
         run: |
