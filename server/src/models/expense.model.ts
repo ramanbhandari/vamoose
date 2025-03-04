@@ -196,13 +196,13 @@ export const getTripExpensesGrouped = async (tripIds: number | number[]) => {
 export const updateExpense = async (
   tripId: number,
   expenseId: number,
-  updateData: UpdateExpenseInput
+  updateData: UpdateExpenseInput,
 ) => {
   try {
     const existingExpense = await prisma.expense.findUnique({
       where: {
         id: expenseId,
-        tripId: tripId, 
+        tripId: tripId,
       },
       include: { shares: true },
     });
@@ -216,7 +216,7 @@ export const updateExpense = async (
         throw new Error('Amount must be provided when updating shares.');
       }
       const shareAmount = parseFloat(
-        (updateData.amount / updateData.splitAmongUserIds.length).toFixed(2)
+        (updateData.amount / updateData.splitAmongUserIds.length).toFixed(2),
       );
 
       await prisma.expenseShare.deleteMany({
@@ -241,7 +241,7 @@ export const updateExpense = async (
         description: updateData.description,
         paidById: updateData.paidById,
       },
-      include: { shares: true }, 
+      include: { shares: true },
     });
 
     return updatedExpense;

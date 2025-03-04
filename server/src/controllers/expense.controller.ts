@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import {
-  getTripMember,
+    getTripMember,
   getAllTripMembers,
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
@@ -307,13 +307,8 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
     const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
     const expenseId = Number(req.params.expenseId);
-    const {
-      amount,
-      category,
-      description,
-      paidByEmail,
-      splitAmongEmails,
-    } = req.body;
+    const { amount, category, description, paidByEmail, splitAmongEmails } =
+      req.body;
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized request' });
@@ -347,7 +342,9 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
 
       const paidByMember = await getTripMember(tripId, paidByUser.id);
       if (!paidByMember) {
-        throw new ForbiddenError('The person who paid must be a member of the trip.');
+        throw new ForbiddenError(
+          'The person who paid must be a member of the trip.',
+        );
       }
 
       paidByUserId = paidByUser.id;
@@ -355,17 +352,28 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
 
     // Process splitAmongEmails: convert emails to user IDs if provided.
     let splitAmongUserIds: string[] | undefined;
-    if (splitAmongEmails && Array.isArray(splitAmongEmails) && splitAmongEmails.length > 0) {
+    if (
+      splitAmongEmails &&
+      Array.isArray(splitAmongEmails) &&
+      splitAmongEmails.length > 0
+    ) {
       const userRecords = await getUsersByEmails(splitAmongEmails);
       splitAmongUserIds = userRecords.map((user) => user.id);
 
       if (splitAmongUserIds.length !== splitAmongEmails.length) {
-        throw new ForbiddenError('Some provided emails are not associated with valid users.');
+        throw new ForbiddenError(
+          'Some provided emails are not associated with valid users.',
+        );
       }
 
-      const validTripMembers = await getManyTripMembersFilteredByUserId(tripId, splitAmongUserIds);
+      const validTripMembers = await getManyTripMembersFilteredByUserId(
+        tripId,
+        splitAmongUserIds,
+      );
       if (validTripMembers.length !== splitAmongUserIds.length) {
-        throw new ForbiddenError('Some provided emails included in the split are not members of this trip.');
+        throw new ForbiddenError(
+          'Some provided emails included in the split are not members of this trip.',
+        );
       }
     }
 

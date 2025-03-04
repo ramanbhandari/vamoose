@@ -35,7 +35,6 @@ jest.mock('../../../config/prismaClient.ts', () => ({
   },
 }));
 
-
 describe('Expense API - Add Expense', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -694,10 +693,8 @@ describe('Expense API - Delete Multiple Expense', () => {
   });
 });
 
-
-
 describe('Expense API - Update Expense', () => {
-  let mockReq: Partial<Request>;
+  // let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let statusMock: jest.Mock;
   let jsonMock: jest.Mock;
@@ -725,9 +722,11 @@ describe('Expense API - Update Expense', () => {
   it('should update an expense successfully after adding it', async () => {
     const addReq = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock)
-      .mockResolvedValueOnce({ id: 'test-user-id' }) 
-      .mockResolvedValueOnce({ id: 'payer-id' });      
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'payer-id' });
+      .mockResolvedValueOnce({ id: 'test-user-id' })
+      .mockResolvedValueOnce({ id: 'payer-id' });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'payer-id',
+    });
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValueOnce([
       { userId: 'test-user-id' },
     ]);
@@ -748,8 +747,12 @@ describe('Expense API - Update Expense', () => {
       },
     });
     // For update, validate that the authenticated user exists.
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'test-user-id' });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'payer-id' });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'test-user-id',
+    });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'payer-id',
+    });
     const fakeUpdatedExpense = {
       id: 10,
       amount: 250,
@@ -757,9 +760,14 @@ describe('Expense API - Update Expense', () => {
       description: 'Updated taxi fare',
       paidById: 'test-user-id',
     };
-    (prisma.expense.update as jest.Mock).mockResolvedValueOnce(fakeUpdatedExpense);
+    (prisma.expense.update as jest.Mock).mockResolvedValueOnce(
+      fakeUpdatedExpense,
+    );
 
-    await updateExpenseHandler(updateReq as unknown as Request, mockRes as Response);
+    await updateExpenseHandler(
+      updateReq as unknown as Request,
+      mockRes as Response,
+    );
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -791,7 +799,10 @@ describe('Expense API - Update Expense', () => {
     '[$scenario] → should return $expectedStatus',
     async ({ overrides, expectedStatus, expectedMessage }) => {
       const req = setupRequest(overrides);
-      await updateExpenseHandler(req as unknown as Request, mockRes as Response);
+      await updateExpenseHandler(
+        req as unknown as Request,
+        mockRes as Response,
+      );
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
     },
@@ -809,7 +820,9 @@ describe('Expense API - Update Expense', () => {
 
   it('should return 404 if paidBy user is not found', async () => {
     const req = setupRequest();
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'test-user-id' });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'test-user-id',
+    });
     (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
     await updateExpenseHandler(req as unknown as Request, mockRes as Response);
     expect(statusMock).toHaveBeenCalledWith(404);
@@ -821,9 +834,11 @@ describe('Expense API - Update Expense', () => {
   it('should return 403 if paidBy user is not a member of the trip', async () => {
     const req = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock)
-      .mockResolvedValueOnce({ id: 'test-user-id' }) 
-      .mockResolvedValueOnce(null);                  
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'payer-id' });
+      .mockResolvedValueOnce({ id: 'test-user-id' })
+      .mockResolvedValueOnce(null);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+      id: 'payer-id',
+    });
     await updateExpenseHandler(req as unknown as Request, mockRes as Response);
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -833,7 +848,9 @@ describe('Expense API - Update Expense', () => {
 
   it('should return 500 on unexpected database error', async () => {
     const req = setupRequest();
-    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValueOnce(new Error('Database error'));
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValueOnce(
+      new Error('Database error'),
+    );
     await updateExpenseHandler(req as unknown as Request, mockRes as Response);
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({

@@ -48,7 +48,7 @@ export interface CreateExpenseInput {
   amount: number;
   category: string;
   description?: string | null;
-  paidById?: string
+  paidById?: string;
   splitAmongUserIds: string[];
 }
 

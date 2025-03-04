@@ -102,7 +102,7 @@ export const validateUpdateExpense = checkExact([
       'miscellaneous',
     ])
     .withMessage(
-      'Category must be one of: food, accommodation, transportation, activities, miscellaneous'
+      'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
     ),
 
   body('description')
@@ -125,4 +125,3 @@ export const validateUpdateExpense = checkExact([
     .isEmail()
     .withMessage('Each email in splitAmongEmails must be a valid email'),
 ]);
-
