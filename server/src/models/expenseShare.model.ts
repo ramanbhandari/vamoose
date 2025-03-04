@@ -69,32 +69,6 @@ export const fetchExpenseSharesForUser = async (
   }
 };
 
-/**
- * Fetch expense shares by their IDs for a specific trip
- */
-export const getExpenseSharesByIds = async (
-  shareIds: number[],
-  tripId: number,
-) => {
-  try {
-    return await prisma.expenseShare.findMany({
-      where: {
-        expenseId: { in: shareIds },
-        expense: { tripId },
-        settled: false,
-      },
-      include: {
-        expense: {
-          select: { paidById: true },
-        },
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching expense shares by IDs:', error);
-    throw new Error('Failed to fetch expense shares');
-  }
-};
-
 export const fetchExpenseShares = async (
   expensesToSettle: { expenseId: number; debtorUserId: string }[],
   tripId: number,
