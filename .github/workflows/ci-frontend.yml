@@ -20,7 +20,7 @@ jobs:
 
       - name: Run ESLint in Docker
         run: |
-          docker run --rm -w /app frontend-ci npm run lint
+          docker run --rm -w /app frontend-ci sh -c "NEXT_TELEMETRY_DISABLED=1 npm run lint"
 
       - name: Run Tests in Docker
         run: |
