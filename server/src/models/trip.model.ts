@@ -117,7 +117,6 @@ export const fetchTripsWithFilters = async (
 
 //Update a trip
 export const updateTrip = async (
-  userId: string,
   tripId: number,
   updateData: UpdateTripInput,
 ) => {
@@ -125,7 +124,6 @@ export const updateTrip = async (
     return await prisma.trip.update({
       where: {
         id: tripId,
-        createdBy: userId, // Ensure only the creator can update
       },
       data: {
         ...updateData,

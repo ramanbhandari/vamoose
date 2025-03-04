@@ -31,7 +31,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-import { formatISO } from "date-fns";
+import { addDays, formatISO, parseISO } from "date-fns";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
@@ -82,7 +82,8 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
   const user = useUserStore((state) => state.user);
 
   const userInfo = user ? getUserInfo(user) : null;
-  const isCreator = userInfo?.isCreator(tripData);
+  const isCreator = userInfo?.isCreator(tripData) ?? false;
+  const isAdmin = userInfo?.isAdmin(tripData) ?? false;
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -468,7 +469,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
           </Box>
         ) : (
           <>
-            {isCreator && (
+            {(isCreator || isAdmin) && (
               <Tooltip
                 title="Edit"
                 arrow
@@ -753,6 +754,11 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                           disablePast
+                          minDate={
+                            tripDetails.startDate
+                              ? addDays(parseISO(tripDetails.startDate), 1)
+                              : undefined
+                          }
                           value={parseLocalDate(tripDetails.endDate)}
                           onChange={handleEndDateChange}
                           sx={{
