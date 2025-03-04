@@ -20,12 +20,12 @@ jobs:
 
       - name: Run ESLint in Docker
         run: |
-          docker run --rm frontend-ci npm run lint
+          docker run --rm -w /app frontend-ci npm run lint
 
       - name: Run Tests in Docker
         run: |
-          docker run --rm frontend-ci npm test
+          docker run --rm -w /app frontend-ci npm test
 
       - name: Verify Build in Docker
         run: |
-          docker run --rm frontend-ci npm run build
+          docker run --rm -w /app frontend-ci npm run build
