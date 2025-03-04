@@ -60,7 +60,7 @@ export const fetchSingleTrip = async (
     const isAuthorized =
       allowNonMembersToView ||
       trip.createdBy === userId ||
-      trip.members.some((m) => m.userId === userId);
+      trip.members.some(m => m.userId === userId);
 
     if (!isAuthorized) {
       throw new ForbiddenError('You are not authorized to view this trip');
@@ -125,7 +125,6 @@ export const updateTrip = async (
     return await prisma.trip.update({
       where: {
         id: tripId,
-        createdBy: userId, // Ensure only the creator can update
       },
       data: {
         ...updateData,

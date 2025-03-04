@@ -34,7 +34,12 @@ router
     validationErrorHandler,
     fetchTripsWithFiltersHandler,
   )
-  .post('/', validateCreateTripInput, validationErrorHandler, createTripHandler)
+  .post(
+    '/', 
+    validateCreateTripInput, 
+    validationErrorHandler, 
+    createTripHandler
+  )
   .patch(
     '/:tripId',
     validateUpdateTripInput,
