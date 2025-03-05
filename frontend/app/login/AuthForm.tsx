@@ -21,6 +21,7 @@ import {
   Email,
   Visibility,
   VisibilityOff,
+  Person,
 } from "@mui/icons-material";
 import { getMessages } from "./messages";
 import { useUserStore } from "@/stores/user-store";
@@ -29,6 +30,7 @@ import { useNotificationStore } from "@/stores/notification-store";
 export default function AuthForm() {
   const { setNotification } = useNotificationStore();
   const { fetchUser } = useUserStore();
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -64,9 +66,21 @@ export default function AuthForm() {
         });
         if (error) throw error;
       } else {
+        if (!displayName.trim()) {
+          throw new Error(getMessages.displayNameError);
+        }
+        if (!email.trim()) throw new Error(getMessages.emailError);
         if (password !== confirmPassword)
           throw new Error(getMessages.passwordsUnmatchError);
-        const { error } = await supabase.auth.signUp({ email, password });
+
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { display_name: displayName },
+          },
+        });
+
         if (error) throw error;
       }
       // immediately feteh user so we keep the store updated
@@ -159,6 +173,22 @@ export default function AuthForm() {
           noValidate
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
+          {formType === "signup" && (
+            <TextField
+              label="Display Name"
+              type="text"
+              fullWidth
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <Person sx={{ mr: 1, color: "secondary.main" }} />
+                ),
+              }}
+            />
+          )}
+
           <TextField
             label="Email"
             type="email"

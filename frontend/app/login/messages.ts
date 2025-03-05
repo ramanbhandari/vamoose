@@ -15,4 +15,6 @@ export const getMessages = {
   passwordsUnmatchError: "Passwords don't match.",
   dontHaveAccount: "Don't have an account?",
   haveAnAccount: "Already have an account?",
+  emailError: "Valid Email is required.",
+  displayNameError: "Display Name is required.",
 };
