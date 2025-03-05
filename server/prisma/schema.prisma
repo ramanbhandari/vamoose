@@ -138,7 +138,7 @@ model Poll {
   expiresAt   DateTime
   createdById String
   createdAt   DateTime     @default(now())
-  completedAt DateTime?
+  completedAt DateTime? // Set when poll is completed, regardless of if its by manual completion or expiry
   winnerId    Int?         @unique // References the winning PollOption
   // Relations
   winner      PollOption?  @relation("PollWinner", fields: [winnerId], references: [id])
@@ -175,7 +175,6 @@ model Vote {
 
 enum PollStatus {
   ACTIVE
-  EXPIRED
   COMPLETED
 }
 

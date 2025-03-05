@@ -5,12 +5,14 @@ import {
   validateDeletePollInput,
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
+  validateMarkPollsAsCompletedInput,
 } from '@/middleware/poll.validators';
 import {
   createPollHandler,
   deletePollHandler,
   batchDeletePollsHandler,
   getAllPollsForTripHandler,
+  markPollsAsCompletedHandler,
 } from '@/controllers/poll.controller';
 
 const router = express.Router({ mergeParams: true });
@@ -23,6 +25,12 @@ router
     getAllPollsForTripHandler,
   )
   .post('/', validateCreatePollInput, validationErrorHandler, createPollHandler)
+  .patch(
+    '/complete',
+    validateMarkPollsAsCompletedInput,
+    validationErrorHandler,
+    markPollsAsCompletedHandler,
+  )
   .delete(
     '/:pollId',
     validateDeletePollInput,
