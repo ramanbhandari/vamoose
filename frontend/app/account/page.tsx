@@ -151,7 +151,7 @@ export default function AccountPage() {
           )}
 
           <Box>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
               Display Name
             </Typography>
             {isEditing ? (
@@ -166,14 +166,14 @@ export default function AccountPage() {
                 }}
               />
             ) : (
-              <Typography variant="body1">
+              <Typography variant="h5">
                 {user?.user_metadata?.display_name || "N/A"}
               </Typography>
             )}
           </Box>
 
           <Box>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
               Email
             </Typography>
             {isEditing ? (
@@ -189,7 +189,7 @@ export default function AccountPage() {
                 }}
               />
             ) : (
-              <Typography variant="body1">{user?.email || "N/A"}</Typography>
+              <Typography variant="h5">{user?.email || "N/A"}</Typography>
             )}
           </Box>
 
