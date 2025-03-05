@@ -25,9 +25,11 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import { ExpandMore } from "@mui/icons-material";
-import { MemberSummary, ExpenseSummaryItem } from "@/stores/expense-share-store";
+import { MemberSummary, ExpenseSummaryItem, useExpenseShareStore } from "@/stores/expense-share-store";
+import { useUserStore } from "@/stores/user-store";
+import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the ConfirmationDialog component
 
 // Category colors
 const categories = [
@@ -48,6 +50,7 @@ interface MemberOwedCardProps {
   isExpanded: boolean;
   onExpand: () => void;
   isLastCard: boolean;
+  tripId: number; 
 }
 
 const ExpandMoreButton = styled(IconButton, {
@@ -59,14 +62,21 @@ const ExpandMoreButton = styled(IconButton, {
   }),
 }));
 
-export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, isLastCard }: MemberOwedCardProps) {
+export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, isLastCard, tripId }: MemberOwedCardProps) {
   const [filterEmail, setFilterEmail] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedCreditor, setSelectedCreditor] = useState<string | null>(null); 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [selectedCreditor, setSelectedCreditor] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0); // Track active tab (0: Outstanding, 1: Settled)
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
+  const [creditorToSettle, setCreditorToSettle] = useState<string | null>(null); 
   const itemsPerPage = 3; // Number of items per page
-  const cardRef = useRef<HTMLDivElement>(null); 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { user } = useUserStore();
+  const { settleExpenses } = useExpenseShareStore();
+  const theme = useTheme();
+
+  const canSettle = (memberSummary.outstanding.length > 0 && memberSummary.outstanding[0].debtorId === user?.id);
 
   // Filter outstanding amounts by creditor email
   const filteredOutstanding = memberSummary.outstanding.filter((item) =>
@@ -118,7 +128,6 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
     setPage(value);
   };
 
-
   const scrollToCard = (ref: RefObject<HTMLElement | null>) => {
     if (ref.current) {
       const cardTop = ref.current.getBoundingClientRect().top;
@@ -155,24 +164,66 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
     ? memberSummary.outstanding.length > 0
     : memberSummary.settled.length > 0;
 
+  // Handle settling expenses
+  const handleSettleExpenses = async (creditor: string) => {
+    if (!canSettle) {
+      return;
+    }
+    try {
+      const expensesToSettle = groupedOutstanding[creditor].items.map((item) => ({
+        expenseId: item.expenseShareId,
+        debtorUserId: item.debtorId,
+      }));
+
+      await settleExpenses(
+        tripId,
+        memberSummary.debtorEmail,
+        expensesToSettle
+      );
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Handle opening the confirmation dialog
+  const handleOpenConfirmationDialog = (creditor: string) => {
+    setCreditorToSettle(creditor);
+    setIsConfirmationDialogOpen(true);
+  };
+
+  // Handle closing the confirmation dialog
+  const handleCloseConfirmationDialog = () => {
+    setIsConfirmationDialogOpen(false);
+    setCreditorToSettle(null);
+  };
+
+  // Handle confirming the settlement
+  const handleConfirmSettlement = () => {
+    if (creditorToSettle) {
+      handleSettleExpenses(creditorToSettle);
+    }
+    handleCloseConfirmationDialog();
+  };
+
   return (
     <>
       <Card
         sx={{
           width: "100%",
           margin: "0 auto",
-          boxShadow: 3,
+          boxShadow: theme.shadows[3],
           mb: isLastCard ? 2 : 0,
-          borderRadius: 2 ,
+          borderRadius: 2,
         }}
       >
         <CardContent
           ref={cardRef}
           onClick={onExpand}
           sx={{
-            cursor: "pointer"
+            cursor: "pointer",
+            boxShadow: theme.shadows[3],
           }}
-          
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             {/* Member Avatar */}
@@ -204,17 +255,17 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
 
         {/* Collapsible Section */}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-          <CardContent sx={{ pt: 0 }}>
+          <CardContent sx={{ pt: 0, mt:1 }}>
             {/* Grid container for Tabs and Filter */}
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
               <Grid item xs={12} sm={8}>
-                <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"  
+                <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"
                   scrollButtons={false}>
                   <Tab label="Outstanding" />
                   <Tab label="Settled" />
                 </Tabs>
               </Grid>
-              <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' } , pr: 3 }}>
+              <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' }, pr: 3 }}>
                 {hasTransactions && (
                   <FormControl fullWidth size="small" sx={{ maxWidth: 200 }}>
                     <InputLabel id="filter-by-creditor-label">Filter by Creditor</InputLabel>
@@ -281,7 +332,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                           {/* Creditor Summary */}
                           <ListItem>
                             <Grid container spacing={2} alignItems="center">
-                              <Grid item>
+                              <Grid item >
                                 <Avatar sx={{ bgcolor: "secondary.main", color: "white" }}>
                                   {creditor[0].toUpperCase()}
                                 </Avatar>
@@ -294,7 +345,16 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                                   Total Amount {activeTab === 0 ? "Owed" : "Settled"}: ${total.toFixed(2)}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' } }}>
+                              <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' }, gap: 1 }}>
+                                {activeTab === 0 && canSettle && (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => handleOpenConfirmationDialog(creditor)}
+                                  >
+                                    Settle
+                                  </Button>
+                                )}
                                 <Button
                                   variant="outlined"
                                   size="small"
@@ -329,6 +389,15 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
         </Collapse>
       </Card>
 
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={isConfirmationDialogOpen}
+        onClose={handleCloseConfirmationDialog}
+        onConfirm={handleConfirmSettlement}
+        title="Confirm Settlement"
+        message="Are you sure you want to settle these expenses?"
+      />
+
       {/* Modal for Transaction Details */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>
         <Box
@@ -338,7 +407,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
             left: "50%",
             transform: "translate(-50%, -50%)",
             maxWidth: 600,
-            maxHeight: "70vh", 
+            maxHeight: "70vh",
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
@@ -398,4 +467,4 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
       </Modal>
     </>
   );
-};
+}
