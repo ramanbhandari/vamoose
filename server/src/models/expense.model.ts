@@ -211,35 +211,29 @@ export const updateExpense = async (
       throw new NotFoundError('Expense not found');
     }
 
+    let expenseSharesUpdate = undefined;
     if (updateData.splitAmongUserIds) {
-      if (updateData.amount === undefined) {
-        throw new Error('Amount must be provided when updating shares.');
-      }
       const shareAmount = parseFloat(
-        (updateData.amount / updateData.splitAmongUserIds.length).toFixed(2),
+        (existingExpense.amount / updateData.splitAmongUserIds.length).toFixed(2)
       );
-
-      await prisma.expenseShare.deleteMany({
-        where: { expenseId: expenseId },
-      });
-
-      await prisma.expenseShare.createMany({
-        data: updateData.splitAmongUserIds.map((userId) => ({
-          expenseId: expenseId,
+      expenseSharesUpdate = {
+        deleteMany: {},
+        create: updateData.splitAmongUserIds.map((userId) => ({
           userId,
           share: shareAmount,
         })),
-      });
+      };
     }
 
-    // Update the expense
     const updatedExpense = await prisma.expense.update({
       where: { id: expenseId, tripId: tripId },
       data: {
-        amount: updateData.amount,
+        // If a new amount is provided, use it; otherwise keep the existing amount.
+        amount: updateData.amount ?? existingExpense.amount,
         category: updateData.category,
         description: updateData.description,
         paidById: updateData.paidById,
+        shares: expenseSharesUpdate,
       },
       include: { shares: true },
     });
