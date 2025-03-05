@@ -36,15 +36,6 @@ export const createPollHandler = async (req: Request, res: Response) => {
       return;
     }
 
-    // Only creators and admins can create polls
-    const allowedRoles = ['creator', 'admin'];
-    if (!allowedRoles.includes(requestingMember.role)) {
-      res.status(403).json({
-        error: 'Only creators and admins can create polls',
-      });
-      return;
-    }
-
     // Parse expiration date with Luxon
     const expiresAtUtc = DateTime.fromISO(expiresAt).toUTC();
 
