@@ -283,7 +283,7 @@ describe('Get All Polls For Trip Controller', () => {
     mockReq = setupRequest();
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
-    let mockPollList = [
+    const mockPollList = [
       {
         id: 1,
         question: 'Where to go?',
@@ -314,7 +314,7 @@ describe('Get All Polls For Trip Controller', () => {
         ],
       },
     ];
-    let mockResponse = [
+    const mockResponse = [
       {
         id: 1,
         question: 'Where to go?',
