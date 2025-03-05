@@ -1,4 +1,7 @@
-import { castVoteHandler } from '@/controllers/pollVote.controller.js';
+import {
+  castVoteHandler,
+  deleteVoteHandler,
+} from '@/controllers/pollVote.controller.js';
 import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 import { DateTime } from 'luxon';
@@ -17,6 +20,7 @@ jest.mock('@/config/prismaClient.js', () => ({
     },
     vote: {
       upsert: jest.fn(),
+      delete: jest.fn(),
     },
   },
 }));
@@ -202,4 +206,131 @@ describe('Cast Vote Controller', () => {
       error: 'An unexpected database error occurred.',
     });
   });
+});
+
+describe('Delete Vote Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'voter-id',
+    params: { tripId: '1', pollId: '10', pollOptionId: '100' },
+    ...overrides,
+  });
+
+  it('should delete a vote successfully', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.poll.findUnique as jest.Mock).mockResolvedValue({
+      id: 10,
+      tripId: 1,
+      status: 'ACTIVE',
+      expiresAt: DateTime.now().plus({ days: 1 }).toJSDate(),
+    });
+    (prisma.vote.delete as jest.Mock).mockResolvedValue({
+      id: 1,
+      pollOptionId: 10,
+      userId: 'voter-id',
+      votedAt: new Date(),
+    });
+
+    await deleteVoteHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Vote deleted successfully',
+      deletedVote: {
+        id: 1,
+        pollOptionId: 10,
+        userId: 'voter-id',
+        votedAt: expect.any(Date),
+      },
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'Unauthorized Request',
+      userId: undefined,
+      expectedStatus: 401,
+      tripMember: undefined,
+      poll: undefined,
+      status: undefined,
+      expectedMessage: { error: 'Unauthorized Request' },
+    },
+    {
+      userId: 1,
+      scenario: 'Not a member of the trip',
+      tripMember: false,
+      expectedStatus: 403,
+      poll: undefined,
+      status: undefined,
+      expectedMessage: { error: 'You are not a member of this trip' },
+    },
+    {
+      userId: 1,
+      scenario: 'Poll not found',
+      poll: null,
+      tripMember: true,
+      status: undefined,
+      expectedStatus: 404,
+      expectedMessage: { error: 'Poll not found in this trip' },
+    },
+    {
+      scenario: 'Poll is completed',
+      userId: 1,
+      tripMember: true,
+      poll: {
+        id: 10,
+        tripId: 1,
+        status: 'COMPLETED',
+        expiresAt: DateTime.now().plus({ days: 1 }).toJSDate(),
+      },
+      expectedStatus: 403,
+      expectedMessage: {
+        error: 'You cannot delete a vote from a completed poll',
+      },
+    },
+    {
+      scenario: 'Vote not found',
+      userId: 1,
+      tripMember: true,
+      poll: {
+        id: 10,
+        tripId: 1,
+        status: 'ACTIVE',
+        expiresAt: DateTime.now().plus({ days: 1 }).toJSDate(),
+      },
+      deleteCount: 0,
+      expectedStatus: 404,
+      expectedMessage: { error: 'Vote not found or already deleted' },
+    },
+  ])(
+    'should handle $scenario',
+    async ({ userId, tripMember, poll, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest({ userId });
+
+      (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(tripMember);
+      (prisma.poll.findUnique as jest.Mock).mockResolvedValue(poll);
+      (prisma.vote.delete as jest.Mock).mockResolvedValue(null);
+
+      await deleteVoteHandler(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith(expectedMessage);
+    },
+  );
 });

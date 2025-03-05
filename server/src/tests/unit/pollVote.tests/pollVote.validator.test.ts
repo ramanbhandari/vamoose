@@ -1,8 +1,11 @@
-import { validateVoteInput } from '@/middleware/pollVote.validators.js';
+import {
+  validateCastVoteInput,
+  validateDeleteVoteInput,
+} from '@/middleware/pollVote.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 
-describe('Vote Validator', () => {
+describe('Cast Vote Validator', () => {
   let mockReq: Partial<Request>;
 
   const runValidation = async (req: Partial<Request>, validation: any) => {
@@ -16,7 +19,7 @@ describe('Vote Validator', () => {
       body: { pollOptionId: 1 },
     };
 
-    const result = await runValidation(mockReq, validateVoteInput);
+    const result = await runValidation(mockReq, validateCastVoteInput);
     expect(result.isEmpty()).toBe(true);
   });
 
@@ -44,7 +47,7 @@ describe('Vote Validator', () => {
     async ({ params, body, expectedError }) => {
       mockReq = { params, body };
 
-      const result = await runValidation(mockReq, validateVoteInput);
+      const result = await runValidation(mockReq, validateCastVoteInput);
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
@@ -53,4 +56,37 @@ describe('Vote Validator', () => {
       );
     },
   );
+});
+
+describe('Delete Vote Validator', () => {
+  let mockReq: Partial<Request>;
+
+  const runValidation = async (req: Partial<Request>, validation: any) => {
+    await validation.run(req);
+    return validationResult(req);
+  };
+
+  it('should pass validation for valid input', async () => {
+    mockReq = {
+      params: { tripId: '1', pollId: '10' },
+    };
+
+    const result = await runValidation(mockReq, validateDeleteVoteInput);
+
+    expect(result.isEmpty()).toBe(true);
+  });
+
+  it.each([
+    [{ tripId: 'abc' }, 'Trip ID must be a valid positive integer'],
+    [{ pollId: '-1' }, 'Poll ID must be a valid positive integer'],
+  ])('should fail for invalid input: %p', async (params, expectedError) => {
+    mockReq = { params };
+
+    const result = await runValidation(mockReq, validateDeleteVoteInput);
+
+    expect(result.isEmpty()).toBe(false);
+    expect(result.array()).toEqual(
+      expect.arrayContaining([expect.objectContaining({ msg: expectedError })]),
+    );
+  });
 });
