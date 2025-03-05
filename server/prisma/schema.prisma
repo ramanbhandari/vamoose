@@ -25,6 +25,7 @@ model User {
   avatarUrl    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  // Relations
   expenses     Expense[]
   ExpenseShare ExpenseShare[]
   messages     Message[]
@@ -35,6 +36,7 @@ model User {
   tripInvites  TripInvitee[]  @relation("CreatorRelation")
   invitedTrips TripInvitee[]  @relation("InvitedUserRelation")
   tripMembers  TripMember[]
+  pollVotes    Vote[]
 }
 
 model Trip {
@@ -49,6 +51,7 @@ model Trip {
   updatedAt   DateTime      @updatedAt
   createdBy   String
   imageUrl    String?
+  // Relations
   expenses    Expense[]
   itineraries Itinerary[]
   messages    Message[]
@@ -64,6 +67,7 @@ model TripMember {
   tripId Int
   userId String
   role   String @default("member")
+  // Relations
   trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -78,6 +82,7 @@ model TripInvitee {
   expiresAt     DateTime?
   invitedUserId String?
   inviteToken   String    @id @default(uuid())
+  // Relations
   creator       User      @relation("CreatorRelation", fields: [createdBy], references: [id], onDelete: Cascade)
   invitedUser   User?     @relation("InvitedUserRelation", fields: [invitedUserId], references: [id], onDelete: Cascade)
   trip          Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
@@ -94,6 +99,7 @@ model Stay {
   checkOutDate DateTime
   bookedById   String?
   url          String?
+  // Relations
   bookedBy     User?    @relation(fields: [bookedById], references: [id])
   trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
@@ -106,6 +112,7 @@ model Expense {
   createdAt   DateTime       @default(now())
   tripId      Int
   paidById    String?
+  // Relations
   paidBy      User?          @relation(fields: [paidById], references: [id])
   trip        Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
   shares      ExpenseShare[]
@@ -116,12 +123,63 @@ model ExpenseShare {
   userId    String
   share     Float
   settled   Boolean @default(false)
+  // Relations
   expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([expenseId, userId])
 }
 
+model Poll {
+  id          Int          @id @default(autoincrement())
+  tripId      Int
+  question    String
+  status      PollStatus   @default(ACTIVE)
+  expiresAt   DateTime
+  createdById String
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  winnerId    Int?         @unique // References the winning PollOption
+  // Relations
+  winner      PollOption?  @relation("PollWinner", fields: [winnerId], references: [id])
+  options     PollOption[]
+  votes       Vote[]
+  createdBy   User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  trip        Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model PollOption {
+  id          Int    @id @default(autoincrement())
+  pollId      Int
+  option      String
+  votes       Vote[]
+  poll        Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  winningPoll Poll?  @relation("PollWinner")
+
+  @@unique([pollId, option]) // Prevent duplicate options within the same poll
+}
+
+model Vote {
+  id           Int        @id @default(autoincrement())
+  pollOptionId Int
+  userId       String
+  votedAt      DateTime   @default(now())
+  // Relations
+  option       PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Poll         Poll       @relation(fields: [pollId], references: [id])
+  pollId       Int
+
+  @@unique([pollId, userId]) // Ensure a user can only vote once per poll
+}
+
+enum PollStatus {
+  ACTIVE
+  EXPIRED
+  COMPLETED
+}
+
+//Unimplemented
 model Itinerary {
   id          Int      @id @default(autoincrement())
   tripId      Int
@@ -142,17 +200,6 @@ model Message {
   createdAt DateTime @default(now())
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
   trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-}
-
-model Poll {
-  id          Int      @id @default(autoincrement())
-  question    String
-  options     Json
-  tripId      Int
-  createdById String?
-  createdAt   DateTime @default(now())
-  createdBy   User?    @relation(fields: [createdById], references: [id])
-  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
 
 model PackingItem {
