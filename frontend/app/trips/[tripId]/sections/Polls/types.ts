@@ -20,8 +20,3 @@ export interface PollsProps {
   tripId: number;
   tripName: string;
 }
-
-export interface PollFilter {
-  status: "all" | "active" | "expired";
-  createdBy: string;
-}

@@ -321,7 +321,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                 No Active Polls Yet!
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Be the first to start a poll and get the group's opinion!
+                Be the first to start a poll and get the group&apos;s opinion!
               </Typography>
             </Paper>
           </Grid>
