@@ -35,9 +35,9 @@ export default function PollList({ polls, onVote }: PollListProps) {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "active":
+      case "ACTIVE":
         return <Whatshot sx={{ color: theme.palette.success.main }} />;
-      case "expired":
+      case "COMPLETED":
         return <HourglassEmpty sx={{ color: theme.palette.error.main }} />;
       default:
         return <Public sx={{ color: theme.palette.info.main }} />;
@@ -71,7 +71,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                       top: 16,
                       right: -30,
                       backgroundColor:
-                        poll.status === "active"
+                        poll.status === "ACTIVE"
                           ? theme.palette.success.main
                           : theme.palette.primary.main,
                       transform: "rotate(45deg)",
@@ -120,33 +120,32 @@ export default function PollList({ polls, onVote }: PollListProps) {
                       sx={{ mr: 1, color: theme.palette.text.secondary }}
                     />
                     <Typography variant="caption">
-                      Created By: {poll.createdBy}
+                      Created By: {poll.createdBy.fullName}
                     </Typography>
                   </Box>
 
                   <Box sx={{ mt: 2 }}>
                     {poll.options.map((option) => {
                       const totalVotes = poll.options.reduce(
-                        (sum, o) => sum + o.votes,
+                        (sum, o) => sum + o.voteCount,
                         0
                       );
-                      const percentage =
-                        totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
+                      const percentage = totalVotes > 0 ? option.percentage : 0;
 
                       return (
                         <Box
                           key={option.id}
                           onClick={() =>
-                            poll.status === "active" &&
+                            poll.status === "ACTIVE" &&
                             onVote(poll.id, option.id)
                           }
                           sx={{
                             mb: 2,
                             cursor:
-                              poll.status === "active" ? "pointer" : "default",
+                              poll.status === "ACTIVE" ? "pointer" : "default",
                             transition: "transform 0.2s",
                             position: "relative",
-                            ...(poll.status === "expired" &&
+                            ...(poll.status === "COMPLETED" &&
                             poll.winner?.id === option.id
                               ? {
                                   border: `2px solid ${theme.palette.success.main}`,
@@ -158,7 +157,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                                 }
                               : {}),
                             "&:hover":
-                              poll.status === "active"
+                              poll.status === "ACTIVE"
                                 ? {
                                     transform: "scale(1.02)",
                                     "& .progressBar": {
@@ -169,7 +168,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                           }}
                         >
                           {/* winner crown badge on the poll option that won*/}
-                          {poll.status === "expired" &&
+                          {poll.status === "COMPLETED" &&
                             poll.winner?.id === option.id && (
                               <EmojiEvents
                                 sx={{
@@ -196,7 +195,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                               sx={{
                                 fontWeight: 600,
                                 mr: 1,
-                                ...(poll.status === "expired" &&
+                                ...(poll.status === "COMPLETED" &&
                                 poll.winner?.id === option.id
                                   ? {
                                       color: theme.palette.success.dark,
@@ -204,8 +203,8 @@ export default function PollList({ polls, onVote }: PollListProps) {
                                   : {}),
                               }}
                             >
-                              {option.text}
-                              {poll.status === "expired" &&
+                              {option.option}
+                              {poll.status === "COMPLETED" &&
                                 poll.winner?.id === option.id && (
                                   <CheckCircle
                                     sx={{
@@ -218,12 +217,12 @@ export default function PollList({ polls, onVote }: PollListProps) {
                                 )}
                             </Typography>
                             <Chip
-                              label={`${option.votes} votes`}
+                              label={`${option.voteCount} votes`}
                               size="small"
                               icon={<HowToVote fontSize="small" />}
                               sx={{
                                 ml: "auto",
-                                ...(poll.status === "expired" &&
+                                ...(poll.status === "COMPLETED" &&
                                 poll.winner?.id === option.id
                                   ? {
                                       bgcolor: theme.palette.success.main,
@@ -247,7 +246,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                               "& .MuiLinearProgress-bar": {
                                 borderRadius: 5,
                                 bgcolor:
-                                  poll.status === "active"
+                                  poll.status === "ACTIVE"
                                     ? theme.palette.primary.main
                                     : poll.winner?.id === option.id
                                       ? theme.palette.success.main
@@ -260,7 +259,7 @@ export default function PollList({ polls, onVote }: PollListProps) {
                     })}
                   </Box>
 
-                  {poll.status === "expired" && poll.winner && (
+                  {poll.status === "COMPLETED" && poll.winner && (
                     <Box
                       sx={{
                         mt: 2,
@@ -279,19 +278,11 @@ export default function PollList({ polls, onVote }: PollListProps) {
                       />
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {poll.winner.text} won!
+                          {poll.winner.option} won!
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {poll.winner.votes} votes •
-                          {(
-                            (poll.winner.votes /
-                              poll.options.reduce(
-                                (sum, o) => sum + o.votes,
-                                0
-                              )) *
-                            100
-                          ).toFixed(1)}
-                          %
+                          {poll.winner.voteCount} votes •
+                          {poll.winner.percentage}%
                         </Typography>
                       </Box>
                     </Box>
