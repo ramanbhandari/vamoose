@@ -2,32 +2,32 @@ import apiClient from "@/utils/apiClient";
 import { create } from "zustand";
 import { AxiosError } from "axios";
 
-interface MemberDetails {
+export interface MemberDetails {
   email: string;
 }
 
-interface Member {
+export interface Member {
   tripId: number;
   userId: string;
   role: string;
   user: MemberDetails;
 }
 
-interface ExpenseBreakdown {
+export interface ExpenseBreakdown {
   category: string;
   total: number;
 }
 
-interface ExpensesSummary {
+export interface ExpensesSummary {
   breakdown: ExpenseBreakdown[];
   totalExpenses: number;
 }
 
-interface PaidBy {
+export interface PaidBy {
   email: string;
 }
 
-interface Expense {
+export interface Expense {
   id: number;
   amount: number;
   category: string;
@@ -36,7 +36,7 @@ interface Expense {
   paidBy: PaidBy;
 }
 
-interface TripData {
+export interface TripData {
   id: number;
   name: string;
   description: string;
@@ -173,4 +173,4 @@ export const useTripStore = create<TripState>((set) => ({
   resetError: () => set({ error: null }),
 }));
 
-export type { TripData };
+// export type { TripData };
