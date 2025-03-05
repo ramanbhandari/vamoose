@@ -1,7 +1,7 @@
 import { castVoteHandler } from '@/controllers/pollVote.controller.js';
 import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
-import { DateTime, Zone } from 'luxon';
+import { DateTime } from 'luxon';
 
 jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
