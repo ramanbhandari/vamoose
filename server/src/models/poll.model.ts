@@ -78,9 +78,14 @@ export const deletePollsByIds = async (
     ...(isAdmin || isCreator ? {} : { createdById: userId }), // Only delete owned polls if not an admin/creator
   };
 
-  const result = await prisma.poll.deleteMany({
-    where: whereClause,
-  });
+  try {
+    const result = await prisma.poll.deleteMany({
+      where: whereClause,
+    });
 
-  return result.count;
+    return result.count;
+  } catch (error) {
+    console.error('Error deleting poll:', error);
+    throw handlePrismaError(error);
+  }
 };
