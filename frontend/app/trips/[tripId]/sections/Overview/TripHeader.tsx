@@ -48,6 +48,7 @@ import { GradientHeader, HeaderGrid } from "./styled";
 import { formatDate, parseLocalDate } from "@/utils/dateFormatter";
 import { motion } from "framer-motion";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
+import { DateTime } from "luxon";
 
 interface TripHeaderProps {
   tripData: TripData;
@@ -84,6 +85,11 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
   const userInfo = user ? getUserInfo(user) : null;
   const isCreator = userInfo?.isCreator(tripData) ?? false;
   const isAdmin = userInfo?.isAdmin(tripData) ?? false;
+
+  const startDate = DateTime.fromISO(tripData.startDate).toUTC();
+  const isUpcoming = startDate > DateTime.now().toUTC();
+  
+  const isEditable = (isCreator || isAdmin) && isUpcoming;
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -469,7 +475,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
           </Box>
         ) : (
           <>
-            {(isCreator || isAdmin) && (
+            {(isEditable) && (
               <Tooltip
                 title="Edit"
                 arrow
