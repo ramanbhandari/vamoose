@@ -9,13 +9,17 @@ import {
   Stack,
   TextField,
   Typography,
+  Avatar,
+  Divider,
 } from "@mui/material";
-import { Email, Person } from "@mui/icons-material";
+import { Email, Person, LockReset, Edit, ArrowBack } from "@mui/icons-material";
 import { supabase } from "@/utils/supabase/client";
 import { useUserStore } from "@/stores/user-store";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
+  const router = useRouter();
   const { user, fetchUser } = useUserStore();
   const { setNotification } = useNotificationStore();
   const [isEditing, setIsEditing] = useState(false);
@@ -117,6 +121,15 @@ export default function AccountPage() {
     }
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return "??";
+    const names = name.split(" ");
+    return names
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
   return (
     <Container
       maxWidth="sm"
@@ -137,108 +150,181 @@ export default function AccountPage() {
               ? "0 4px 20px rgba(255, 255, 255, 0.3)"
               : "0 4px 20px rgba(0, 0, 0, 0.3)",
           width: "100%",
+          transform: "translateY(-5%)",
+          position: "relative",
+          overflow: "hidden",
+          "&:before": {
+            content: '""',
+            position: "absolute",
+            top: -50,
+            right: -50,
+            width: 100,
+            height: 100,
+            bgcolor: "primary.main",
+            borderRadius: "50%",
+            opacity: 0.4,
+          },
+          "&:after": {
+            content: '""',
+            position: "absolute",
+            bottom: -80,
+            left: -30,
+            width: 150,
+            height: 150,
+            bgcolor: "secondary.main",
+            borderRadius: "50%",
+            opacity: 0.4,
+          },
         }}
       >
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => router.push("/dashboard")}
+          sx={{
+            position: "absolute",
+            top: 16,
+            left: 16,
+            color: "text.secondary",
+            "&:hover": {
+              color: "primary.main",
+              bgcolor: "action.hover",
+            },
+          }}
+        >
+          Dashboard
+        </Button>
         <Stack spacing={3}>
-          <Typography variant="h4" textAlign="center">
-            Account Settings
-          </Typography>
+          <Stack alignItems="center" spacing={2}>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                bgcolor: "primary.main",
+                fontSize: "2rem",
+                mb: 2,
+                boxShadow: 3,
+              }}
+            >
+              {getInitials(user?.user_metadata?.display_name || "")}
+            </Avatar>
+            <Typography variant="h4" textAlign="center" fontWeight="bold">
+              Account Settings
+            </Typography>
+            <Divider sx={{ width: "60%", my: 2 }} />
+          </Stack>
 
           {error && (
-            <Typography color="error" textAlign="center">
+            <Typography color="error" textAlign="center" variant="body2">
               {error}
             </Typography>
           )}
 
-          <Box>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-              Display Name
-            </Typography>
-            {isEditing ? (
-              <TextField
-                fullWidth
-                value={newDisplayName}
-                onChange={(e) => setNewDisplayName(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <Person sx={{ mr: 1, color: "secondary.main" }} />
-                  ),
-                }}
-              />
-            ) : (
-              <Typography variant="h5">
-                {user?.user_metadata?.display_name || "N/A"}
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              bgcolor: "action.hover",
+              position: "relative",
+            }}
+          >
+            <Box>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                <Person sx={{ verticalAlign: "middle", mr: 1 }} />
+                Display Name
               </Typography>
-            )}
+              {isEditing ? (
+                <TextField
+                  fullWidth
+                  value={newDisplayName}
+                  onChange={(e) => setNewDisplayName(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                />
+              ) : (
+                <Typography variant="body1" sx={{ ml: 1.5 }}>
+                  {user?.user_metadata?.display_name || "N/A"}
+                </Typography>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                <Email sx={{ verticalAlign: "middle", mr: 1 }} />
+                Email Address
+              </Typography>
+              {isEditing ? (
+                <TextField
+                  fullWidth
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                />
+              ) : (
+                <Typography variant="body1" sx={{ ml: 1.5 }}>
+                  {user?.email || "N/A"}
+                </Typography>
+              )}
+            </Box>
           </Box>
 
-          <Box>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-              Email
-            </Typography>
+          <Stack spacing={2} sx={{ mt: 3 }}>
             {isEditing ? (
-              <TextField
-                fullWidth
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <Email sx={{ mr: 1, color: "secondary.main" }} />
-                  ),
-                }}
-              />
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  onClick={handleSave}
+                  disabled={
+                    loading ||
+                    (newDisplayName === originalDisplayName &&
+                      newEmail === originalEmail)
+                  }
+                  sx={{ flex: 1, py: 1.5 }}
+                  startIcon={
+                    loading ? (
+                      <CircularProgress size={20} sx={{ color: "white" }} />
+                    ) : (
+                      <Person />
+                    )
+                  }
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleCancel}
+                  disabled={loading}
+                  sx={{ flex: 1, py: 1.5 }}
+                >
+                  Cancel
+                </Button>
+              </Stack>
             ) : (
-              <Typography variant="h5">{user?.email || "N/A"}</Typography>
-            )}
-          </Box>
-
-          {isEditing ? (
-            <Stack direction="row" spacing={2}>
               <Button
                 variant="contained"
-                onClick={handleSave}
-                disabled={
-                  loading ||
-                  (newDisplayName === originalDisplayName &&
-                    newEmail === originalEmail)
-                }
-                sx={{ flex: 1 }}
+                onClick={handleEdit}
+                sx={{ py: 1.5 }}
+                startIcon={<Edit />}
               >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: "white" }} />
-                ) : (
-                  "Save Changes"
-                )}
+                Edit Profile
               </Button>
-              <Button
-                variant="outlined"
-                onClick={handleCancel}
-                disabled={loading}
-                sx={{ flex: 1 }}
-              >
-                Cancel
-              </Button>
-            </Stack>
-          ) : (
-            <Button variant="contained" onClick={handleEdit} sx={{ py: 1.5 }}>
-              Edit Profile
-            </Button>
-          )}
+            )}
 
-          <Box>
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              Password
-            </Typography>
+            <Divider sx={{ my: 2 }} />
+
             <Button
               variant="outlined"
               onClick={handlePasswordReset}
               disabled={loading}
               fullWidth
+              sx={{ py: 1.5 }}
+              startIcon={<LockReset />}
+              color="secondary"
             >
               Send Password Reset Email
             </Button>
-          </Box>
+          </Stack>
         </Stack>
       </Box>
     </Container>
