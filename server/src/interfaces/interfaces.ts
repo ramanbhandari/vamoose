@@ -61,3 +61,9 @@ export interface DeletePollPermissions {
   isCreator: boolean;
   userId: string;
 }
+
+export interface CastVoteInput {
+  pollId: number;
+  pollOptionId: number;
+  userId: string;
+}

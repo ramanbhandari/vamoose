@@ -152,6 +152,7 @@ model PollOption {
   id          Int    @id @default(autoincrement())
   pollId      Int
   option      String
+  //Relations
   votes       Vote[]
   poll        Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
   winningPoll Poll?  @relation("PollWinner")
@@ -160,15 +161,16 @@ model PollOption {
 }
 
 model Vote {
-  id           Int        @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   pollOptionId Int
   userId       String
-  votedAt      DateTime   @default(now())
-  // Relations
-  option       PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Poll         Poll       @relation(fields: [pollId], references: [id])
+  votedAt      DateTime @default(now())
   pollId       Int
+
+  // Relations
+  option PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Poll   Poll       @relation(fields: [pollId], references: [id])
 
   @@unique([pollId, userId]) // Ensure a user can only vote once per poll
 }

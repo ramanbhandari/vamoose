@@ -7,7 +7,7 @@ import {
 import prisma from '@/config/prismaClient.js';
 
 // Mock the specific Prisma client methods
-jest.mock('../../../config/prismaClient', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {

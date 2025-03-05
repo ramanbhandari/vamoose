@@ -6,14 +6,16 @@ import {
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
   validateMarkPollsAsCompletedInput,
-} from '@/middleware/poll.validators';
+} from '@/middleware/poll.validators.js';
+import { validateVoteInput } from '@/middleware/pollVote.validators.js';
 import {
   createPollHandler,
   deletePollHandler,
   batchDeletePollsHandler,
   getAllPollsForTripHandler,
   markPollsAsCompletedHandler,
-} from '@/controllers/poll.controller';
+} from '@/controllers/poll.controller.js';
+import { castVoteHandler } from '@/controllers/pollVote.controller.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -25,6 +27,12 @@ router
     getAllPollsForTripHandler,
   )
   .post('/', validateCreatePollInput, validationErrorHandler, createPollHandler)
+  .post(
+    '/:pollId/vote',
+    validateVoteInput,
+    validationErrorHandler,
+    castVoteHandler,
+  )
   .patch(
     '/complete',
     validateMarkPollsAsCompletedInput,
