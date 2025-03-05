@@ -1,4 +1,10 @@
-import { validateCreatePollInput } from '@/middleware/poll.validators.js';
+import {
+  validateCreatePollInput,
+  validateDeletePollInput,
+  validateBatchDeletePollsInput,
+  validateGetAllPollsForTripInput,
+  validateMarkPollsAsCompletedInput,
+} from '@/middleware/poll.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 
@@ -79,4 +85,226 @@ describe('Poll Validators Middleware', () => {
       },
     );
   });
+
+  describe('Delete Poll Validator', () => {
+    let mockReq: Partial<Request>;
+
+    const runValidation = async (req: Partial<Request>, validation: any) => {
+      await validation.run(req);
+      return validationResult(req);
+    };
+
+    describe('validateDeletePollInput', () => {
+      it('should pass validation for valid trip ID and poll ID', async () => {
+        mockReq = {
+          params: { tripId: '1', pollId: '10' },
+        };
+
+        const result = await runValidation(mockReq, validateDeletePollInput);
+
+        expect(result.isEmpty()).toBe(true);
+      });
+
+      it.each([
+        {
+          params: { tripId: 'abc', pollId: '10' },
+          expectedError: 'Trip ID must be a positive integer',
+        },
+        {
+          params: { tripId: '1', pollId: 'xyz' },
+          expectedError: 'Poll ID must be a positive integer',
+        },
+        {
+          params: { tripId: '', pollId: '10' },
+          expectedError: 'Trip ID must be a positive integer',
+        },
+        {
+          params: { tripId: '1', pollId: '' },
+          expectedError: 'Poll ID must be a positive integer',
+        },
+      ])(
+        'should fail validation for invalid input: $params',
+        async ({ params, expectedError }) => {
+          mockReq = { params };
+
+          const result = await runValidation(mockReq, validateDeletePollInput);
+
+          expect(result.isEmpty()).toBe(false);
+          expect(result.array()).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({ msg: expectedError }),
+            ]),
+          );
+        },
+      );
+    });
+  });
+
+  describe('Batch Delete Polls Validator', () => {
+    let mockReq: Partial<Request>;
+
+    const runValidation = async (req: Partial<Request>, validation: any) => {
+      await validation.run(req);
+      return validationResult(req);
+    };
+
+    it('should pass validation for a valid request', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { pollIds: [1, 2, 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchDeletePollsInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it.each([
+      {
+        params: { tripId: 'abc' },
+        body: { pollIds: [1, 2, 3] },
+        expectedError: 'Trip ID must be a positive integer',
+      },
+      {
+        params: { tripId: '1' },
+        body: { pollIds: [] },
+        expectedError: 'pollIds must be a non-empty array of integers',
+      },
+      {
+        params: { tripId: '1' },
+        body: { pollIds: ['not-a-number'] },
+        expectedError: 'Each poll ID must be a positive integer',
+      },
+    ])(
+      'should fail validation for invalid input: %o',
+      async ({ params, body, expectedError }) => {
+        mockReq = { params, body };
+
+        const result = await runValidation(
+          mockReq,
+          validateBatchDeletePollsInput,
+        );
+
+        expect(result.isEmpty()).toBe(false);
+        expect(result.array()).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ msg: expectedError }),
+          ]),
+        );
+      },
+    );
+  });
+
+  describe('validateGetAllPollsForTripInput', () => {
+    it('should pass validation for a valid trip ID', async () => {
+      mockReq = { params: { tripId: '1' } };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllPollsForTripInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it.each([
+      {
+        params: { tripId: 'abc' },
+        expectedError: 'Trip ID must be a positive integer',
+      },
+      {
+        params: { tripId: '-1' },
+        expectedError: 'Trip ID must be a positive integer',
+      },
+      {
+        params: { tripId: '0' },
+        expectedError: 'Trip ID must be a positive integer',
+      },
+      {
+        params: {},
+        expectedError: 'Trip ID must be a positive integer',
+      },
+    ])(
+      'should fail validation for invalid trip ID: $params',
+      async ({ params, expectedError }) => {
+        mockReq = { params } as Partial<Request>;
+
+        const result = await runValidation(
+          mockReq,
+          validateGetAllPollsForTripInput,
+        );
+
+        expect(result.isEmpty()).toBe(false);
+        expect(result.array()).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ msg: expectedError }),
+          ]),
+        );
+      },
+    );
+  });
+});
+
+describe('Mark Polls As Completed Validator', () => {
+  let mockReq: Partial<Request>;
+
+  const runValidation = async (req: Partial<Request>, validation: any) => {
+    await validation.run(req);
+    return validationResult(req);
+  };
+
+  it('should pass validation for a valid request', async () => {
+    mockReq = {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 2, 3] },
+    };
+
+    const result = await runValidation(
+      mockReq,
+      validateMarkPollsAsCompletedInput,
+    );
+    expect(result.isEmpty()).toBe(true);
+  });
+
+  it.each([
+    {
+      params: { tripId: 'abc' },
+      body: { pollIds: [1, 2, 3] },
+      expectedError: 'Trip ID must be a positive integer',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: 'invalid' },
+      expectedError: 'pollIds must be a non-empty array of integers',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 'a', 3] },
+      expectedError: 'Each poll ID must be a positive integer',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 2, 3], extraField: 'notAllowed' },
+      expectedError: 'Unknown field(s)',
+    },
+  ])(
+    'should fail validation for invalid input: %p',
+    async ({ params, body, expectedError }) => {
+      mockReq = { params, body };
+      const result = await runValidation(
+        mockReq,
+        validateMarkPollsAsCompletedInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: expectedError }),
+        ]),
+      );
+    },
+  );
 });

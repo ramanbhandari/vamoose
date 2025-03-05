@@ -1,4 +1,11 @@
-import { createPollHandler } from '@/controllers/poll.controller.js';
+import {
+  createPollHandler,
+  deletePollHandler,
+  batchDeletePollsHandler,
+  getAllPollsForTripHandler,
+  markPollsAsCompletedHandler,
+} from '@/controllers/poll.controller.js';
+import { PollStatus } from '@/interfaces/enums.js';
 import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 
@@ -10,6 +17,11 @@ jest.mock('../../../config/prismaClient', () => ({
     },
     poll: {
       create: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      updateMany: jest.fn(),
     },
     pollOption: {
       createMany: jest.fn(),
@@ -100,4 +112,376 @@ describe('Poll Controller - Create Poll', () => {
       poll: { id: 1, question: 'Where should we go?', status: 'ACTIVE' },
     });
   });
+});
+
+describe('Poll Deletion', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1', pollId: '10' },
+    ...overrides,
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await deletePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 for invalid tripId or pollId', async () => {
+    mockReq = setupRequest({ params: { tripId: 'invalid', pollId: '10' } });
+
+    await deletePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Trip ID and Poll ID must be valid numbers',
+    });
+  });
+
+  it('should return 404 if poll is not found', async () => {
+    mockReq = setupRequest();
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.poll.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await deletePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Poll not found in this trip',
+    });
+  });
+
+  it('should delete the poll if user has permissions', async () => {
+    mockReq = setupRequest();
+    const deletedPoll = {
+      id: 10,
+      tripId: 1,
+      question: 'What activity should we do on the trip?',
+      status: 'ACTIVE',
+      expiresAt: '2026-01-01T05:59:59.000Z',
+      createdById: 'test-user-id',
+      createdAt: '2025-03-05T05:46:52.476Z',
+      completedAt: null,
+      winnerId: null,
+    };
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.poll.findUnique as jest.Mock).mockResolvedValue({
+      id: 10,
+      tripId: 1,
+      createdById: 'test-user-id',
+    });
+    (prisma.poll.delete as jest.Mock).mockResolvedValue(deletedPoll);
+
+    await deletePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Poll deleted successfully',
+      deletedPoll,
+    });
+  });
+});
+
+describe('Batch Delete Polls Handler', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'creator-id',
+    params: { tripId: '1' },
+    body: { pollIds: [1, 2, 3] },
+    ...overrides,
+  });
+
+  it('should return 200 and delete polls successfully', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'creator',
+    });
+
+    (prisma.poll.deleteMany as jest.Mock).mockResolvedValue({ count: 3 });
+
+    await batchDeletePollsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Polls deleted successfully',
+      deletedCount: 3,
+    });
+  });
+
+  it('should return 404 if no polls were deleted', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'member',
+    });
+
+    (prisma.poll.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+    await batchDeletePollsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid polls found to delete, or you are not authorized',
+    });
+  });
+});
+
+describe('Get All Polls For Trip Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1' },
+    ...overrides,
+  });
+
+  it('should return 200 with poll data', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    const mockPollList = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.ACTIVE,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        completedAt: null,
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: null,
+        options: [
+          {
+            id: 1,
+            option: 'Beach',
+            votes: [
+              {
+                user: {
+                  email: 'voter@test.com',
+                  id: 'user-id',
+                  fullName: 'Voter Name',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const mockResponse = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.ACTIVE,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        completedAt: null,
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: null,
+        totalVotes: 1,
+        options: [
+          {
+            id: 1,
+            option: 'Beach',
+            percentage: 100,
+            voteCount: 1,
+            voters: [
+              {
+                email: 'voter@test.com',
+                fullName: 'Voter Name',
+                id: 'user-id',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    (prisma.poll.findMany as jest.Mock).mockResolvedValue(mockPollList);
+
+    await getAllPollsForTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      polls: mockResponse,
+    });
+  });
+});
+
+describe('Mark Polls as Completed Handler', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'creator-id',
+    params: { tripId: '1' },
+    body: { pollIds: [1, 2, 3] },
+    ...overrides,
+  });
+
+  it('should mark polls as completed successfully', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'creator',
+    });
+
+    (prisma.poll.findMany as jest.Mock).mockResolvedValue([
+      { id: 1, status: PollStatus.ACTIVE },
+      { id: 2, status: PollStatus.ACTIVE },
+    ]);
+
+    (prisma.poll.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+
+    await markPollsAsCompletedHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Polls marked as completed successfully',
+      completedCount: 2,
+      allowedPollIds: [1, 2],
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'User is not authenticated',
+      overrides: { userId: undefined },
+      expectedStatus: 401,
+      expectedMessage: 'Unauthorized Request',
+    },
+    {
+      scenario: 'Invalid trip ID',
+      overrides: { params: { tripId: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip ID',
+    },
+    {
+      scenario: 'User is not a member of the trip',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+      },
+      expectedStatus: 403,
+      expectedMessage: 'You are not a member of this trip: 1',
+    },
+    {
+      scenario: 'User is not authorized',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+          role: 'member',
+        });
+        (prisma.poll.findMany as jest.Mock).mockResolvedValue([
+          { id: 1, status: PollStatus.ACTIVE },
+          { id: 2, status: PollStatus.ACTIVE },
+        ]);
+      },
+      expectedStatus: 403,
+      expectedMessage: 'You are not authorized to complete any of these polls',
+    },
+    {
+      scenario: 'No valid polls found',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+          role: 'creator',
+        });
+        (prisma.poll.findMany as jest.Mock).mockResolvedValue([]);
+      },
+      expectedStatus: 404,
+      expectedMessage: 'No valid polls found',
+    },
+    {
+      scenario: 'No polls were updated',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+          role: 'creator',
+        });
+        (prisma.poll.findMany as jest.Mock).mockResolvedValue([
+          { id: 1, status: PollStatus.COMPLETED },
+        ]);
+        (prisma.poll.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+      },
+      expectedStatus: 404,
+      expectedMessage:
+        'No polls were marked as completed. Please verify poll IDs and try again.',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, setupMocks, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest(overrides);
+
+      if (setupMocks) setupMocks();
+
+      await markPollsAsCompletedHandler(
+        mockReq as Request,
+        mockRes as Response,
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
 });
