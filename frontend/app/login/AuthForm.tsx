@@ -22,6 +22,7 @@ import {
   Visibility,
   VisibilityOff,
   Person,
+  LockReset,
 } from "@mui/icons-material";
 import { getMessages } from "./messages";
 import { useUserStore } from "@/stores/user-store";
@@ -34,6 +35,7 @@ export default function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<"login" | "signup">("login");
@@ -111,6 +113,33 @@ export default function AuthForm() {
       }
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setResetLoading(true);
+    setError(null);
+    try {
+      if (!email.trim()) {
+        throw new Error("Please enter your email address");
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      if (error) throw error;
+
+      setNotification(
+        "Password reset email sent. Check your inbox.",
+        "success"
+      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -222,6 +251,29 @@ export default function AuthForm() {
               ),
             }}
           />
+
+          {formType === "login" && (
+            <Box sx={{ textAlign: "right", mt: -1 }}>
+              <Button
+                variant="text"
+                onClick={handlePasswordReset}
+                disabled={resetLoading}
+                startIcon={
+                  resetLoading ? <CircularProgress size={16} /> : <LockReset />
+                }
+                sx={{
+                  color: "text.secondary",
+                  fontSize: "0.8rem",
+                  "&:hover": {
+                    color: "primary.main",
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                Forgot Password?
+              </Button>
+            </Box>
+          )}
 
           {formType === "signup" && (
             <TextField
