@@ -85,7 +85,7 @@ export const deletePollsByIds = async (
 
     return result.count;
   } catch (error) {
-    console.error('Error deleting poll:', error);
+    console.error('Error deleting polls:', error);
     throw handlePrismaError(error);
   }
 };
