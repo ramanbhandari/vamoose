@@ -55,3 +55,9 @@ export interface CreatePollInput {
   createdById: string;
   options: string[];
 }
+
+export interface DeletePollPermissions {
+  isAdmin: boolean;
+  isCreator: boolean;
+  userId: string;
+}

@@ -24,3 +24,24 @@ export const validateCreatePollInput = checkExact([
     .notEmpty()
     .withMessage('Each option must be a non-empty string'),
 ]);
+
+export const validateDeletePollInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive integer'),
+  param('pollId')
+    .isInt({ min: 1 })
+    .withMessage('Poll ID must be a positive integer'),
+]);
+
+export const validateBatchDeletePollsInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive integer'),
+  body('pollIds')
+    .isArray({ min: 1 })
+    .withMessage('pollIds must be a non-empty array of integers'),
+  body('pollIds.*')
+    .isInt({ min: 1 })
+    .withMessage('Each poll ID must be a positive integer'),
+]);
