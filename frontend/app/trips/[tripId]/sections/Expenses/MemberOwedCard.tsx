@@ -21,14 +21,13 @@ import {
   FormControl,
   InputLabel,
   Grid,
-  useTheme,
-  useMediaQuery,
   Modal,
   Tabs,
   Tab,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ExpandMore } from "@mui/icons-material";
+import { MemberSummary, ExpenseSummaryItem } from "@/stores/expense-share-store";
 
 // Category colors
 const categories = [
@@ -42,24 +41,6 @@ const categories = [
 // Styled component for the expand icon
 interface ExpandMoreButtonProps extends IconButtonProps {
   expanded?: boolean;
-}
-
-interface ExpenseSummaryItem {
-  expenseShareId: number;
-  debtorId: string;
-  creditorEmail: string;
-  creditorId: string;
-  amount: number;
-  description: string;
-  category: string;
-  settled: boolean;
-}
-
-interface MemberSummary {
-  debtorEmail: string;
-  outstanding: ExpenseSummaryItem[];
-  settled: ExpenseSummaryItem[];
-  totalOwed: number;
 }
 
 interface MemberOwedCardProps {
@@ -86,9 +67,6 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
   const [activeTab, setActiveTab] = useState(0); // Track active tab (0: Outstanding, 1: Settled)
   const itemsPerPage = 3; // Number of items per page
   const cardRef = useRef<HTMLDivElement>(null); 
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Filter outstanding amounts by creditor email
   const filteredOutstanding = memberSummary.outstanding.filter((item) =>
@@ -227,36 +205,42 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
         {/* Collapsible Section */}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <CardContent sx={{ pt: 0 }}>
-            {/* Tabs for Outstanding and Settled Transactions */}
-            <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"  
-              scrollButtons={false} sx={{ mb: 2 }}>
-              <Tab label="Outstanding" />
-              <Tab label="Settled" />
-            </Tabs>
+            {/* Grid container for Tabs and Filter */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={12} sm={8}>
+                <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"  
+                  scrollButtons={false}>
+                  <Tab label="Outstanding" />
+                  <Tab label="Settled" />
+                </Tabs>
+              </Grid>
+              <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' } , pr: 3 }}>
+                {hasTransactions && (
+                  <FormControl fullWidth size="small" sx={{ maxWidth: 200 }}>
+                    <InputLabel id="filter-by-creditor-label">Filter by Creditor</InputLabel>
+                    <Select
+                      labelId="filter-by-creditor-label"
+                      value={filterEmail}
+                      label="Filter by Creditor"
+                      onChange={(e) => {
+                        setFilterEmail(e.target.value as string);
+                        setPage(1);
+                      }}
+                    >
+                      <MenuItem value="">All Creditors</MenuItem>
+                      {creditors.map((creditor) => (
+                        <MenuItem key={creditor} value={creditor}>
+                          {creditor}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              </Grid>
+            </Grid>
 
-            {/* Show filter only if there are transactions */}
-            {hasTransactions ? (
-              <FormControl fullWidth sx={{ mb: 2 }}>
-               {/* <FormControl size="small" sx={{ minWidth: 120, mb: 2 }}> */}
-                <InputLabel id="filter-by-creditor-label">Filter by Creditor</InputLabel>
-                <Select
-                  labelId="filter-by-creditor-label"
-                  value={filterEmail}
-                  label="Filter by Creditor"
-                  onChange={(e) => {
-                    setFilterEmail(e.target.value as string);
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value="">All Creditors</MenuItem>
-                  {creditors.map((creditor) => (
-                    <MenuItem key={creditor} value={creditor}>
-                      {creditor}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
+            {/* Show message if no transactions */}
+            {!hasTransactions && (
               <Box
                 sx={{
                   display: "flex",
@@ -310,7 +294,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                                   Total Amount {activeTab === 0 ? "Owed" : "Settled"}: ${total.toFixed(2)}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={5} sx={{ textAlign: isMobile ? "left" : "right" }}>
+                              <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' } }}>
                                 <Button
                                   variant="outlined"
                                   size="small"
