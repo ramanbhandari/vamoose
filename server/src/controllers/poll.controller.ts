@@ -5,7 +5,9 @@ import {
   deletePoll,
   getPollById,
   deletePollsByIds,
+  getAllPollsForTrip,
 } from '@/models/poll.model.js';
+import { PollStatus } from '@/interfaces/enums.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
@@ -164,5 +166,82 @@ export const batchDeletePollsHandler = async (req: Request, res: Response) => {
     });
   } catch (error) {
     handleControllerError(error, res, 'Error deleting polls:');
+  }
+};
+
+export const getAllPollsForTripHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const isMember = await getTripMember(tripId, userId);
+    if (!isMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Fetch polls from the model
+    const polls = await getAllPollsForTrip(tripId);
+
+    const formattedPolls = polls.map((poll) => {
+      const totalVotes = poll.options.reduce(
+        (acc, option) => acc + option.votes.length,
+        0,
+      );
+
+      const options = poll.options.map((option) => {
+        const voteCount = option.votes.length;
+        const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
+
+        return {
+          id: option.id,
+          option: option.option,
+          voteCount,
+          percentage: parseFloat(percentage.toFixed(2)),
+          voters: option.votes.map((vote) => vote.user),
+        };
+      });
+
+      return {
+        id: poll.id,
+        question: poll.question,
+        status: poll.status,
+        expiresAt: poll.expiresAt,
+        createdAt: poll.createdAt,
+        completedAt: poll.completedAt,
+        createdBy: poll.createdBy,
+        options,
+        totalVotes,
+        winner:
+          poll.status !== PollStatus.ACTIVE && poll.winner
+            ? {
+                id: poll.winner.id,
+                option: poll.winner.option,
+                voteCount:
+                  options.find((o) => o.id === poll.winner?.id)?.voteCount ?? 0,
+              }
+            : null,
+      };
+    });
+
+    res.status(200).json({ polls: formattedPolls });
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching polls for trip:');
   }
 };

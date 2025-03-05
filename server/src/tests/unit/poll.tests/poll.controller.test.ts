@@ -2,7 +2,9 @@ import {
   createPollHandler,
   deletePollHandler,
   batchDeletePollsHandler,
+  getAllPollsForTripHandler,
 } from '@/controllers/poll.controller.js';
+import { PollStatus } from '@/interfaces/enums.js';
 import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 
@@ -17,6 +19,7 @@ jest.mock('../../../config/prismaClient', () => ({
       delete: jest.fn(),
       deleteMany: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
     pollOption: {
       createMany: jest.fn(),
@@ -250,6 +253,107 @@ describe('Batch Delete Polls Handler', () => {
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'No valid polls found to delete, or you are not authorized',
+    });
+  });
+});
+
+describe('Get All Polls For Trip Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1' },
+    ...overrides,
+  });
+
+  it('should return 200 with poll data', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    const mockPollList = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.ACTIVE,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        completedAt: null,
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: null,
+        options: [
+          {
+            id: 1,
+            option: 'Beach',
+            votes: [
+              {
+                user: {
+                  email: 'voter@test.com',
+                  id: 'user-id',
+                  fullName: 'Voter Name',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const mockResponse = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.ACTIVE,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        completedAt: null,
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: null,
+        totalVotes: 1,
+        options: [
+          {
+            id: 1,
+            option: 'Beach',
+            percentage: 100,
+            voteCount: 1,
+            voters: [
+              {
+                email: 'voter@test.com',
+                fullName: 'Voter Name',
+                id: 'user-id',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    (prisma.poll.findMany as jest.Mock).mockResolvedValue(mockPollList);
+
+    await getAllPollsForTripHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      polls: mockResponse,
     });
   });
 });

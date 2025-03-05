@@ -89,3 +89,36 @@ export const deletePollsByIds = async (
     throw handlePrismaError(error);
   }
 };
+
+export const getAllPollsForTrip = async (tripId: number) => {
+  try {
+    return await prisma.poll.findMany({
+      where: { tripId },
+      include: {
+        options: {
+          select: {
+            id: true,
+            option: true,
+            votes: {
+              select: {
+                user: {
+                  select: { id: true, email: true, fullName: true },
+                },
+              },
+            },
+          },
+        },
+        createdBy: {
+          select: { id: true, email: true, fullName: true },
+        },
+        winner: {
+          select: { id: true, option: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching polls:', error);
+    throw handlePrismaError(error);
+  }
+};
