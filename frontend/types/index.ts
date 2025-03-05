@@ -66,9 +66,3 @@ export interface PhotonAPIResponse {
     };
   }[];
 }
-
-export interface Poll {
-  id: string;
-  question: string;
-  votes: number;
-}

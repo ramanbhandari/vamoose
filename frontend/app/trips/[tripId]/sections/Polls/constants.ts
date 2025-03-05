@@ -1,10 +1,12 @@
+import { Poll } from "@/types";
+
 export const pollStatusOptions = [
   { label: "All Polls", value: "all" },
   { label: "Active Polls", value: "active" },
   { label: "Past Polls", value: "expired" },
 ];
 
-export const fakePolls = [
+export const fakePolls: Poll[] = [
   {
     id: 1,
     question: "Where should we go for dinner?",
@@ -50,7 +52,7 @@ export const fakePolls = [
   },
 ];
 
-export const fakePollsExpired = [
+export const fakePollsExpired: Poll[] = [
   {
     id: 2,
     question: "What activity should we do tomorrow?",

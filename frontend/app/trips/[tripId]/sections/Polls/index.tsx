@@ -9,6 +9,7 @@ import { Member } from "@/types";
 import AddIcon from "@mui/icons-material/Add";
 import { HeaderButton } from "./styled";
 import CreatePollDialog from "./CreatePollDialog";
+import { PollOption } from "./types";
 
 interface PollsProps {
   tripId: number;
@@ -20,8 +21,7 @@ interface PollsProps {
 export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
   const theme = useTheme();
   const [polls, setPolls] = useState(fakePolls);
-  const [expiredPolls, setExpiredPolls] = useState(fakePollsExpired);
-  setExpiredPolls(fakePollsExpired);
+  // const [expiredPolls, setExpiredPolls] = useState(fakePollsExpired);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const handleVote = (pollId: number, optionId: number) => {
@@ -30,7 +30,7 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
         poll.id === pollId
           ? {
               ...poll,
-              options: poll.options.map((opt) =>
+              options: poll.options.map((opt: PollOption) =>
                 opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
               ),
             }
@@ -113,7 +113,7 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Expired Polls
           </Typography>
-          <PollList polls={expiredPolls} onVote={handleVote} />
+          <PollList polls={fakePollsExpired} onVote={handleVote} />
         </Box>
       </Container>
 
