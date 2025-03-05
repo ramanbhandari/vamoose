@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import MemberOwedCard from "./MemberOwedCard";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import apiClient from "@/utils/apiClient";
 
 export default function ExpenseBreakdown({ tripId }: { tripId: number }) {
@@ -78,16 +78,18 @@ export default function ExpenseBreakdown({ tripId }: { tripId: number }) {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {data.map((memberSummary, index) => (
-        <MemberOwedCard
-          key={index}
-          memberSummary={memberSummary}
-          isExpanded={expandedCard === index}
-          onExpand={() => handleExpand(index)}
-          isLastCard={index === data.length - 1}
-        />
-      ))}
-    </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mb: 4 }}>
+        {data.map((memberSummary, index) => (
+          <MemberOwedCard
+            key={index}
+            memberSummary={memberSummary}
+            isExpanded={expandedCard === index}
+            onExpand={() => handleExpand(index)}
+            isLastCard={index === data.length - 1}
+          />
+        ))}
+      </Box>
+    </Container>
   );
 }

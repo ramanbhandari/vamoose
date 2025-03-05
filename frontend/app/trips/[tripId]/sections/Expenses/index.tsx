@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, Tab, Box, Typography, useTheme, Theme } from "@mui/material";
+import { Tabs, Tab, Box, Typography, useTheme, Theme, useMediaQuery } from "@mui/material";
 import styled from "@emotion/styled";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
 import AllExpenses, { ExpensesProps } from "./AllExpenses"; 
@@ -39,6 +39,8 @@ export default function Expenses({
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
+
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const tabs = ["All Expenses", "Expense Debts"];
 
@@ -84,28 +86,38 @@ export default function Expenses({
             expenseSummary={expenseSummary}
           />
         </Box>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons={false}
-          sx={{ 
-            mt: 2,
-            '& .MuiTab-root': {
-              color: 'white', 
-              transition: 'all 0.2s ease',
-              '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-              transform: 'translateY(-2px)', 
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-              },
-            },
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: isMobile ? 'center' : 'flex-start',
+            width: '100%', 
           }}
         >
-          {tabs.map((tab) => (
-            <Tab key={tab} label={tab} />
-          ))}
-        </Tabs>
+            <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons={false}
+            // centered={isMobile ? true : false}
+            sx={{ 
+              mt: 2,
+              '& .MuiTab-root': {
+                color: 'white', 
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                transform: 'translateY(-2px)', 
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                },
+              },
+            }}
+          >
+            {tabs.map((tab) => (
+              <Tab key={tab} label={tab} />
+            ))}
+          </Tabs>
+        </Box>
+        
 
       </GradientHeader>
 
@@ -123,10 +135,7 @@ export default function Expenses({
             )}
 
             {currentTab === 1 && (
-            <Box
-              mt={5}>
-                <ExpenseBreakdown tripId={tripId} />
-            </Box>
+              <ExpenseBreakdown tripId={tripId} />
             )}
         </Box>      
     </>

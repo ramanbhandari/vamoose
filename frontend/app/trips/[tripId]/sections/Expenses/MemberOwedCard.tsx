@@ -184,11 +184,17 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
           width: "100%",
           margin: "0 auto",
           boxShadow: 3,
-          mb: isLastCard ? 8 : 0,
+          mb: isLastCard ? 2 : 0,
+          borderRadius: 2 ,
         }}
       >
         <CardContent
+          ref={cardRef}
           onClick={onExpand}
+          sx={{
+            cursor: "pointer"
+          }}
+          
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             {/* Member Avatar */}
@@ -219,10 +225,11 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
         </CardContent>
 
         {/* Collapsible Section */}
-        <Collapse in={isExpanded} timeout="auto" ref={cardRef} unmountOnExit>
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <CardContent sx={{ pt: 0 }}>
             {/* Tabs for Outstanding and Settled Transactions */}
-            <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+            <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"  
+              scrollButtons={false} sx={{ mb: 2 }}>
               <Tab label="Outstanding" />
               <Tab label="Settled" />
             </Tabs>
@@ -230,6 +237,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
             {/* Show filter only if there are transactions */}
             {hasTransactions ? (
               <FormControl fullWidth sx={{ mb: 2 }}>
+               {/* <FormControl size="small" sx={{ minWidth: 120, mb: 2 }}> */}
                 <InputLabel id="filter-by-creditor-label">Filter by Creditor</InputLabel>
                 <Select
                   labelId="filter-by-creditor-label"
@@ -345,7 +353,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: isMobile ? "90%" : "60%",
+            maxWidth: 600,
             maxHeight: "70vh", 
             bgcolor: "background.paper",
             boxShadow: 24,
