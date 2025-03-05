@@ -45,3 +45,9 @@ export const validateBatchDeletePollsInput = checkExact([
     .isInt({ min: 1 })
     .withMessage('Each poll ID must be a positive integer'),
 ]);
+
+export const validateGetAllPollsForTripInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive integer'),
+]);
