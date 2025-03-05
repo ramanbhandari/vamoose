@@ -42,61 +42,13 @@ import {
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
 import apiClient from "@/utils/apiClient";
-import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
 import { useTripStore } from "@/stores/trip-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { TripData, Expense, Member, ExpensesSummary } from "@/types";
 
-interface Expense {
-  id: number;
-  amount: number;
-  category: string;
-  description: string;
-  tripId: number;
-  paidBy: PaidBy;
-}
 
-interface PaidBy {
-  email: string;
-}
-
-interface MemberDetails {
-  email: string;
-}
-
-interface Member {
-  tripId: number;
-  userId: string;
-  role: string;
-  user: MemberDetails;
-}
-
-interface TripData {
-  id: number;
-  name: string;
-  description: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  members: Member[];
-  expenses: Expense[];
-  expenseSummary: ExpensesSummary;
-  stays: Array<[]>;
-  imageUrl: string;
-}
-
-interface ExpenseBreakdown {
-  category: string;
-  total: number;
-}
-
-interface ExpensesSummary {
-  breakdown: ExpenseBreakdown[];
-  totalExpenses: number;
-}
-
-interface ExpensesProps {
+export interface ExpensesProps {
   tripId: number;
   tripName: string;
   budget: number;
@@ -111,20 +63,6 @@ interface Filters {
   category: string;
   paidByEmail: string;
 }
-
-const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
-  padding: "3rem 2rem",
-  color: "white",
-  borderRadius: "0 0 80px 80px",
-  position: "relative",
-  overflow: "hidden",
-  "&:before": {
-    content: '""',
-    position: "absolute",
-    background: "rgba(255,255,255,0.1)",
-    borderRadius: "50%",
-  },
-}));
 
 const ExpenseCard = styled(Paper)(({ theme }: { theme: Theme }) => ({
   padding: theme.spacing(3),
@@ -169,12 +107,8 @@ const categories = [
 
 export default function Expenses({
   tripId,
-  tripName,
-  budget,
-  imageUrl,
   expenses: initialExpenses,
   members,
-  expenseSummary,
 }: ExpensesProps) {
   const theme = useTheme();
   // fetch tripData from our store if it exists, else use the props
@@ -383,71 +317,7 @@ export default function Expenses({
             : "Are you sure you want to delete this expense?"
         }
       />
-
-      <GradientHeader
-        theme={theme}
-        sx={{
-          background: imageUrl
-            ? "none"
-            : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-
-          "&::after": imageUrl
-            ? {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: `url(${imageUrl}) center/cover no-repeat`,
-                filter: "brightness(0.5) blur(4px)",
-                zIndex: -2,
-              }
-            : "none",
-
-          "& > *": {
-            position: "relative",
-            zIndex: 1,
-          },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography variant="h4" fontWeight="bold">
-              {tripName}
-            </Typography>
-
-            <Grid item xs={12} md={4} order={{ xs: 1, md: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: { xs: "center", md: "flex-end" },
-                  mt: { xs: 4, md: 0 },
-                  width: "100%",
-                  position: "relative",
-                  [theme.breakpoints.up("md")]: {
-                    justifyContent: "flex-end",
-                  },
-                }}
-              >
-                <BudgetDonut
-                  budget={budget || 0}
-                  isEditMode={false}
-                  expenseSummary={expenseSummary}
-                />
-              </Box>
-            </Grid>
-          </Box>
-        </Container>
-      </GradientHeader>
-
+      
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
           <Toolbar
