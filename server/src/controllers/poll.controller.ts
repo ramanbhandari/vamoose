@@ -285,7 +285,8 @@ export const markPollsAsCompletedHandler = async (
     const polls = await getPollsByIds(pollIds, tripId);
 
     if (polls.length === 0) {
-      return res.status(404).json({ error: 'No valid polls found' });
+      res.status(404).json({ error: 'No valid polls found' });
+      return;
     }
 
     const isCreator = requestingMember.role === 'creator';
