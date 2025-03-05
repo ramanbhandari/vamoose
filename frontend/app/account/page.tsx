@@ -21,6 +21,8 @@ export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [newDisplayName, setNewDisplayName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [originalDisplayName, setOriginalDisplayName] = useState("");
+  const [originalEmail, setOriginalEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,11 +31,23 @@ export default function AccountPage() {
   }, [user, fetchUser]);
 
   useEffect(() => {
-    setNewDisplayName(user?.user_metadata?.display_name || "");
-    setNewEmail(user?.email || "");
+    if (user) {
+      const displayName = user?.user_metadata?.display_name || "";
+      const email = user?.email || "";
+
+      setNewDisplayName(displayName);
+      setNewEmail(email);
+      setOriginalDisplayName(displayName);
+      setOriginalEmail(email);
+    }
   }, [user]);
 
   const handleSave = async () => {
+    if (newDisplayName === originalDisplayName && newEmail === originalEmail) {
+      setIsEditing(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -47,6 +61,8 @@ export default function AccountPage() {
         setNotification(error.message, "error");
       } else {
         await fetchUser();
+        setOriginalDisplayName(newDisplayName);
+        setOriginalEmail(newEmail);
         setIsEditing(false);
         setNotification("Profile updated successfully!", "success");
       }
@@ -57,6 +73,18 @@ export default function AccountPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    setNewDisplayName(originalDisplayName);
+    setNewEmail(originalEmail);
+    setIsEditing(false);
+  };
+
+  const handleEdit = () => {
+    setNewDisplayName(originalDisplayName);
+    setNewEmail(originalEmail);
+    setIsEditing(true);
   };
 
   const handlePasswordReset = async () => {
@@ -165,20 +193,38 @@ export default function AccountPage() {
             )}
           </Box>
 
-          <Button
-            variant="contained"
-            onClick={isEditing ? handleSave : () => setIsEditing(true)}
-            disabled={loading}
-            sx={{ py: 1.5 }}
-          >
-            {loading ? (
-              <CircularProgress size={24} sx={{ color: "white" }} />
-            ) : isEditing ? (
-              "Save Changes"
-            ) : (
-              "Edit Profile"
-            )}
-          </Button>
+          {isEditing ? (
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={
+                  loading ||
+                  (newDisplayName === originalDisplayName &&
+                    newEmail === originalEmail)
+                }
+                sx={{ flex: 1 }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} sx={{ color: "white" }} />
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                disabled={loading}
+                sx={{ flex: 1 }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          ) : (
+            <Button variant="contained" onClick={handleEdit} sx={{ py: 1.5 }}>
+              Edit Profile
+            </Button>
+          )}
 
           <Box>
             <Typography variant="body2" color="textSecondary" gutterBottom>
