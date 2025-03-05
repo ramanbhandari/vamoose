@@ -1,5 +1,5 @@
 import prisma from '@/config/prismaClient.js';
-import { UpdateExpenseInput } from '@/interfaces/interfaces';
+import { CreateExpenseInput, UpdateExpenseInput } from '@/interfaces/interfaces';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError } from '@/utils/errors.js';
 
@@ -13,14 +13,7 @@ export const addExpense = async ({
   description,
   paidById,
   splitAmongUserIds,
-}: {
-  tripId: number;
-  amount: number;
-  category: string;
-  description?: string | null;
-  paidById: string;
-  splitAmongUserIds: string[];
-}) => {
+}: CreateExpenseInput) => {
   try {
     // Calculate equal shares
     const shareAmount = parseFloat(
