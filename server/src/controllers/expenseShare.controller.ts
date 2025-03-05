@@ -259,7 +259,11 @@ export const settleExpensesHandler = async (req: Request, res: Response) => {
     // Filter out shares that the user is not allowed to settle
     const authorizedExpensePairs = matchingExpenseShares
       .filter(
-        (share) => share.expense.paidById === userId || isAdmin || isCreator,
+        (share) =>
+          share.userId == userId || // Allow the debtor to mark the debt as settled
+          share.expense.paidById === userId || // Allow the creditor to mark the debt as settled
+          isAdmin ||
+          isCreator,
       )
       .map((share) => ({
         expenseId: share.expenseId,
