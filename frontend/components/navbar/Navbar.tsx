@@ -11,8 +11,9 @@ import {
   IconButton,
   ListItemIcon,
   CircularProgress,
+  Avatar,
 } from "@mui/material";
-import { LogoutTwoTone } from "@mui/icons-material";
+import { DashboardTwoTone, LogoutTwoTone } from "@mui/icons-material";
 import ThemeToggle from "../ThemeToggle";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
@@ -68,6 +69,10 @@ export default function Navbar() {
     router.replace("/login");
   };
 
+  const displayName =
+    user?.user_metadata?.display_name || user?.email || "User";
+  const avatarLetter = displayName.charAt(0).toUpperCase();
+
   return (
     <AppBar position="fixed" sx={{ bgcolor: "primary.main" }}>
       <Toolbar className="flex justify-between items-center px-4">
@@ -109,14 +114,50 @@ export default function Navbar() {
                   "& .MuiPaper-root": {
                     borderRadius: "8px",
                     boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+                    minWidth: "180px",
+                    padding: "8px 0",
                   },
                 }}
               >
-                {user && (
-                  <MenuItem onClick={handleMenuClose}>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </MenuItem>
-                )}
+                <MenuItem
+                  onClick={() => {
+                    router.push("/account");
+                    handleMenuClose();
+                  }}
+                  sx={{
+                    padding: "12px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: "secondary.main",
+                      width: 36,
+                      height: 36,
+                      mr: 1,
+                    }}
+                  >
+                    {avatarLetter}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body1" fontWeight="bold">
+                      {displayName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: "gray" }}>
+                      Manage Account
+                    </Typography>
+                  </Box>
+                </MenuItem>
+
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <DashboardTwoTone />
+                  </ListItemIcon>
+                  <Link href="/dashboard">Dashboard</Link>
+                </MenuItem>
+
                 <MenuItem onClick={handleLogout} disabled={loading}>
                   <ListItemIcon>
                     {loading ? (

@@ -21,6 +21,8 @@ import {
   Email,
   Visibility,
   VisibilityOff,
+  Person,
+  LockReset,
 } from "@mui/icons-material";
 import { getMessages } from "./messages";
 import { useUserStore } from "@/stores/user-store";
@@ -29,9 +31,11 @@ import { useNotificationStore } from "@/stores/notification-store";
 export default function AuthForm() {
   const { setNotification } = useNotificationStore();
   const { fetchUser } = useUserStore();
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formType, setFormType] = useState<"login" | "signup">("login");
@@ -64,9 +68,21 @@ export default function AuthForm() {
         });
         if (error) throw error;
       } else {
+        if (!displayName.trim()) {
+          throw new Error(getMessages.displayNameError);
+        }
+        if (!email.trim()) throw new Error(getMessages.emailError);
         if (password !== confirmPassword)
           throw new Error(getMessages.passwordsUnmatchError);
-        const { error } = await supabase.auth.signUp({ email, password });
+
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { display_name: displayName },
+          },
+        });
+
         if (error) throw error;
       }
       // immediately feteh user so we keep the store updated
@@ -97,6 +113,33 @@ export default function AuthForm() {
       }
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setResetLoading(true);
+    setError(null);
+    try {
+      if (!email.trim()) {
+        throw new Error("Please enter your email address");
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      if (error) throw error;
+
+      setNotification(
+        "Password reset email sent. Check your inbox.",
+        "success"
+      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -159,6 +202,22 @@ export default function AuthForm() {
           noValidate
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
+          {formType === "signup" && (
+            <TextField
+              label="Display Name"
+              type="text"
+              fullWidth
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <Person sx={{ mr: 1, color: "secondary.main" }} />
+                ),
+              }}
+            />
+          )}
+
           <TextField
             label="Email"
             type="email"
@@ -192,6 +251,29 @@ export default function AuthForm() {
               ),
             }}
           />
+
+          {formType === "login" && (
+            <Box sx={{ textAlign: "right", mt: -1 }}>
+              <Button
+                variant="text"
+                onClick={handlePasswordReset}
+                disabled={resetLoading}
+                startIcon={
+                  resetLoading ? <CircularProgress size={16} /> : <LockReset />
+                }
+                sx={{
+                  color: "text.secondary",
+                  fontSize: "0.8rem",
+                  "&:hover": {
+                    color: "primary.main",
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                Forgot Password?
+              </Button>
+            </Box>
+          )}
 
           {formType === "signup" && (
             <TextField
