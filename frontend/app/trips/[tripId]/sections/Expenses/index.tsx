@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Tabs, Tab, Box, Typography, useTheme, Theme, useMediaQuery } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Tabs, Tab, Box, Typography, useTheme, Theme, useMediaQuery, CircularProgress } from "@mui/material";
 import styled from "@emotion/styled";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
 import AllExpenses, { ExpensesProps } from "./AllExpenses"; 
 import ExpenseBreakdown from "./ExpenseBreakdown";
+import { useExpenseShareStore } from "@/stores/expense-share-store";
 
 const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
     padding: "3rem 2rem",
@@ -43,6 +44,54 @@ export default function Expenses({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const tabs = ["All Expenses", "Expense Debts"];
+
+  const {memberSummaries, loading, error, fetchExpenseShareData} = useExpenseShareStore();
+
+  useEffect(() => {
+      if (tripId) fetchExpenseShareData(tripId);
+    }, [tripId, fetchExpenseShareData, budget]);
+  
+    //Just a loading screen
+    if (loading) {
+      return (
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      );
+    }
+  
+    if (error) {
+      return (
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            padding: 4,
+          }}
+        >
+          <Typography
+            variant="h2"
+            color="error"
+            sx={{
+              fontWeight: "700",
+              fontFamily: "apple-system",
+            }}
+          >
+            {error}
+          </Typography>
+        </Box>
+      );
+    }
 
   return (
     <>
@@ -135,7 +184,7 @@ export default function Expenses({
             )}
 
             {currentTab === 1 && (
-              <ExpenseBreakdown tripId={tripId} />
+              <ExpenseBreakdown memberSummaries={memberSummaries} />
             )}
         </Box>      
     </>
