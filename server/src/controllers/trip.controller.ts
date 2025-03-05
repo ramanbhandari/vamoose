@@ -7,17 +7,11 @@ import {
   deleteMultipleTrips,
   updateTrip,
 } from '@/models/trip.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest, TripFilters } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
-
-interface TripFilters {
-  destination?: { contains: string; mode: 'insensitive' };
-  startDate?: { gte: Date } | { lte: Date };
-  endDate?: { lte: Date } | { gte: Date };
-}
 
 /**
  * Create a Trip
