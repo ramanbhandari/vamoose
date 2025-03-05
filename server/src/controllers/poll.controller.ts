@@ -4,8 +4,10 @@ import { getTripMember } from '@/models/member.model.js';
 import {
   deletePoll,
   getPollById,
+  getPollsByIds,
   deletePollsByIds,
   getAllPollsForTrip,
+  markPollsAsCompleted,
 } from '@/models/poll.model.js';
 import { PollStatus } from '@/interfaces/enums.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
@@ -243,5 +245,83 @@ export const getAllPollsForTripHandler = async (
     res.status(200).json({ polls: formattedPolls });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching polls for trip:');
+  }
+};
+
+export const markPollsAsCompletedHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const { pollIds } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (!Array.isArray(pollIds) || pollIds.length === 0) {
+      res.status(400).json({ error: 'Invalid poll IDs provided' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Fetch polls to validate permissions
+    const polls = await getPollsByIds(pollIds, tripId);
+
+    if (polls.length === 0) {
+      return res.status(404).json({ error: 'No valid polls found' });
+    }
+
+    const isCreator = requestingMember.role === 'creator';
+    const isAdmin = requestingMember.role === 'admin';
+
+    // Filter out polls that the user is not allowed to complete
+    const allowedPolls = polls.filter(
+      (poll) => isCreator || isAdmin || poll.createdById === userId, // Allow poll creator to complete their own poll
+    );
+
+    if (allowedPolls.length === 0) {
+      res.status(403).json({
+        error: 'You are not authorized to complete any of these polls',
+      });
+      return;
+    }
+
+    const allowedPollIds = allowedPolls.map((poll) => poll.id);
+
+    // Complete only allowed polls
+    const result = await markPollsAsCompleted(allowedPollIds);
+
+    if (result.count === 0) {
+      res.status(404).json({
+        error:
+          'No polls were marked as completed. Please verify poll IDs and try again.',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Polls marked as completed successfully',
+      completedCount: result.count,
+      allowedPollIds,
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error marking polls as completed:');
   }
 };

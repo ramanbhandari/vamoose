@@ -3,6 +3,7 @@ import {
   validateDeletePollInput,
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
+  validateMarkPollsAsCompletedInput,
 } from '@/middleware/poll.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
@@ -245,4 +246,65 @@ describe('Poll Validators Middleware', () => {
       },
     );
   });
+});
+
+describe('Mark Polls As Completed Validator', () => {
+  let mockReq: Partial<Request>;
+
+  const runValidation = async (req: Partial<Request>, validation: any) => {
+    await validation.run(req);
+    return validationResult(req);
+  };
+
+  it('should pass validation for a valid request', async () => {
+    mockReq = {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 2, 3] },
+    };
+
+    const result = await runValidation(
+      mockReq,
+      validateMarkPollsAsCompletedInput,
+    );
+    expect(result.isEmpty()).toBe(true);
+  });
+
+  it.each([
+    {
+      params: { tripId: 'abc' },
+      body: { pollIds: [1, 2, 3] },
+      expectedError: 'Trip ID must be a positive integer',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: 'invalid' },
+      expectedError: 'pollIds must be a non-empty array of integers',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 'a', 3] },
+      expectedError: 'Each poll ID must be a positive integer',
+    },
+    {
+      params: { tripId: '1' },
+      body: { pollIds: [1, 2, 3], extraField: 'notAllowed' },
+      expectedError: 'Unknown field(s)',
+    },
+  ])(
+    'should fail validation for invalid input: %p',
+    async ({ params, body, expectedError }) => {
+      mockReq = { params, body };
+      const result = await runValidation(
+        mockReq,
+        validateMarkPollsAsCompletedInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: expectedError }),
+        ]),
+      );
+    },
+  );
 });

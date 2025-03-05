@@ -5,6 +5,7 @@ import {
   DeletePollPermissions,
 } from '@/interfaces/interfaces.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
+import { DateTime } from 'luxon';
 
 export const createPoll = async ({
   tripId,
@@ -119,6 +120,43 @@ export const getAllPollsForTrip = async (tripId: number) => {
     });
   } catch (error) {
     console.error('Error fetching polls:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const getPollsByIds = async (pollIds: number[], tripId: number) => {
+  try {
+    return await prisma.poll.findMany({
+      where: {
+        id: { in: pollIds },
+        tripId,
+      },
+      select: {
+        id: true,
+        createdById: true,
+        status: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching polls by IDs:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const markPollsAsCompleted = async (pollIds: number[]) => {
+  try {
+    return await prisma.poll.updateMany({
+      where: {
+        id: { in: pollIds },
+        status: { not: 'COMPLETED' },
+      },
+      data: {
+        status: PollStatus.COMPLETED,
+        completedAt: DateTime.now().toUTC().toJSDate(),
+      },
+    });
+  } catch (error) {
+    console.error('Error marking polls as completed:', error);
     throw handlePrismaError(error);
   }
 };
