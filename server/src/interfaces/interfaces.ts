@@ -41,3 +41,9 @@ export interface TripDebtDetail {
   category?: string;
   settled: boolean;
 }
+
+export interface TripFilters {
+  destination?: { contains: string; mode: 'insensitive' };
+  startDate?: { gte: Date } | { lte: Date };
+  endDate?: { lte: Date } | { gte: Date };
+}
