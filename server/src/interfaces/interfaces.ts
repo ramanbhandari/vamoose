@@ -47,3 +47,11 @@ export interface TripFilters {
   startDate?: { gte: Date } | { lte: Date };
   endDate?: { lte: Date } | { gte: Date };
 }
+
+export interface CreatePollInput {
+  tripId: number;
+  question: string;
+  expiresAt: Date;
+  createdById: string;
+  options: string[];
+}
