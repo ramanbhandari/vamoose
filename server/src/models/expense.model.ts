@@ -1,5 +1,8 @@
 import prisma from '@/config/prismaClient.js';
-import { CreateExpenseInput, UpdateExpenseInput } from '@/interfaces/interfaces';
+import {
+  CreateExpenseInput,
+  UpdateExpenseInput,
+} from '@/interfaces/interfaces';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError } from '@/utils/errors.js';
 
@@ -207,7 +210,9 @@ export const updateExpense = async (
     let expenseSharesUpdate = undefined;
     if (updateData.splitAmongUserIds) {
       const shareAmount = parseFloat(
-        (existingExpense.amount / updateData.splitAmongUserIds.length).toFixed(2)
+        (existingExpense.amount / updateData.splitAmongUserIds.length).toFixed(
+          2,
+        ),
       );
       expenseSharesUpdate = {
         deleteMany: {},
