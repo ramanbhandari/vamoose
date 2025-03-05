@@ -1,4 +1,4 @@
-import { Poll } from "@/types";
+import { Poll } from "./types";
 
 export const pollStatusOptions = [
   { label: "All Polls", value: "all" },
@@ -20,6 +20,7 @@ export const fakePolls: Poll[] = [
     tripId: 123,
     createdBy: "user@example.com",
     status: "active",
+    winner: { id: 1, text: "Italian", votes: 3 },
   },
   {
     id: 3,
@@ -34,6 +35,7 @@ export const fakePolls: Poll[] = [
     tripId: 123,
     createdBy: "user@example.com",
     status: "active",
+    winner: { id: 1, text: "Italian", votes: 3 },
   },
 
   {
@@ -49,6 +51,7 @@ export const fakePolls: Poll[] = [
     tripId: 123,
     createdBy: "user@example.com",
     status: "active",
+    winner: { id: 1, text: "Italian", votes: 3 },
   },
 ];
 
