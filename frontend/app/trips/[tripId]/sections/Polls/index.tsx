@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { Box, Container, Typography, useTheme } from "@mui/material";
-// import PollFilters from "./PollFilters";
 import PollList from "./PollList";
 import { fakePolls, fakePollsExpired } from "./constants";
 import { GradientHeader } from "../Overview/styled";
@@ -22,6 +21,7 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
   const theme = useTheme();
   const [polls, setPolls] = useState(fakePolls);
   const [expiredPolls, setExpiredPolls] = useState(fakePollsExpired);
+  setExpiredPolls(fakePollsExpired);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const handleVote = (pollId: number, optionId: number) => {
@@ -101,11 +101,6 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box>
-          {/* <PollFilters
-            filters={{ status: "all", createdBy: "" }}
-            members={members}
-            onFilterChange={() => {}}
-          /> */}
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Active Polls
           </Typography>
