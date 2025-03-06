@@ -100,7 +100,10 @@ describe('Expense Share Validators Middleware', () => {
         },
       };
 
-      const result = await runValidation(mockReq, validateSettleExpenseSharesInput);
+      const result = await runValidation(
+        mockReq,
+        validateSettleExpenseSharesInput,
+      );
 
       expect(result.isEmpty()).toBe(true);
     });
@@ -122,7 +125,9 @@ describe('Expense Share Validators Middleware', () => {
         scenario: 'Invalid expense object in array',
         params: { tripId: '1' },
         body: {
-          expenseSharesToSettle: [{ expenseId: 'abc', debtorUserId: 'user-id' }],
+          expenseSharesToSettle: [
+            { expenseId: 'abc', debtorUserId: 'user-id' },
+          ],
         },
         expectedError: 'Each expenseId must be a positive integer',
       },
@@ -136,7 +141,10 @@ describe('Expense Share Validators Middleware', () => {
       },
     ])('$scenario', async ({ params, body, expectedError }) => {
       mockReq = { params, body } as Partial<Request>;
-      const result = await runValidation(mockReq, validateSettleExpenseSharesInput);
+      const result = await runValidation(
+        mockReq,
+        validateSettleExpenseSharesInput,
+      );
 
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
