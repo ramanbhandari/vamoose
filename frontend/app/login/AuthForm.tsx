@@ -49,6 +49,7 @@ export default function AuthForm() {
       sessionStorage.removeItem("inviteRedirect"); // this giving RSC error in console which is a know issue in Nextjs, couldnt find any other fix
       // router.push(inviteRedirect);
       window.location.href = inviteRedirect;
+      sessionStorage.setItem("loginInviteRedirect","redirect");
     } else {
       // router.push("/dashboard"); // this giving RSC error in console which is a know issue in Nextjs, couldnt find any other fix
       window.location.href = "/dashboard";
