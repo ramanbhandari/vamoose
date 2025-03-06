@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Box, Typography, Paper, Grid } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import { People } from "@mui/icons-material";
 import Masonry from "@mui/lab/Masonry";
 import { Poll } from "./types";
