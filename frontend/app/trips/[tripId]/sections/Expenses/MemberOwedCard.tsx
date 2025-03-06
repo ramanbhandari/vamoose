@@ -24,9 +24,10 @@ import {
   Modal,
   Tabs,
   Tab,
+  Tooltip,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { ExpandMore } from "@mui/icons-material";
+import { CheckCircle, ExpandMore } from "@mui/icons-material";
 import { MemberSummary, ExpenseSummaryItem, useExpenseShareStore } from "@/stores/expense-share-store";
 import { useUserStore } from "@/stores/user-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the ConfirmationDialog component
@@ -70,13 +71,17 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
   const [activeTab, setActiveTab] = useState(0); // Track active tab (0: Outstanding, 1: Settled)
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
   const [creditorToSettle, setCreditorToSettle] = useState<string | null>(null); 
+  const [transactionToSettle, setTransactionToSettle] = useState<ExpenseSummaryItem | null>(null); // Track the transaction to settle
   const itemsPerPage = 3; // Number of items per page
   const cardRef = useRef<HTMLDivElement>(null);
   const { user } = useUserStore();
   const { settleExpenses } = useExpenseShareStore();
   const theme = useTheme();
 
-  const canSettle = (memberSummary.outstanding.length > 0 && memberSummary.outstanding[0].debtorId === user?.id);
+  const canSettle = (creditor: string) => {
+    return (memberSummary.outstanding.length > 0 && 
+            (memberSummary.outstanding[0].debtorId === user?.id || creditor === user?.email));
+  };
 
   // Filter outstanding amounts by creditor email
   const filteredOutstanding = memberSummary.outstanding.filter((item) =>
@@ -165,15 +170,17 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
     : memberSummary.settled.length > 0;
 
   // Handle settling expenses
-  const handleSettleExpenses = async (creditor: string) => {
-    if (!canSettle) {
+  const handleSettleExpenses = async (creditor: string, transaction?: ExpenseSummaryItem) => {
+    if (!canSettle(creditor)) {
       return;
     }
     try {
-      const expensesToSettle = groupedOutstanding[creditor].items.map((item) => ({
-        expenseId: item.expenseShareId,
-        debtorUserId: item.debtorId,
-      }));
+      const expensesToSettle = transaction
+        ? [{ expenseId: transaction.expenseShareId, debtorUserId: transaction.debtorId }]
+        : groupedOutstanding[creditor].items.map((item) => ({
+            expenseId: item.expenseShareId,
+            debtorUserId: item.debtorId,
+          }));
 
       await settleExpenses(
         tripId,
@@ -181,6 +188,10 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
         expensesToSettle
       );
 
+      // Close the modal if settling a single transaction
+      if (transaction) {
+        handleCloseModal();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -204,6 +215,21 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
       handleSettleExpenses(creditorToSettle);
     }
     handleCloseConfirmationDialog();
+  };
+
+  // Handle settling a single transaction
+  const handleSettleSingleTransaction = (transaction: ExpenseSummaryItem) => {
+    setTransactionToSettle(transaction);
+    setIsConfirmationDialogOpen(true);
+  };
+
+  // Handle confirming the settlement of a single transaction
+  const handleConfirmSingleSettlement = () => {
+    if (transactionToSettle && selectedCreditor) {
+      handleSettleExpenses(selectedCreditor, transactionToSettle);
+    }
+    setIsConfirmationDialogOpen(false);
+    setTransactionToSettle(null);
   };
 
   return (
@@ -346,7 +372,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                                 </Typography>
                               </Grid>
                               <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' }, gap: 1 }}>
-                                {activeTab === 0 && canSettle && (
+                                {activeTab === 0 && canSettle(creditor) && (
                                   <Button
                                     variant="contained"
                                     size="small"
@@ -393,78 +419,92 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
       <ConfirmationDialog
         open={isConfirmationDialogOpen}
         onClose={handleCloseConfirmationDialog}
-        onConfirm={handleConfirmSettlement}
+        onConfirm={transactionToSettle ? handleConfirmSingleSettlement : handleConfirmSettlement}
         title="Confirm Settlement"
-        message="Are you sure you want to settle these expenses?"
+        message={transactionToSettle ? "Are you sure you want to settle this transaction?" : "Are you sure you want to settle these expenses?"}
       />
 
       {/* Modal for Transaction Details */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            maxWidth: 600,
-            maxHeight: "70vh",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* Modal Header */}
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            {activeTab === 0 ? "Outstanding" : "Settled"} Transactions for {selectedCreditor}
-          </Typography>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      maxWidth: 600,
+      maxHeight: "70vh",
+      bgcolor: "background.paper",
+      boxShadow: 24,
+      p: 4,
+      borderRadius: 2,
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {/* Modal Header */}
+    <Typography variant="h6" fontWeight="bold" gutterBottom>
+      {activeTab === 0 ? "Outstanding" : "Settled"} Transactions for {selectedCreditor}
+    </Typography>
 
-          {/* Scrollable List */}
-          <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 2 }}>
-            <List>
-              {selectedCreditor &&
-                (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.map(
-                  (item, index) => {
-                    const category = categories.find((cat) => cat.value === item.category);
-                    return (
-                      <React.Fragment key={index}>
-                        <ListItem>
-                          <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12}>
-                              <Typography variant="body1">
-                                ${item.amount.toFixed(2)} - {item.description}
-                              </Typography>
-                              <Box sx={{ mt: 1 }}>
-                                <Chip
-                                  label={item.category}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: category ? `${category.color}22` : "#f5f5f5",
-                                    color: category ? category.color : "text.primary",
-                                  }}
-                                />
-                              </Box>
-                            </Grid>
-                          </Grid>
-                        </ListItem>
-                        {index < (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.length - 1 && <Divider />}
-                      </React.Fragment>
-                    );
-                  }
-                )}
-            </List>
-          </Box>
+    {/* Scrollable List */}
+    <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 2 }}>
+      <List>
+        {selectedCreditor &&
+          (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.map(
+            (item, index) => {
+              const category = categories.find((cat) => cat.value === item.category);
+              return (
+                <React.Fragment key={index}>
+                  <ListItem>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={8}>
+                        <Typography variant="body1">
+                          ${item.amount.toFixed(2)} {item.description}
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <Chip
+                            label={item.category}
+                            size="small"
+                            sx={{
+                              bgcolor: category ? `${category.color}22` : "#f5f5f5",
+                              color: category ? category.color : "text.primary",
+                            }}
+                          />
+                        </Box>
+                      </Grid>
+                      <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        {activeTab === 0 && canSettle(selectedCreditor!) && (
+                          <Tooltip title="Settle Expense" placement="top">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleSettleSingleTransaction(item)}
+                              sx={{ ml: 1 }}
+                            >
+                              <CheckCircle fontSize="medium" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </ListItem>
+                  {index < (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.length - 1 && <Divider />}
+                </React.Fragment>
+              );
+            }
+          )}
+      </List>
+    </Box>
 
-          {/* Close Button */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button variant="contained" onClick={handleCloseModal}>
-              Close
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+    {/* Close Button */}
+    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+      <Button variant="contained" onClick={handleCloseModal}>
+        Close
+      </Button>
+    </Box>
+  </Box>
+</Modal>
     </>
   );
 }
