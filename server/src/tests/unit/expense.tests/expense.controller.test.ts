@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 import prisma from '@/config/prismaClient.js';
 import { NotFoundError } from '@/utils/errors.js';
 
-jest.mock('../../../config/prismaClient.ts', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {
