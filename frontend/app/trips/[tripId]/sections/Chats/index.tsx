@@ -17,7 +17,8 @@ import {
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useTripStore } from "@/stores/trip-store"; // Assuming trip data comes from Zustand or similar store
+import { useTripStore } from "@/stores/trip-store"; 
+import { useUserStore } from "@/stores/user-store";
 
 interface MembersListProps {
   isOpen: boolean;
@@ -27,8 +28,8 @@ interface MembersListProps {
 
 function MembersList({ toggle, isSmallScreen }: MembersListProps) {
   const { tripData } = useTripStore();
+  const { user } = useUserStore();
 
-  // Process members, ensuring there's a fallback if no data exists
   const processedMembers =
     tripData?.members?.map((member) => ({
       ...member,
@@ -70,7 +71,7 @@ function MembersList({ toggle, isSmallScreen }: MembersListProps) {
             processedMembers.map((member) => (
               <ListItem key={member.userId} disablePadding sx={{ pl: 2 }}>
                 <ListItemText
-                  primary={member.user.email}
+                  primary={user?.user_metadata?.display_name || ""}
                   primaryTypographyProps={{
                     color: "var(--text)",
                     textAlign: "justify",
@@ -97,9 +98,7 @@ interface ChatWindowProps {
 }
 
 function ChatWindow({ onMenuClick, showMenuIcon }: ChatWindowProps) {
-  const { tripData } = useTripStore(); // Access tripData from your store
-
-  // Fallback to "Group Chat" if tripData.name is not available
+  const { tripData } = useTripStore(); 
   const tripName = tripData?.name || "Group Chat";
 
   return (
@@ -136,7 +135,7 @@ function ChatWindow({ onMenuClick, showMenuIcon }: ChatWindowProps) {
             transform: showMenuIcon ? "translateX(-20px)" : "translateX(0)",
           }}
         >
-          {tripName} {/* Display trip name here */}
+          {tripName}
         </Typography>
         {showMenuIcon && <Box sx={{ width: 40 }} />}
       </Paper>
