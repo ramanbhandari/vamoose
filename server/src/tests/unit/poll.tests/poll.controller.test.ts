@@ -9,7 +9,7 @@ import { PollStatus } from '@/interfaces/enums.js';
 import prisma from '@/config/prismaClient.js';
 import { Request, Response } from 'express';
 
-jest.mock('../../../config/prismaClient', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {
