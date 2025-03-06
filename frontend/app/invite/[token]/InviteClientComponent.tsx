@@ -69,7 +69,6 @@ export default function InviteClientComponent({
 
   const { setNotification } = useNotificationStore();
   const { logoutUser } = useUserStore();
-  const loginRedirect = sessionStorage.getItem("loginInviteRedirect");
 
   useEffect(() => {
     async function checkAuth() {
@@ -88,7 +87,7 @@ export default function InviteClientComponent({
           setTripData(response.data.trip);
         }
       } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 403 && loginRedirect) {
+        if (axios.isAxiosError(err) && err.response?.status === 403) {
           setWrongEmailError(` This invite is for ${initialInviteInfo.invited}. Please login / signup with that email.`);
         } else {
           console.error("Error validating invite:", err);
