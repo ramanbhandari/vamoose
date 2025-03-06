@@ -10,7 +10,8 @@ export const addMessageHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { tripId, userId, text } = req.body;
+    const tripId = Number(req.body.tripId);
+    const { userId, text } = req.body;
 
     if (isNaN(tripId)) {
       res.status(400).json({ error: 'Invalid trip ID' });
@@ -25,6 +26,7 @@ export const addMessageHandler = async (
     }
 
     const newMessage = new Message({
+      reactions: {},
       tripId,
       userId,
       text,
@@ -81,6 +83,7 @@ export const updateMessageHandler = async (
 ): Promise<void> => {
   try {
     const { messageId } = req.params;
+    console.log(req.params);
     //reactions is {emoji: [userid1, userid2...], emoji2:[userid1, userid3...]}
     const { text, reactions, emoji, userId } = req.body;
 

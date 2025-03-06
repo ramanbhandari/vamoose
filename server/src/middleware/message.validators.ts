@@ -13,6 +13,9 @@ export const validateGetMessagesInput = checkExact([
 ]);
 
 export const validateUpdateMessageInput = checkExact([
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive number'),
   param('messageId').isString().withMessage('Message ID must be a string.'),
   body('text')
     .optional()

@@ -24,7 +24,7 @@ router
 
   // Get all messages from the chat cluster for a specific trip
   .get(
-    '/:tripId',
+    '/',
     validateGetMessagesInput,
     validationErrorHandler,
     getMessagesHandler,
