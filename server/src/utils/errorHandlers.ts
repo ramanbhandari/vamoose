@@ -1,4 +1,6 @@
 import { Prisma } from '@prisma/client';
+import { Response } from 'express';
+import mongoose from 'mongoose';
 import {
   NotFoundError,
   ConflictError,
@@ -7,7 +9,6 @@ import {
   BaseError,
   ValidationError,
 } from '@/utils/errors.js';
-import { Response } from 'express';
 
 export function handlePrismaError(error: unknown): Error {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -61,4 +62,11 @@ export function handleControllerError(
     console.error(logString, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+}
+
+export function handleMongoError(error: unknown): Error {
+  if (error instanceof mongoose.Error) {
+    return new BaseError('MongoDB error occurred.', 500);
+  }
+  return new DatabaseError('An unexpected MongoDB error occurred.');
 }
