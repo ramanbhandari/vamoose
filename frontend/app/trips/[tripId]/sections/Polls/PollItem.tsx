@@ -35,6 +35,7 @@ import { formatDateTime } from "@/utils/dateFormatter";
 import { usePollInteractionStore } from "@/stores/poll-interaction-store";
 import { useUserStore } from "@/stores/user-store";
 import { getUserInfo } from "@/utils/userHelper";
+import { useTripStore } from "@/stores/trip-store";
 
 interface PollItemProps {
   poll: Poll;
@@ -60,11 +61,12 @@ export default function PollItem({
     clearSelection,
   } = usePollInteractionStore();
   const [confirmOpen, setConfirmOpen] = useState(false);
-
   const userInfo = user ? getUserInfo(user) : null;
+  const { tripData } = useTripStore();
+
   const showDelete =
-    userInfo?.isCreator ||
-    userInfo?.isAdmin ||
+    userInfo?.isCreator(tripData) ||
+    userInfo?.isAdmin(tripData) ||
     userInfo?.id === poll.createdBy.id;
 
   const userPreviousVote = userVotes[poll.id];
@@ -404,7 +406,7 @@ export default function PollItem({
             )}
           </Stack>
         )}
-        {showDelete === true && (
+        {showDelete && (
           <Box sx={{ textAlign: "right", mt: 1 }}>
             <Button
               variant="text"

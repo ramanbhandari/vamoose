@@ -14,7 +14,7 @@ import { Member } from "@/types";
 import AddIcon from "@mui/icons-material/Add";
 import { HeaderButton } from "./styled";
 import CreatePollDialog from "./CreatePollDialog";
-import { CreatePollRequest } from "./types";
+import { CreatePollRequest, Poll } from "./types";
 import apiClient from "@/utils/apiClient";
 import { usePollStore } from "@/stores/polls-store";
 import { useNotificationStore } from "@/stores/notification-store";
@@ -26,30 +26,35 @@ interface PollsProps {
   tripName: string;
   imageUrl?: string;
   members: Member[];
+  polls: Poll[];
 }
 
-export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
+export default function Polls({
+  tripId,
+  tripName,
+  imageUrl,
+  polls: initialPolls,
+}: PollsProps) {
   const theme = useTheme();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { setNotification } = useNotificationStore();
   const { user } = useUserStore();
 
-  const { polls, activePolls, completedPolls, loading, fetchPolls } =
-    usePollStore();
+  const {
+    polls: storePolls,
+    activePolls,
+    completedPolls,
+    loading,
+    fetchPolls,
+  } = usePollStore();
+
+  const polls = storePolls || initialPolls;
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (tripId) {
-        await fetchPolls(tripId);
-      }
-
-      if (user) {
-        usePollInteractionStore.getState().initializeUserVotes(polls, user.id);
-      }
-    };
-
-    fetchData();
-  }, [tripId]);
+    if (user) {
+      usePollInteractionStore.getState().initializeUserVotes(polls, user.id);
+    }
+  }, [user, polls]);
 
   useEffect(() => {
     usePollInteractionStore.getState().clearSelection();
