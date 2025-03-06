@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface IMessage extends Document {
   messageId: string;
-  senderId: string;
+  userId: string;
   text?: string;
   reactions?: { [emoji: string]: string[] }; // { "👍": ["user1", "user2"] }
   createdAt: Date;
@@ -20,7 +20,7 @@ const MessageSchema = new Schema<IMessage>(
       default: () => uuidv4(),
     },
     tripId: { type: String, required: true, index: true },
-    senderId: { type: String, required: true },
+    userId: { type: String, required: true },
     text: { type: String },
     reactions: { type: Object, default: {} },
     createdAt: { type: Date, default: Date.now },

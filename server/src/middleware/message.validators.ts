@@ -1,20 +1,19 @@
 import { body, checkExact, param } from 'express-validator';
 
 export const validateCreateMessageInput = checkExact([
-  body('tripId').isString().notEmpty().withMessage('Trip ID is required'),
-  body('senderId').isString().notEmpty().withMessage('Sender ID is required'),
-  body('text').isString().notEmpty().withMessage('Message text is required'),
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive number'),
 ]);
 
 export const validateGetMessagesInput = checkExact([
-  param('tripId').isString().notEmpty().withMessage('Trip ID is required'),
+  param('tripId')
+    .isInt({ min: 1 })
+    .withMessage('Trip ID must be a positive number'),
 ]);
 
 export const validateUpdateMessageInput = checkExact([
-  param('messageId')
-    .isString()
-    .notEmpty()
-    .withMessage('Message ID is required'),
+  param('messageId').isString().withMessage('Message ID must be a string.'),
   body('text')
     .optional()
     .isString()
