@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IMessage extends Document {
-  chatId: string; // The trip ID from PostgreSQL
-  senderId: string; // User ID from PostgreSQL
+  chatId: string;
+  senderId: string;
   text?: string;
   reactions?: { [emoji: string]: string[] }; // { "👍": ["user1", "user2"] }
   createdAt: Date;
