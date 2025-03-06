@@ -35,6 +35,8 @@ import {
   parseLocalDateWithTime,
 } from "@/utils/dateFormatter";
 
+import { useNotificationStore } from "@/stores/notification-store";
+
 interface CreatePollDialogProps {
   open: boolean;
   onClose: () => void;
@@ -47,6 +49,7 @@ export default function CreatePollDialog({
   onCreate,
 }: CreatePollDialogProps) {
   const theme = useTheme();
+  const { setNotification } = useNotificationStore();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [expiresAtDate, setExpiresAtDate] = useState("");
@@ -54,14 +57,17 @@ export default function CreatePollDialog({
 
   const validateForm = () => {
     if (!question.trim()) {
+      setNotification("Please enter a question", "error");
       setError("Please enter a question");
       return false;
     }
     if (options.some((opt) => !opt.trim())) {
+      setNotification("All options must be filled", "error");
       setError("All options must be filled");
       return false;
     }
     if (!expiresAtDate.trim()) {
+      setNotification("Please enter a deadline", "error");
       setError("Please enter a deadline");
       return false;
     }
