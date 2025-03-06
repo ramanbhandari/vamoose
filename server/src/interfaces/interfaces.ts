@@ -41,3 +41,31 @@ export interface TripDebtDetail {
   category?: string;
   settled: boolean;
 }
+
+export interface TripFilters {
+  destination?: { contains: string; mode: 'insensitive' };
+  startDate?: { gte: Date } | { lte: Date };
+  endDate?: { lte: Date } | { gte: Date };
+}
+
+export interface CreatePollInput {
+  tripId: number;
+  question: string;
+  expiresAt: Date;
+  createdById: string;
+  options: string[];
+}
+
+export interface DeletePollPermissions {
+  isAdmin: boolean;
+  isCreator: boolean;
+  userId: string;
+}
+
+export interface CastVoteInput {
+  pollId: number;
+  pollOptionId: number;
+  userId: string;
+}
+
+export type DeleteVoteInput = Omit<CastVoteInput, 'pollOptionId'>;

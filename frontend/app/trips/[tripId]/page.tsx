@@ -11,8 +11,6 @@ import {
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import EventIcon from "@mui/icons-material/Event";
-import PlaceIcon from "@mui/icons-material/Place";
 import HotelIcon from "@mui/icons-material/Hotel";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import PollIcon from "@mui/icons-material/Poll";
@@ -23,11 +21,9 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 
 // Section Components
 import Overview from "./sections/Overview/index";
-import Dates from "./sections/Dates";
-import Destinations from "./sections/Destinations";
 import Stays from "./sections/Stays";
 import Activities from "./sections/Activities";
-import Polls from "./sections/Polls";
+import Polls from "./sections/Polls/index";
 import Itinerary from "./sections/Itinerary";
 import PackingList from "./sections/PackingList";
 import TripMembers from "./sections/TripMembers/index";
@@ -35,18 +31,13 @@ import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
+import { usePollStore } from "@/stores/polls-store";
 
 const sections = [
   {
     id: "overview",
     label: "Overview",
     icon: <DashboardIcon fontSize="medium" />,
-  },
-  { id: "dates", label: "Dates", icon: <EventIcon fontSize="medium" /> },
-  {
-    id: "destinations",
-    label: "Destinations",
-    icon: <PlaceIcon fontSize="medium" />,
   },
   { id: "stays", label: "Stays", icon: <HotelIcon fontSize="medium" /> },
   {
@@ -83,7 +74,7 @@ export default function TripSummaryPage() {
   const theme = useTheme();
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
-
+  const { activePolls, completedPolls, fetchPolls } = usePollStore();
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleSectionChange = (sectionId: string) => {
@@ -91,8 +82,12 @@ export default function TripSummaryPage() {
   };
 
   useEffect(() => {
-    if (tripId) fetchTripData(tripId);
-  }, [tripId, fetchTripData]);
+    if (tripId) {
+      fetchTripData(tripId);
+      // silently also pull Polls
+      fetchPolls(tripId);
+    }
+  }, [tripId, fetchTripData, fetchPolls]);
 
   //Just a loading screen
   if (loading) {
@@ -193,8 +188,6 @@ export default function TripSummaryPage() {
         {activeSection === "overview" && (
           <Overview tripData={tripData} onSectionChange={handleSectionChange} />
         )}
-        {activeSection === "dates" && <Dates />}
-        {activeSection === "destinations" && <Destinations />}
         {activeSection === "stays" && <Stays />}
         {activeSection === "expenses" && tripData && (
           <Expenses
@@ -210,7 +203,16 @@ export default function TripSummaryPage() {
         )}
 
         {activeSection === "activities" && <Activities />}
-        {activeSection === "polls" && <Polls />}
+        {activeSection === "polls" && tripData && (
+          <Polls
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+            activePolls={activePolls}
+            completedPolls={completedPolls}
+            members={tripData.members}
+          />
+        )}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
         {activeSection === "members" && <TripMembers tripData={tripData} />}
