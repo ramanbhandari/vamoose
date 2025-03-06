@@ -26,17 +26,10 @@ export default function PollItem({ poll, onVote }: PollItemProps) {
 
       {poll.options.map((option) => (
         <Box key={option.id} sx={{ my: 1 }}>
-          <Typography variant="body2">{option.text}</Typography>
+          <Typography variant="body2">{option.option}</Typography>
           <LinearProgress
             variant="determinate"
-            value={
-              (option.votes /
-                Math.max(
-                  1,
-                  poll.options.reduce((acc, o) => acc + o.votes, 0)
-                )) *
-              100
-            }
+            value={option.percentage}
             sx={{ my: 1 }}
           />
           {poll.status === "active" && (
