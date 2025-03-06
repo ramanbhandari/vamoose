@@ -11,17 +11,25 @@ import {
   Button,
   IconButton,
   Collapse,
+  SxProps,
+  Theme,
 } from "@mui/material";
+
 import Forum from "@mui/icons-material/Forum";
 import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
   const [isTripListOpen, setIsTripListOpen] = useState(true);
-  const { userTrips, fetchUserTrips, tripData } = useTripStore();
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState("Group Chat"); // Default chat title
+
+  const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
 
   useEffect(() => {
@@ -34,6 +42,39 @@ export default function Chat() {
 
   const toggleChat = () => setIsOpen((prev) => !prev);
   const toggleTripList = () => setIsTripListOpen((prev) => !prev);
+  const toggleMaximize = () => setIsMaximized((prev) => !prev);
+  const selectTrip = (trip: { name?: string }) => {
+    setSelectedTrip(trip?.name || "Unnamed Trip");
+  };
+
+  const baseStyles: SxProps<Theme> = {
+    position: "fixed",
+    right: 20,
+    backgroundColor: "var(--background)",
+    borderRadius: 2,
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    zIndex: 9999,
+  };
+
+  const containerStyles: SxProps<Theme> = isMaximized
+    ? {
+        ...baseStyles,
+        bottom: 80,
+        width: { xs: "90%", sm: "80%", md: "60%" },
+        height: { xs: "80%", sm: "70%", md: "70%" },
+        maxWidth: 500,
+        maxHeight: 700,
+      }
+    : {
+        ...baseStyles,
+        bottom: 80,
+        width: { xs: "90%", sm: "80%", md: "60%" },
+        maxWidth: 350,
+        height: 450,
+      };
 
   return (
     <>
@@ -57,22 +98,7 @@ export default function Chat() {
 
       {/* Chat Popup */}
       {isOpen && (
-        <Box
-          sx={{
-            position: "fixed",
-            bottom: 80,
-            right: 20,
-            width: 350,
-            height: 450,
-            backgroundColor: "var(--background)",
-            borderRadius: 2,
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            zIndex: 9999,
-          }}
-        >
+        <Box sx={containerStyles}>
           {/* Chat Header */}
           <Paper
             sx={{
@@ -83,14 +109,29 @@ export default function Chat() {
               justifyContent: "space-between",
             }}
           >
-            {/* Hamburger Menu for Trip List */}
             <IconButton onClick={toggleTripList} sx={{ color: "#fff" }}>
               <MenuIcon />
             </IconButton>
 
-            <Typography variant="h6" color="#fff">
-              {tripData?.name || "Group Chat"}
+            <Typography
+              variant="h6"
+              color="#fff"
+              sx={{
+                flex: 1,
+                textAlign: "center",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                mx: 2,
+                maxWidth: "calc(100% - 100px)", 
+              }}
+            >
+              {selectedTrip}
             </Typography>
+
+            <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
+              {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            </IconButton>
 
             <IconButton onClick={toggleChat} sx={{ color: "#fff" }}>
               <CloseIcon />
@@ -98,30 +139,68 @@ export default function Chat() {
           </Paper>
 
           <Box sx={{ display: "flex", flex: 1 }}>
-            {/* Trip List Sidebar */}
             <Collapse in={isTripListOpen} orientation="horizontal">
               <Box
                 sx={{
-                  width: 120,
+                  width: "100%",
                   height: "100%",
                   backgroundColor: "var(--background-paper)",
                   overflowY: "auto",
                   borderRight: "1px solid var(--divider)",
-                  transition: "width 0.3s",
+                  transition: "width 0.3s", 
                 }}
               >
                 <Typography variant="body2" sx={{ p: 2, fontWeight: "bold" }}>
                   Trips
                 </Typography>
+
                 <List>
                   {userTrips.length > 0 ? (
                     userTrips.map((trip) => (
-                      <ListItem key={trip.id} disablePadding sx={{ pl: 2 }}>
-                        <ListItemText primary={trip.name || "Unnamed Trip"} />
+                      <ListItem
+                        key={trip.id}
+                        disablePadding
+                        sx={{
+                          pl: 2,
+                          cursor: "pointer",
+                          transition: "background-color 0.3s ease",
+                          borderRadius: "4px",
+                          "&:hover": {
+                            backgroundColor: "var(--secondary-hover)",
+                          },
+                          backgroundColor:
+                            selectedTrip === trip.name
+                              ? "var(--secondary)"
+                              : "transparent",
+                          color:
+                            selectedTrip === trip.name ? "black" : "inherit",
+                        }}
+                        onClick={() => selectTrip(trip)}
+                      >
+                        <ListItemText
+                          primary={
+                            <Typography
+                              sx={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: "100px",
+                                fontWeight:
+                                  selectedTrip === trip.name
+                                    ? "bold"
+                                    : "normal", 
+                              }}
+                            >
+                              {trip.name || "Unnamed Trip"}
+                            </Typography>
+                          }
+                        />
                       </ListItem>
                     ))
                   ) : (
-                    <Typography sx={{ textAlign: "center", p: 2 }}>
+                    <Typography
+                      sx={{ textAlign: "center", p: 2, fontStyle: "italic" }}
+                    >
                       No trips found.
                     </Typography>
                   )}

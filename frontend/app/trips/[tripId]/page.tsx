@@ -18,11 +18,9 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import WorkIcon from "@mui/icons-material/Work";
 import GroupIcon from "@mui/icons-material/Group";
 import CalculateIcon from "@mui/icons-material/Calculate";
-import ForumIcon from "@mui/icons-material/Forum";
 
 // Section Components
 import Overview from "./sections/Overview/index";
-import Chats from "./sections/Chats/index"
 import Stays from "./sections/Stays";
 import Activities from "./sections/Activities";
 import Polls from "./sections/Polls/index";
@@ -39,11 +37,6 @@ const sections = [
     id: "overview",
     label: "Overview",
     icon: <DashboardIcon fontSize="medium" />,
-  },
-  {
-    id: "chats",
-    label: "Group Chat",
-    icon: <ForumIcon fontSize="medium" />,
   },
   { id: "stays", label: "Stays", icon: <HotelIcon fontSize="medium" /> },
   {
@@ -215,7 +208,6 @@ export default function TripSummaryPage() {
         )}
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
-        {activeSection === "chats" && <Chats />}
         {activeSection === "members" && <TripMembers tripData={tripData} />}
       </Container>
     </Box>
