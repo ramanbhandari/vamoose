@@ -127,6 +127,8 @@ export default function PollItem({
       selectedOptionId === optionId
         ? theme.palette.secondary.light + "22"
         : "transparent",
+    borderRadius: "8px",
+    padding: "8px",
   });
 
   const getStatusIcon = (status: string) => {
