@@ -74,7 +74,7 @@ export default function TripSummaryPage() {
   const theme = useTheme();
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
-  const { fetchPolls } = usePollStore();
+  const { activePolls, completedPolls, fetchPolls } = usePollStore();
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleSectionChange = (sectionId: string) => {
@@ -208,6 +208,8 @@ export default function TripSummaryPage() {
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
+            activePolls={activePolls}
+            completedPolls={completedPolls}
             members={tripData.members}
           />
         )}

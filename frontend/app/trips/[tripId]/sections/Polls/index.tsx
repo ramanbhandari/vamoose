@@ -25,15 +25,17 @@ interface PollsProps {
   tripId: number;
   tripName: string;
   imageUrl?: string;
+  activePolls: Poll[];
+  completedPolls: Poll[];
   members: Member[];
-  polls: Poll[];
 }
 
 export default function Polls({
   tripId,
   tripName,
   imageUrl,
-  polls: initialPolls,
+  activePolls: initialActivePolls,
+  completedPolls: initialCompletedPolls,
 }: PollsProps) {
   const theme = useTheme();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -41,14 +43,15 @@ export default function Polls({
   const { user } = useUserStore();
 
   const {
-    polls: storePolls,
-    activePolls,
-    completedPolls,
+    polls,
+    activePolls: storeActivePolls,
+    completedPolls: storeCompletedPolls,
     loading,
     fetchPolls,
   } = usePollStore();
 
-  const polls = storePolls || initialPolls;
+  const activePolls = storeActivePolls || initialActivePolls;
+  const completedPolls = storeCompletedPolls || initialCompletedPolls;
 
   useEffect(() => {
     if (user) {
