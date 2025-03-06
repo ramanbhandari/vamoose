@@ -1,17 +1,25 @@
 "use client";
-import React, { useState } from "react";
-import { Box, Container, Typography, useTheme } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  CircularProgress,
+  Container,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import PollList from "./PollList";
-import { fakePolls, fakePollsExpired } from "./constants";
 import { GradientHeader } from "../Overview/styled";
 import { Member } from "@/types";
 
 import AddIcon from "@mui/icons-material/Add";
 import { HeaderButton } from "./styled";
 import CreatePollDialog from "./CreatePollDialog";
-import { CreatePollRequest, PollOption } from "./types";
+import { CreatePollRequest } from "./types";
 import apiClient from "@/utils/apiClient";
+import { usePollStore } from "@/stores/polls-store";
 import { useNotificationStore } from "@/stores/notification-store";
+import { usePollInteractionStore } from "@/stores/poll-interaction-store";
+import { useUserStore } from "@/stores/user-store";
 
 interface PollsProps {
   tripId: number;
@@ -22,41 +30,114 @@ interface PollsProps {
 
 export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
   const theme = useTheme();
-  const [polls, setPolls] = useState(fakePolls);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { setNotification } = useNotificationStore();
-  //const [loading, setLoading] = useState(false);
+  const { user } = useUserStore();
 
-  const handleVote = (pollId: number, optionId: number) => {
-    setPolls((prevPolls) =>
-      prevPolls.map((poll) =>
-        poll.id === pollId
-          ? {
-              ...poll,
-              options: poll.options.map((opt: PollOption) =>
-                opt.id === optionId ? { ...opt, votes: opt.voteCount + 1 } : opt
-              ),
-            }
-          : poll
-      )
-    );
+  const { polls, activePolls, completedPolls, loading, fetchPolls } =
+    usePollStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (tripId) {
+        await fetchPolls(tripId);
+      }
+
+      if (user) {
+        usePollInteractionStore.getState().initializeUserVotes(polls, user.id);
+      }
+    };
+
+    fetchData();
+  }, [tripId]);
+
+  useEffect(() => {
+    usePollInteractionStore.getState().clearSelection();
+  }, [activePolls, completedPolls]);
+
+  const handleVote = async (pollId: number, optionId: number) => {
+    try {
+      await apiClient.post(`/trips/${tripId}/polls/${pollId}/vote`, {
+        pollOptionId: optionId,
+      });
+
+      setNotification("Vote submitted successfully!", "success");
+      await fetchPolls(tripId);
+      await fetchPolls(tripId);
+    } catch (error) {
+      setNotification(
+        "Failed to save Vote. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error saving/updating Vote:", error);
+    }
+  };
+
+  const handleRemoveVote = async (pollId: number, optionId: number) => {
+    try {
+      await apiClient.delete(`/trips/${tripId}/polls/${pollId}/vote`, {
+        data: { pollOptionId: optionId },
+      });
+
+      setNotification("Vote removed successfully!", "success");
+      await fetchPolls(tripId);
+      await fetchPolls(tripId);
+    } catch (error) {
+      setNotification(
+        "Failed to remove Vote. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error removing Vote:", error);
+    }
   };
 
   const handleCreatePollSubmit = async (pollData: CreatePollRequest) => {
-    // setLoading(true);
     try {
-      console.log(pollData);
-      const response = await apiClient.post(`/trips/${tripId}/polls`, pollData);
-      console.log(response);
+      await apiClient.post(`/trips/${tripId}/polls`, pollData);
 
       setNotification("Successfully created new Poll!", "success");
+      await fetchPolls(tripId);
     } catch (error) {
-      setNotification("Failed to create new Poll. Please try again.", "error");
+      setNotification(
+        "Failed to create new Poll. Please refresh and try again!",
+        "error"
+      );
       console.error("Error creating Poll:", error);
-    } finally {
-      // setLoading(false);
     }
   };
+
+  const handleDeletePoll = async (pollId: number) => {
+    try {
+      const response = await apiClient.delete(
+        `/trips/${tripId}/polls/${pollId}`
+      );
+      console.log(response);
+
+      setNotification("Deleted Poll Successfully!!", "success");
+      await fetchPolls(tripId);
+    } catch (error) {
+      setNotification(
+        "Failed to Delete Poll. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error deleting Poll:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box key={tripId}>
@@ -123,7 +204,13 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Active Polls
           </Typography>
-          <PollList polls={polls} onVote={handleVote} />
+          <PollList
+            polls={activePolls}
+            onDeletePoll={handleDeletePoll}
+            onVote={handleVote}
+            onRemoveVote={handleRemoveVote}
+            active
+          />
         </Box>
       </Container>
 
@@ -132,7 +219,13 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Expired Polls
           </Typography>
-          <PollList polls={fakePollsExpired} onVote={handleVote} />
+          <PollList
+            polls={completedPolls}
+            onDeletePoll={handleDeletePoll}
+            onVote={handleVote}
+            onRemoveVote={handleRemoveVote}
+            active={false}
+          />
         </Box>
       </Container>
 

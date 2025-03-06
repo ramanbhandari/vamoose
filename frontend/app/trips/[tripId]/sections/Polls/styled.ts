@@ -39,3 +39,18 @@ export const FloatingDialog = styled(Dialog)(({ theme }) => ({
     backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
 }));
+
+export const FloatingDialogSmall = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    borderRadius: 16,
+    width: "100%",
+    maxWidth: "500px",
+    maxHeight: "80vh",
+    boxShadow: theme.shadows[10],
+    overflow: "hidden",
+  },
+  "& .MuiBackdrop-root": {
+    backdropFilter: "blur(8px)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+  },
+}));
