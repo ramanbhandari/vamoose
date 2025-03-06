@@ -29,14 +29,16 @@ import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { FloatingDialog } from "./styled";
 
+import { CreatePollRequest } from "./types";
+import {
+  formatDateTimeForAPI,
+  parseLocalDateWithTime,
+} from "@/utils/dateFormatter";
+
 interface CreatePollDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (pollData: {
-    question: string;
-    options: string[];
-    deadline?: Date;
-  }) => void;
+  onCreate: (pollData: CreatePollRequest) => void;
 }
 
 export default function CreatePollDialog({
@@ -47,7 +49,7 @@ export default function CreatePollDialog({
   const theme = useTheme();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [deadline, setDeadline] = useState<Date | null>(null);
+  const [expiresAtDate, setExpiresAtDate] = useState("");
   const [error, setError] = useState("");
 
   const validateForm = () => {
@@ -64,15 +66,31 @@ export default function CreatePollDialog({
   };
 
   const handleCreate = () => {
-    if (!validateForm()) return;
+    if (!validateForm() || !expiresAtDate) return;
     onCreate({
       question,
       options: options.filter((opt) => opt.trim()),
-      deadline: deadline || undefined,
+      expiresAt: expiresAtDate,
     });
     setQuestion("");
     setOptions(["", ""]);
+    setExpiresAtDate("");
     onClose();
+  };
+
+  const handleClose = () => {
+    setQuestion("");
+    setOptions(["", ""]);
+    setExpiresAtDate("");
+    onClose();
+  };
+
+  const handleExpiresAtDate = (newValue: Date | null) => {
+    if (newValue) {
+      const formattedDate = formatDateTimeForAPI(newValue);
+
+      setExpiresAtDate(formattedDate);
+    }
   };
 
   return (
@@ -215,9 +233,9 @@ export default function CreatePollDialog({
                   >
                     <DateTimePicker
                       label="Deadline"
-                      value={deadline}
+                      value={parseLocalDateWithTime(expiresAtDate)}
                       disablePast
-                      onChange={(newValue) => setDeadline(newValue)}
+                      onChange={handleExpiresAtDate}
                       minDateTime={new Date()}
                       slotProps={{
                         textField: {
@@ -279,7 +297,7 @@ export default function CreatePollDialog({
             backgroundColor: theme.palette.background.default,
           }}
         >
-          <Button onClick={onClose} color="inherit" sx={{ mr: "auto" }}>
+          <Button onClick={handleClose} color="inherit" sx={{ mr: "auto" }}>
             Cancel
           </Button>
           <Button

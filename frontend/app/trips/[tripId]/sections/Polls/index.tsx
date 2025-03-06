@@ -9,7 +9,9 @@ import { Member } from "@/types";
 import AddIcon from "@mui/icons-material/Add";
 import { HeaderButton } from "./styled";
 import CreatePollDialog from "./CreatePollDialog";
-import { PollOption } from "./types";
+import { CreatePollRequest, PollOption } from "./types";
+import apiClient from "@/utils/apiClient";
+import { useNotificationStore } from "@/stores/notification-store";
 
 interface PollsProps {
   tripId: number;
@@ -21,8 +23,9 @@ interface PollsProps {
 export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
   const theme = useTheme();
   const [polls, setPolls] = useState(fakePolls);
-  // const [expiredPolls, setExpiredPolls] = useState(fakePollsExpired);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const { setNotification } = useNotificationStore();
+  //const [loading, setLoading] = useState(false);
 
   const handleVote = (pollId: number, optionId: number) => {
     setPolls((prevPolls) =>
@@ -31,12 +34,28 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
           ? {
               ...poll,
               options: poll.options.map((opt: PollOption) =>
-                opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
+                opt.id === optionId ? { ...opt, votes: opt.voteCount + 1 } : opt
               ),
             }
           : poll
       )
     );
+  };
+
+  const handleCreatePollSubmit = async (pollData: CreatePollRequest) => {
+    // setLoading(true);
+    try {
+      console.log(pollData);
+      const response = await apiClient.post(`/trips/${tripId}/polls`, pollData);
+      console.log(response);
+
+      setNotification("Successfully created new Poll!", "success");
+    } catch (error) {
+      setNotification("Failed to create new Poll. Please try again.", "error");
+      console.error("Error creating Poll:", error);
+    } finally {
+      // setLoading(false);
+    }
   };
 
   return (
@@ -120,9 +139,7 @@ export default function Polls({ tripId, tripName, imageUrl }: PollsProps) {
       <CreatePollDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        onCreate={(pollData) => {
-          console.log("Creating poll:", pollData);
-        }}
+        onCreate={(pollData) => handleCreatePollSubmit(pollData)}
       />
     </Box>
   );
