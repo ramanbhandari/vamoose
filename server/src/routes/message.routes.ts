@@ -3,7 +3,6 @@ import {
   addMessageHandler,
   getMessagesHandler,
   updateMessageHandler,
-  addReactionHandler,
 } from '@/controllers/message.controller.js';
 
 const router = express.Router({ mergeParams: true });
@@ -15,10 +14,7 @@ router
   // Get all messages from the chat cluster for a specific trip
   .get('/', getMessagesHandler)
 
-  // Update a message in the chat cluster
-  .patch('/:messageId', updateMessageHandler)
-
-  // Add a reaction to a message
-  .post('/:messageId/reactions', addReactionHandler);
+  // Update a message or reaction for a specific message in the chat cluster
+  .patch('/:messageId', updateMessageHandler);
 
 export default router;

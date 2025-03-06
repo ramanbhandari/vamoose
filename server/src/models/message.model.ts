@@ -11,7 +11,6 @@ export interface IMessage extends Document {
 }
 
 // senderID is the userID from prisma.
-
 const MessageSchema = new Schema<IMessage>(
   {
     messageId: {
@@ -23,7 +22,7 @@ const MessageSchema = new Schema<IMessage>(
     tripId: { type: String, required: true, index: true },
     senderId: { type: String, required: true },
     text: { type: String },
-    reactions: { type: Map, of: [String], default: {} },
+    reactions: { type: Object, default: {} },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true },

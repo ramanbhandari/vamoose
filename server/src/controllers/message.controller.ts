@@ -47,7 +47,6 @@ export const getMessagesHandler = async (
       throw new BadRequestError('Trip ID is required');
     }
 
-    // Find all messages for the trip, sorted by creation date
     const messages = await Message.find({ tripId })
       .sort({ createdAt: 1 })
       .exec();
@@ -67,66 +66,61 @@ export const updateMessageHandler = async (
 ): Promise<void> => {
   try {
     const { messageId } = req.params;
-    const { text } = req.body;
+    //reactions is {emoji: [userid1, userid2...], emoji2:[userid1, userid3...]}
+    const { text, reactions, emoji, userId } = req.body;
+    console.log(req.body);
 
     if (!messageId) {
       throw new BadRequestError('Message ID is required');
     }
 
-    // Find and update the message
+    const message = await Message.findOne({ messageId }).exec();
+    if (!message) {
+      throw new NotFoundError('Message not found');
+    }
+
+    // this is the update object
+    const updateData: {
+      text?: string;
+      reactions?: { [emoji: string]: string[] };
+    } = {};
+
+    if (text !== undefined) {
+      updateData.text = text;
+    }
+
+    //for complete reactions object
+    if (reactions) {
+      updateData.reactions = reactions;
+    } else if (emoji && userId) {
+      // for individual emoji reactions
+      const currentReactions = message.reactions || {};
+
+      const emojiReactions = currentReactions[emoji] || [];
+
+      if (!emojiReactions.includes(userId)) {
+        emojiReactions.push(userId);
+      }
+
+      updateData.reactions = {
+        ...currentReactions,
+        [emoji]: emojiReactions,
+      };
+    }
+
+    // Update the message with the new data
     const updatedMessage = await Message.findOneAndUpdate(
       { messageId },
-      { text },
-      { new: true }, // Return the updated document
-    );
+      { $set: updateData },
+      { new: true },
+    ).exec();
 
     if (!updatedMessage) {
-      throw new NotFoundError('Message not found');
+      throw new NotFoundError('Message not found after update');
     }
 
     res.status(200).json(updatedMessage);
   } catch (error) {
     handleControllerError(error, res, 'Error updating message:');
-  }
-};
-
-/**
- * Add a reaction to a message
- */
-export const addReactionHandler = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { messageId } = req.params;
-    const { emoji, userId } = req.body;
-
-    if (!messageId || !emoji || !userId) {
-      throw new BadRequestError('Message ID, emoji, and user ID are required');
-    }
-
-    // Find the message
-    const message = await Message.findOne({ messageId });
-
-    if (!message) {
-      throw new NotFoundError('Message not found');
-    }
-
-    // Initialize reactions if not exists
-    if (!message.reactions) {
-      message.reactions = {};
-    }
-
-    // Add user to the reaction if not already reacted with this emoji
-    const emojiReactions = message.reactions[emoji] || [];
-    if (!emojiReactions.includes(userId)) {
-      emojiReactions.push(userId);
-      message.reactions[emoji] = emojiReactions;
-      await message.save();
-    }
-
-    res.status(200).json(message);
-  } catch (error) {
-    handleControllerError(error, res, 'Error adding reaction:');
   }
 };
