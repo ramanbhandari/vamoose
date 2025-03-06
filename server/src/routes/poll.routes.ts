@@ -7,7 +7,10 @@ import {
   validateGetAllPollsForTripInput,
   validateMarkPollsAsCompletedInput,
 } from '@/middleware/poll.validators.js';
-import { validateVoteInput } from '@/middleware/pollVote.validators.js';
+import {
+  validateCastVoteInput,
+  validateDeleteVoteInput,
+} from '@/middleware/pollVote.validators.js';
 import {
   createPollHandler,
   deletePollHandler,
@@ -15,7 +18,10 @@ import {
   getAllPollsForTripHandler,
   markPollsAsCompletedHandler,
 } from '@/controllers/poll.controller.js';
-import { castVoteHandler } from '@/controllers/pollVote.controller.js';
+import {
+  castVoteHandler,
+  deleteVoteHandler,
+} from '@/controllers/pollVote.controller.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -29,7 +35,7 @@ router
   .post('/', validateCreatePollInput, validationErrorHandler, createPollHandler)
   .post(
     '/:pollId/vote',
-    validateVoteInput,
+    validateCastVoteInput,
     validationErrorHandler,
     castVoteHandler,
   )
@@ -44,6 +50,12 @@ router
     validateDeletePollInput,
     validationErrorHandler,
     deletePollHandler,
+  )
+  .delete(
+    '/:pollId/vote',
+    validateDeleteVoteInput,
+    validationErrorHandler,
+    deleteVoteHandler,
   )
   .delete(
     '/',

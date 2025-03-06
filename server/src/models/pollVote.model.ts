@@ -1,6 +1,6 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { CastVoteInput } from '@/interfaces/interfaces.js';
+import { CastVoteInput, DeleteVoteInput } from '@/interfaces/interfaces.js';
 import { DateTime } from 'luxon';
 
 export const castVote = async ({
@@ -25,6 +25,22 @@ export const castVote = async ({
     });
   } catch (error) {
     console.error('Error casting vote:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const deleteVote = async (options: DeleteVoteInput) => {
+  try {
+    return await prisma.vote.delete({
+      where: {
+        pollId_userId: {
+          pollId: options.pollId,
+          userId: options.userId,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting vote:', error);
     throw handlePrismaError(error);
   }
 };

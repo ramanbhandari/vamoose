@@ -67,3 +67,5 @@ export interface CastVoteInput {
   pollOptionId: number;
   userId: string;
 }
+
+export type DeleteVoteInput = Omit<CastVoteInput, 'pollOptionId'>;
