@@ -16,20 +16,20 @@ export const validateTripDebtSummaryInput = checkExact([
     .withMessage('Trip ID must be a positive integer'),
 ]);
 
-export const validateSettleExpensesInput = checkExact([
+export const validateSettleExpenseSharesInput = checkExact([
   param('tripId')
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a valid number'),
 
-  body('expensesToSettle')
+  body('expenseSharesToSettle')
     .isArray({ min: 1 })
-    .withMessage('expensesToSettle must be a non-empty array'),
+    .withMessage('expenseSharesToSettle must be a non-empty array'),
 
-  body('expensesToSettle.*.expenseId')
+  body('expenseSharesToSettle.*.expenseId')
     .isInt({ min: 1 })
     .withMessage('Each expenseId must be a positive integer'),
 
-  body('expensesToSettle.*.debtorUserId')
+  body('expenseSharesToSettle.*.debtorUserId')
     .isString()
     .notEmpty()
     .withMessage('Each debtorUserId must be a non-empty string'),
