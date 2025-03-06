@@ -11,6 +11,7 @@ import PollItem from "./PollItem";
 interface PollListProps {
   polls: Poll[];
   onDeletePoll: (pollId: number) => void;
+  onCompletePoll: (pollIds: number[]) => void;
   onVote: (pollId: number, optionId: number) => void;
   onRemoveVote: (pollId: number, optionId: number) => void;
   active: boolean;
@@ -19,6 +20,7 @@ interface PollListProps {
 export default function PollList({
   polls,
   onDeletePoll,
+  onCompletePoll,
   onVote,
   onRemoveVote,
   active,
@@ -47,6 +49,7 @@ export default function PollList({
                 onVote={onVote}
                 onRemoveVote={onRemoveVote}
                 onDeletePoll={onDeletePoll}
+                onCompletePoll={onCompletePoll}
               />
             </div>
           ))}

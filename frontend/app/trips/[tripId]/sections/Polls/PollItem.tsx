@@ -30,6 +30,7 @@ import {
   Event,
   DeleteOutline,
   Close,
+  DoneAll,
 } from "@mui/icons-material";
 import { formatDateTime } from "@/utils/dateFormatter";
 import { usePollInteractionStore } from "@/stores/poll-interaction-store";
@@ -42,6 +43,7 @@ interface PollItemProps {
   onDeletePoll: (pollId: number) => void;
   onVote: (pollId: number, optionId: number) => void;
   onRemoveVote: (pollId: number, optionId: number) => void;
+  onCompletePoll: (pollIds: number[]) => void;
 }
 
 export default function PollItem({
@@ -49,6 +51,7 @@ export default function PollItem({
   onDeletePoll,
   onVote,
   onRemoveVote,
+  onCompletePoll,
 }: PollItemProps) {
   const { user } = useUserStore();
   const theme = useTheme();
@@ -61,6 +64,7 @@ export default function PollItem({
     clearSelection,
   } = usePollInteractionStore();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const userInfo = user ? getUserInfo(user) : null;
   const { tripData } = useTripStore();
 
@@ -105,6 +109,11 @@ export default function PollItem({
   const handleDeletePoll = () => {
     onDeletePoll(poll.id);
     setConfirmOpen(false);
+  };
+
+  const handleCompletePoll = () => {
+    onCompletePoll([poll.id]);
+    setCompleteConfirmOpen(false);
   };
 
   const getOptionStyle = (optionId: number) => ({
@@ -407,21 +416,46 @@ export default function PollItem({
           </Stack>
         )}
         {showDelete && (
-          <Box sx={{ textAlign: "right", mt: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 1,
+              width: "100%",
+            }}
+          >
             <Button
               variant="text"
               onClick={() => setConfirmOpen(true)}
               startIcon={<DeleteOutline />}
               sx={{
-                color: "text.secondary",
+                color: "primary.main",
                 fontSize: "0.8rem",
                 "&:hover": {
-                  color: "primary.main",
-                  bgcolor: "transparent",
+                  transform: "translateY(-1px)",
+                  fontWeight: "700",
+                  backgroundColor: "transparent",
                 },
               }}
             >
-              Delete ?
+              Delete
+            </Button>
+            <Button
+              variant="text"
+              onClick={() => setCompleteConfirmOpen(true)}
+              startIcon={<DoneAll />}
+              sx={{
+                color: "success.main",
+                fontSize: "0.8rem",
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                  fontWeight: "700",
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              Complete
             </Button>
           </Box>
         )}
@@ -481,6 +515,75 @@ export default function PollItem({
             <Button
               variant="contained"
               onClick={handleDeletePoll}
+              sx={{
+                px: 3,
+                borderRadius: "8px",
+                fontWeight: 600,
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogActions>
+        </FloatingDialogSmall>
+
+        <FloatingDialogSmall open={completeConfirmOpen}>
+          <DialogTitle
+            sx={{
+              p: 0,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                p: 3,
+                pb: 2,
+              }}
+            >
+              <Typography variant="h5" fontWeight={600} color="text.primary">
+                Mark Poll Complete
+              </Typography>
+
+              <IconButton
+                onClick={() => setCompleteConfirmOpen(false)}
+                size="small"
+              >
+                <Close />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              px: 3,
+              py: 0,
+              pt: 2,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Typography variant="body1">
+              Are you sure you want to mark this Poll as Complete?
+            </Typography>
+          </DialogContent>
+
+          <DialogActions
+            sx={{
+              p: 3,
+              pt: 2,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Button
+              onClick={() => setCompleteConfirmOpen(false)}
+              color="inherit"
+              sx={{ mr: "auto" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleCompletePoll}
               sx={{
                 px: 3,
                 borderRadius: "8px",

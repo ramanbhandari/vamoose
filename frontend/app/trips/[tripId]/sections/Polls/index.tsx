@@ -132,6 +132,23 @@ export default function Polls({
     }
   };
 
+  const handleCompletePoll = async (pollIds: number[]) => {
+    try {
+      await apiClient.patch(`/trips/${tripId}/polls/complete`, {
+        pollIds: pollIds,
+      });
+
+      setNotification("Poll set to Completed Successfully!", "success");
+      await fetchPolls(tripId);
+    } catch (error) {
+      setNotification(
+        "Failed to set the Poll to Complete. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error completing Poll:", error);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -217,6 +234,7 @@ export default function Polls({
             onDeletePoll={handleDeletePoll}
             onVote={handleVote}
             onRemoveVote={handleRemoveVote}
+            onCompletePoll={handleCompletePoll}
             active
           />
         </Box>
@@ -230,6 +248,7 @@ export default function Polls({
           <PollList
             polls={completedPolls}
             onDeletePoll={handleDeletePoll}
+            onCompletePoll={handleCompletePoll}
             onVote={handleVote}
             onRemoveVote={handleRemoveVote}
             active={false}
