@@ -62,7 +62,10 @@ export default function CreatePollDialog({
       return false;
     }
     if (options.some((opt) => !opt.trim())) {
-      setNotification("All options must be filled", "error");
+      setNotification(
+        "Please provide at least 2 options and/or delete addition empty options!",
+        "error"
+      );
       setError("All options must be filled");
       return false;
     }
