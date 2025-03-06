@@ -8,7 +8,6 @@ import {
   Box,
   Grid,
 } from "@mui/material";
-import { useState } from "react";
 
 import { TripData } from "@/types";
 import { useTripStore } from "@/stores/trip-store";
@@ -18,6 +17,7 @@ import TravelSquad from "./TravelSquad";
 import ExpensesSection from "./ExpensesSection";
 import PollsSection from "./PollsSection";
 import { useRouter } from "next/navigation";
+import { usePollStore } from "@/stores/polls-store";
 
 interface TripOverviewProps {
   tripData: TripData | null;
@@ -31,12 +31,10 @@ export default function TripOverview({
   const router = useRouter();
   // fetch tripData from our store if it exists, else use the props
   const { tripData: tripDataStore } = useTripStore();
-  const tripData = tripDataStore || initialTripData;
+  // fetch active polls that must already be in our store
+  const { activePolls } = usePollStore();
 
-  const [polls] = useState([
-    { id: "1", question: "Which activities should we prioritize?", votes: 3 },
-    { id: "2", question: "Preferred departure time?", votes: 5 },
-  ]);
+  const tripData = tripDataStore || initialTripData;
 
   const { scrollYProgress } = useScroll();
   const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.95]);
@@ -82,25 +80,27 @@ export default function TripOverview({
             expenses={tripData.expenses}
             onSectionChange={onSectionChange}
           />
-          <PollsSection polls={polls} onSectionChange={onSectionChange} />
+          <PollsSection polls={activePolls} onSectionChange={onSectionChange} />
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontStyle: "italic",
+                color: "text.secondary",
+                textAlign: "center",
 
-          <Typography
-            variant="body1"
-            sx={{
-              fontStyle: "italic",
-              color: "text.secondary",
-              textAlign: "center",
-              maxWidth: 600,
-              mt: 4,
-              lineHeight: 1.6,
-              "&:before, &:after": {
-                content: '"✈️"',
-                mx: 1,
-              },
-            }}
-          >
-            {'"The journey of a thousand miles begins with a single step"'}
-          </Typography>
+                maxWidth: 600,
+                mt: 4,
+                lineHeight: 1.6,
+                "&:before, &:after": {
+                  content: '"✈️"',
+                  mx: 1,
+                },
+              }}
+            >
+              {'"The journey of a thousand miles begins with a single step"'}
+            </Typography>
+          </Box>
         </Container>
       </Container>
     </motion.div>

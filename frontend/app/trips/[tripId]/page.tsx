@@ -31,6 +31,7 @@ import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
+import { usePollStore } from "@/stores/polls-store";
 
 const sections = [
   {
@@ -73,7 +74,7 @@ export default function TripSummaryPage() {
   const theme = useTheme();
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
-
+  const { activePolls, completedPolls, fetchPolls } = usePollStore();
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleSectionChange = (sectionId: string) => {
@@ -81,8 +82,12 @@ export default function TripSummaryPage() {
   };
 
   useEffect(() => {
-    if (tripId) fetchTripData(tripId);
-  }, [tripId, fetchTripData]);
+    if (tripId) {
+      fetchTripData(tripId);
+      // silently also pull Polls
+      fetchPolls(tripId);
+    }
+  }, [tripId, fetchTripData, fetchPolls]);
 
   //Just a loading screen
   if (loading) {
@@ -203,6 +208,8 @@ export default function TripSummaryPage() {
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
+            activePolls={activePolls}
+            completedPolls={completedPolls}
             members={tripData.members}
           />
         )}

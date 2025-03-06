@@ -35,6 +35,8 @@ import {
   parseLocalDateWithTime,
 } from "@/utils/dateFormatter";
 
+import { useNotificationStore } from "@/stores/notification-store";
+
 interface CreatePollDialogProps {
   open: boolean;
   onClose: () => void;
@@ -47,6 +49,7 @@ export default function CreatePollDialog({
   onCreate,
 }: CreatePollDialogProps) {
   const theme = useTheme();
+  const { setNotification } = useNotificationStore();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [expiresAtDate, setExpiresAtDate] = useState("");
@@ -54,11 +57,21 @@ export default function CreatePollDialog({
 
   const validateForm = () => {
     if (!question.trim()) {
+      setNotification("Please enter a question", "error");
       setError("Please enter a question");
       return false;
     }
     if (options.some((opt) => !opt.trim())) {
+      setNotification(
+        "Please provide at least 2 options and/or delete addition empty options!",
+        "error"
+      );
       setError("All options must be filled");
+      return false;
+    }
+    if (!expiresAtDate.trim()) {
+      setNotification("Please enter a deadline", "error");
+      setError("Please enter a deadline");
       return false;
     }
     setError("");
@@ -133,6 +146,7 @@ export default function CreatePollDialog({
               <TextField
                 fullWidth
                 label="Poll question"
+                required
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 variant="outlined"
@@ -176,6 +190,7 @@ export default function CreatePollDialog({
                     <TextField
                       fullWidth
                       label={`Option ${index + 1}`}
+                      required
                       value={option}
                       onChange={(e) => {
                         const newOptions = [...options];
@@ -217,7 +232,7 @@ export default function CreatePollDialog({
               </Stack>
             </Box>
             <Divider sx={{ my: 1 }} />
-            <Box sx={{ pb: 1 }}>
+            <Box>
               {" "}
               <Grid container spacing={2}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -232,7 +247,7 @@ export default function CreatePollDialog({
                     }}
                   >
                     <DateTimePicker
-                      label="Deadline"
+                      label="Deadline*"
                       value={parseLocalDateWithTime(expiresAtDate)}
                       disablePast
                       onChange={handleExpiresAtDate}
@@ -283,7 +298,7 @@ export default function CreatePollDialog({
               </Grid>
             </Box>
             {error && (
-              <Typography color="error" variant="body2">
+              <Typography color="error" variant="body1">
                 {error}
               </Typography>
             )}
