@@ -10,7 +10,7 @@ export const addMessageHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const tripId = Number(req.body.tripId);
+    const tripId = Number(req.params.tripId);
     const { userId, text } = req.body;
 
     if (isNaN(tripId)) {
@@ -18,15 +18,14 @@ export const addMessageHandler = async (
       return;
     }
 
-    if (!tripId || !userId || !text) {
+    if (!userId || !text) {
       res
         .status(400)
-        .json({ error: 'Missing required field(s): tripId, userId, or text' });
+        .json({ error: 'Missing required field(s): userId, or text' });
       return;
     }
 
     const newMessage = new Message({
-      reactions: {},
       tripId,
       userId,
       text,
@@ -82,19 +81,38 @@ export const updateMessageHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const tripId = Number(req.params.tripId);
     const { messageId } = req.params;
     console.log(req.params);
     //reactions is {emoji: [userid1, userid2...], emoji2:[userid1, userid3...]}
     const { text, reactions, emoji, userId } = req.body;
+
+    if (!tripId) {
+      res.status(400).json({ error: 'Missing required field(s): tripId' });
+      return;
+    }
 
     if (!messageId) {
       res.status(400).json({ error: 'Missing required field(s): messageId' });
       return;
     }
 
-    const message = await Message.findOne({ messageId }).exec();
+    // First we get all the messages for the trip
+    const tripMessages = await Message.find({ tripId })
+      .sort({ createdAt: 1 })
+      .exec();
+
+    if (!tripMessages || tripMessages.length === 0) {
+      res.status(404).json({
+        error: 'No messages found for this trip or the trip does not exist.',
+      });
+      return;
+    }
+
+    // Find the specific message within the trip messages
+    const message = tripMessages.find((msg) => msg.messageId === messageId);
     if (!message) {
-      res.status(404).json({ error: 'Message not found.' });
+      res.status(404).json({ error: 'Message not found in this trip.' });
       return;
     }
 
@@ -129,7 +147,7 @@ export const updateMessageHandler = async (
 
     // Update the message with the new data
     const updatedMessage = await Message.findOneAndUpdate(
-      { messageId },
+      { messageId, tripId },
       { $set: updateData },
       { new: true },
     ).exec();
