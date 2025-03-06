@@ -17,21 +17,7 @@ import {
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MenuIcon from "@mui/icons-material/Menu";
-
-const members = [
-  "Alice",
-  "Bob",
-  "Charlie",
-  "Frank",
-  "Esmeil",
-  "Daisy",
-  "Edward",
-  "Fiona",
-  "George",
-  "Hannah",
-  "Ian",
-  "Julia",
-];
+import { useTripStore } from "@/stores/trip-store"; // Assuming trip data comes from Zustand or similar store
 
 interface MembersListProps {
   isOpen: boolean;
@@ -40,13 +26,19 @@ interface MembersListProps {
 }
 
 function MembersList({ toggle, isSmallScreen }: MembersListProps) {
+  const { tripData } = useTripStore();
+
+  // Process members, ensuring there's a fallback if no data exists
+  const processedMembers =
+    tripData?.members?.map((member) => ({
+      ...member,
+    })) || [];
+
   return (
     <Box
       sx={{
         width: { xs: "100%", md: 250 },
-        // Use a fixed height on small screens to enable scrolling.
         height: isSmallScreen ? "30vh" : "100%",
-        borderRight: { xs: "none", md: "1px solid #000000" },
         backgroundColor: "var(--background-paper)",
         display: "flex",
         flexDirection: "column",
@@ -72,20 +64,27 @@ function MembersList({ toggle, isSmallScreen }: MembersListProps) {
           )}
         </IconButton>
       </Paper>
-      {/* Wrap the list in a container with overflowY to enable scrolling */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
         <List>
-          {members.map((member, index) => (
-            <ListItem key={index} disablePadding sx={{ pl: 2 }}>
-              <ListItemText
-                primary={member}
-                primaryTypographyProps={{
-                  color: "var(--text)",
-                  textAlign: "justify",
-                }}
-              />
-            </ListItem>
-          ))}
+          {processedMembers.length > 0 ? (
+            processedMembers.map((member) => (
+              <ListItem key={member.userId} disablePadding sx={{ pl: 2 }}>
+                <ListItemText
+                  primary={member.user.email}
+                  primaryTypographyProps={{
+                    color: "var(--text)",
+                    textAlign: "justify",
+                  }}
+                />
+              </ListItem>
+            ))
+          ) : (
+            <Typography
+              sx={{ textAlign: "center", color: "var(--text)", p: 2 }}
+            >
+              No members found.
+            </Typography>
+          )}
         </List>
       </Box>
     </Box>
@@ -98,6 +97,11 @@ interface ChatWindowProps {
 }
 
 function ChatWindow({ onMenuClick, showMenuIcon }: ChatWindowProps) {
+  const { tripData } = useTripStore(); // Access tripData from your store
+
+  // Fallback to "Group Chat" if tripData.name is not available
+  const tripName = tripData?.name || "Group Chat";
+
   return (
     <Box
       sx={{
@@ -132,9 +136,9 @@ function ChatWindow({ onMenuClick, showMenuIcon }: ChatWindowProps) {
             transform: showMenuIcon ? "translateX(-20px)" : "translateX(0)",
           }}
         >
-          Group Chat
+          {tripName} {/* Display trip name here */}
         </Typography>
-        {showMenuIcon && <Box sx={{ width: 40 }} />} {/* Alignment placeholder */}
+        {showMenuIcon && <Box sx={{ width: 40 }} />}
       </Paper>
 
       {/* Chat Messages Area */}
@@ -196,6 +200,7 @@ function ChatWindow({ onMenuClick, showMenuIcon }: ChatWindowProps) {
   );
 }
 
+
 function ChatUI() {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -216,6 +221,8 @@ function ChatUI() {
         height: "80vh",
         overflow: "hidden",
         backgroundColor: "var(--background)",
+        borderRadius: "1vh",
+        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
       }}
     >
       <CssBaseline />
@@ -241,10 +248,7 @@ function ChatUI() {
           height: "100%",
         }}
       >
-        <ChatWindow
-          onMenuClick={toggleMembers}
-          showMenuIcon={!isMembersOpen} // Hamburger appears when members tab is closed
-        />
+        <ChatWindow onMenuClick={toggleMembers} showMenuIcon={!isMembersOpen} />
       </Box>
     </Box>
   );
