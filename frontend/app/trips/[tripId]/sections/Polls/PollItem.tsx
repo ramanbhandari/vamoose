@@ -404,7 +404,7 @@ export default function PollItem({
             )}
           </Stack>
         )}
-        {showDelete && (
+        {showDelete === true && (
           <Box sx={{ textAlign: "right", mt: 1 }}>
             <Button
               variant="text"
