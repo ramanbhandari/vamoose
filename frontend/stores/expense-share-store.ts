@@ -66,27 +66,27 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
     try {
       // Call the API to settle expenses
       const response = await apiClient.patch(`/trips/${tripId}/expenseShares/settle/`, {
-        expensesToSettle: expensesToSettle.map((expense) => ({
+        expenseSharesToSettle: expensesToSettle.map((expense) => ({
           expenseId: expense.expenseId,
           debtorUserId: expense.debtorUserId, 
         })),
       });
 
-      const { settledExpenses, nonExistentExpensePairs, unauthorizedExpensePairs, poorlyFormattedExpenses } = response.data;
+      const { settledExpenseShares, nonExistentExpenseSharePairs, unauthorizedExpenseSharePairs, poorlyFormattedExpenseShares } = response.data;
 
       // Notify the user about the results
       const { setNotification } = useNotificationStore.getState();
-      if (settledExpenses.length > 0) {
-        setNotification(`${settledExpenses.length} expenses settled successfully!`, "success");
+      if (settledExpenseShares.length > 0) {
+        setNotification(`${settledExpenseShares.length} expenses settled successfully!`, "success");
       }
-      if (nonExistentExpensePairs.length > 0) {
-        setNotification(`${nonExistentExpensePairs.length} expenses could not be found.`, "warning");
+      if (nonExistentExpenseSharePairs.length > 0) {
+        setNotification(`${nonExistentExpenseSharePairs.length} expenses could not be found.`, "warning");
       }
-      if (unauthorizedExpensePairs.length > 0) {
-        setNotification(`You are not authorized to settle ${unauthorizedExpensePairs.length} expenses.`, "warning");
+      if (unauthorizedExpenseSharePairs.length > 0) {
+        setNotification(`You are not authorized to settle ${unauthorizedExpenseSharePairs.length} expenses.`, "warning");
       }
-      if (poorlyFormattedExpenses.length > 0) {
-        setNotification(`${poorlyFormattedExpenses.length} expenses were poorly formatted.`, "warning");
+      if (poorlyFormattedExpenseShares.length > 0) {
+        setNotification(`${poorlyFormattedExpenseShares.length} expenses were poorly formatted.`, "warning");
       }
 
       // Update the local state with successfully settled expenses
@@ -94,7 +94,7 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
       const updatedMemberSummaries = memberSummaries.map((memberSummary) => {
         if (memberSummary.debtorEmail === debtorEmail) {
           // Find the expenses that were successfully settled
-          const settledExpenseIds = settledExpenses.map((e:{ expenseId: number, debtorUserId: string }) => e.expenseId);
+          const settledExpenseIds = settledExpenseShares.map((e:{ expenseId: number, debtorUserId: string }) => e.expenseId);
           const settledExpensesForMember = memberSummary.outstanding.filter((expense) =>
             settledExpenseIds.includes(expense.expenseShareId)
           );
@@ -126,6 +126,7 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
         }
       } else if (error instanceof Error) {
         errorMessage = error.message;
+        console.error(error)
       }
 
       set({ loading: false });
