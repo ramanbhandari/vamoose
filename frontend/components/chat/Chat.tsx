@@ -119,9 +119,9 @@ export default function Chat() {
               sx={{
                 flex: 1,
                 textAlign: "center",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                whiteSpace: "wrap",
+                overflow: "auto",
+                //textOverflow: "ellipsis",
                 mx: 2,
                 maxWidth: "calc(100% - 100px)", 
               }}
@@ -181,8 +181,8 @@ export default function Chat() {
                           primary={
                             <Typography
                               sx={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
+                                whiteSpace: "wrap",
+                                overflow: "auto",
                                 textOverflow: "ellipsis",
                                 maxWidth: "100px",
                                 fontWeight:
