@@ -38,7 +38,7 @@ export default function Chat() {
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
 
-  // Fake messages for a group chat with sender names
+
   const fakeMessages = [
     {
       id: 1,
@@ -48,7 +48,7 @@ export default function Chat() {
     },
     {
       id: 2,
-      text: "I have a question about my order. this is a long message just to check if the text is getting wrapped or not",
+      text: "I have a question about my order. This is a long message to test scrolling.",
       sender: "sent",
       name: "You",
     },
@@ -64,6 +64,31 @@ export default function Chat() {
       sender: "sent",
       name: "You",
     },
+    {
+      id: 5,
+      text: "Hello, how can I help you?",
+      sender: "received",
+      name: "Alice",
+    },
+    {
+      id: 6,
+      text: "I have a question about my order. This is a long message to test scrolling.",
+      sender: "sent",
+      name: "You",
+    },
+    {
+      id: 7,
+      text: "Sure, I'd be happy to help!",
+      sender: "received",
+      name: "Alice",
+    },
+    {
+      id: 8,
+      text: "When will my package arrive?",
+      sender: "sent",
+      name: "You",
+    },
+    // Add more messages here if needed to test scrolling
   ];
 
   useEffect(() => {
@@ -105,9 +130,7 @@ export default function Chat() {
 
   // Use the maximized width only if the chat is maximized,
   // otherwise use the constant minimized width.
-  const tripTabWidth = isMaximized
-    ? maximizedTripTabWidth
-    : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   return (
     <>
@@ -138,7 +161,6 @@ export default function Chat() {
             boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
             display: "flex",
             flexDirection: "column",
-            overflow: "hidden",
             zIndex: 9999,
             transition: "0.2s ease-in-out",
             ...(isMaximized
@@ -212,13 +234,14 @@ export default function Chat() {
                           cursor: "pointer",
                           borderRadius: "4px",
                           "&:hover": {
-                            backgroundColor: "var(--secondary-hover)",
+                            backgroundColor: "var(--secondary)",
                           },
                           backgroundColor:
                             selectedTrip === trip.name
-                              ? "var(--secondary)"
+                              ? "var(--secondary-hover)"
                               : "transparent",
                           p: 1,
+                          color: "var(--chat)"
                         }}
                         onClick={() => selectTrip(trip)}
                       >
@@ -274,14 +297,25 @@ export default function Chat() {
                 )}
               </Box>
             </Collapse>
-            <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              {/* Message Area with Group Chat Message Bubbles */}
+
+            {/* Chat Area */}
+            <Box
+              sx={{
+                flex: 1,
+                position: "relative",
+                backgroundColor: "var(--background)",
+              }}
+            >
+              {/* Message Container */}
               <Box
                 sx={{
-                  flex: 1,
-                  p: 2,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 80, // reserve space for input area
                   overflowY: "auto",
-                  backgroundColor: "var(--background)",
+                  p: 2,
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
@@ -301,7 +335,8 @@ export default function Chat() {
                     <Typography
                       variant="caption"
                       sx={{
-                        color: msg.sender === "sent" ? "grey.500" : "grey.600",
+                        color:
+                          msg.sender === "sent" ? "grey.500" : "grey.600",
                       }}
                     >
                       {msg.name}
@@ -314,9 +349,10 @@ export default function Chat() {
                             ? "var(--primary)"
                             : "var(--background-paper)",
                         color:
-                          msg.sender === "sent" ? "var(--chat)" : "var(--text)",
+                          msg.sender === "sent"
+                            ? "var(--chat)"
+                            : "var(--text)",
                         padding: "10px 16px",
-                        // Adjust border radii to simulate a bubble with a pointer effect
                         borderRadius:
                           msg.sender === "sent"
                             ? "16px 16px 0 16px"
@@ -328,12 +364,19 @@ export default function Chat() {
                   </Box>
                 ))}
               </Box>
+
+              {/* Input Area */}
               <Box
                 sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 80,
+                  backgroundColor: "var(--background)",
                   p: 2,
                   display: "flex",
                   alignItems: "center",
-                  backgroundColor: "var(--background)",
                   justifyContent: isMaximized ? "center" : "flex-start",
                 }}
               >
@@ -362,12 +405,8 @@ export default function Chat() {
                       borderRadius: 50,
                       padding: "10px 12px",
                       fontSize: "1rem",
-                      "& .MuiInputBase-root": {
-                        padding: 0,
-                      },
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        border: "none",
-                      },
+                      "& .MuiInputBase-root": { padding: 0 },
+                      "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                       "& .MuiInputBase-input": {
                         fontSize: "1rem",
                         lineHeight: "1.5",
