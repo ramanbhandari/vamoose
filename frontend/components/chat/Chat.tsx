@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   List,
@@ -11,6 +11,7 @@ import {
   Button,
   IconButton,
   Collapse,
+  Grow,
 } from "@mui/material";
 
 import Message from "@mui/icons-material/Message";
@@ -38,7 +39,7 @@ export default function Chat() {
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
 
-
+  // Initial fake messages for demonstration
   const fakeMessages = [
     {
       id: 1,
@@ -88,8 +89,18 @@ export default function Chat() {
       sender: "sent",
       name: "You",
     },
-    // Add more messages here if needed to test scrolling
   ];
+
+  // Store messages in state so we can add new ones.
+  const [messages, setMessages] = useState(fakeMessages);
+  const [messageText, setMessageText] = useState("");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when messages change.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
     if (user) fetchUserTrips(user.id);
@@ -128,8 +139,19 @@ export default function Chat() {
     setSelectedTrip(trip?.name || "Unnamed Trip");
   };
 
-  // Use the maximized width only if the chat is maximized,
-  // otherwise use the constant minimized width.
+  // New message sending handler with transition effect.
+  const handleSend = () => {
+    if (!messageText.trim()) return;
+    const newMessage = {
+      id: Date.now(),
+      text: messageText,
+      sender: "sent",
+      name: "You",
+    };
+    setMessages((prev) => [...prev, newMessage]);
+    setMessageText("");
+  };
+
   const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   return (
@@ -242,10 +264,10 @@ export default function Chat() {
                               ? "var(--secondary)"
                               : "transparent",
                           p: 1,
-                          color: 
+                          color:
                             selectedTrip === trip.name
-                                ? "var(--chat)"
-                                : "#var(--text)"
+                              ? "var(--chat)"
+                              : "var(--text)",
                         }}
                         onClick={() => selectTrip(trip)}
                       >
@@ -325,48 +347,56 @@ export default function Chat() {
                   gap: 1,
                 }}
               >
-                {fakeMessages.map((msg) => (
-                  <Box
+                {messages.map((msg) => (
+                  <Grow
+                    in={true}
+                    style={{ transformOrigin: "0 0 0" }}
+                    timeout={500}
                     key={msg.id}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignSelf:
-                        msg.sender === "sent" ? "flex-end" : "flex-start",
-                      gap: 0.5,
-                    }}
                   >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color:
-                          msg.sender === "sent" ? "grey.500" : "grey.600",
-                      }}
-                    >
-                      {msg.name}
-                    </Typography>
                     <Box
                       sx={{
-                        width: "100%",
-                        backgroundColor:
-                          msg.sender === "sent"
-                            ? "var(--primary-hover)"
-                            : "var(--background-paper)",
-                        color:
-                          msg.sender === "sent"
-                            ? "var(--chat)"
-                            : "var(--text)",
-                        padding: "10px 16px",
-                        borderRadius:
-                          msg.sender === "sent"
-                            ? "16px 16px 0 16px"
-                            : "16px 16px 16px 0",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignSelf:
+                          msg.sender === "sent" ? "flex-end" : "flex-start",
+                        gap: 0.5,
                       }}
                     >
-                      <Typography variant="body1">{msg.text}</Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color:
+                            msg.sender === "sent" ? "grey.500" : "grey.600",
+                        }}
+                      >
+                        {msg.name}
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: "100%",
+                          backgroundColor:
+                            msg.sender === "sent"
+                              ? "var(--primary-hover)"
+                              : "var(--background-paper)",
+                          color:
+                            msg.sender === "sent"
+                              ? "var(--chat)"
+                              : "var(--text)",
+                          padding: "10px 16px",
+                          borderRadius:
+                            msg.sender === "sent"
+                              ? "16px 16px 0 16px"
+                              : "16px 16px 16px 0",
+                        }}
+                      >
+                        <Typography variant="body1">{msg.text}</Typography>
+                      </Box>
                     </Box>
-                  </Box>
+                  </Grow>
                 ))}
+                {/* Dummy element to scroll into view */}
+                <Box ref={messagesEndRef} />
               </Box>
 
               {/* Input Area */}
@@ -402,6 +432,14 @@ export default function Chat() {
                     placeholder="Type your message..."
                     fullWidth
                     size="small"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
                     sx={{
                       backgroundColor: "transparent",
                       border: "none",
@@ -420,6 +458,7 @@ export default function Chat() {
                   />
                   <Button
                     variant="contained"
+                    onClick={handleSend}
                     sx={{
                       ml: 2,
                       backgroundColor: "var(--primary)",
