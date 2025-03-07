@@ -5,7 +5,7 @@ import {
   validateDeletePollInput,
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
-  validateMarkPollsAsCompletedInput,
+  validateCompletePollInput,
 } from '@/middleware/poll.validators.js';
 import {
   validateCastVoteInput,
@@ -16,7 +16,7 @@ import {
   deletePollHandler,
   batchDeletePollsHandler,
   getAllPollsForTripHandler,
-  markPollsAsCompletedHandler,
+  completePollHandler,
 } from '@/controllers/poll.controller.js';
 import {
   castVoteHandler,
@@ -40,10 +40,10 @@ router
     castVoteHandler,
   )
   .patch(
-    '/complete',
-    validateMarkPollsAsCompletedInput,
+    '/:pollId/complete',
+    validateCompletePollInput,
     validationErrorHandler,
-    markPollsAsCompletedHandler,
+    completePollHandler,
   )
   .delete(
     '/:pollId',

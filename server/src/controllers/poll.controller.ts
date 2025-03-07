@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { createPoll } from '@/models/poll.model.js';
 import { getTripMember } from '@/models/member.model.js';
 import {
+  createPoll,
   deletePoll,
   getPollById,
-  getPollsByIds,
   deletePollsByIds,
   getAllPollsForTrip,
-  markPollsAsCompleted,
+  markPollAsCompleted,
 } from '@/models/poll.model.js';
 import { PollStatus } from '@/interfaces/enums.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
@@ -220,6 +219,31 @@ export const getAllPollsForTripHandler = async (
         };
       });
 
+      // Determine if the poll resulted in a tie
+      let winner = null;
+      if (poll.status === PollStatus.COMPLETED && poll.winner) {
+        const winningOption = options.find((o) => o.id === poll.winner?.id);
+        winner = winningOption
+          ? {
+              id: poll.winner.id,
+              option: poll.winner.option,
+              voteCount: winningOption.voteCount,
+            }
+          : null;
+      } else if (poll.status === PollStatus.TIE) {
+        const maxVotes = Math.max(...options.map((option) => option.voteCount));
+        winner = {
+          tie: true,
+          options: options
+            .filter((option) => option.voteCount === maxVotes)
+            .map((option) => ({
+              id: option.id,
+              option: option.option,
+              voteCount: option.voteCount,
+            })),
+        };
+      }
+
       return {
         id: poll.id,
         question: poll.question,
@@ -230,15 +254,7 @@ export const getAllPollsForTripHandler = async (
         createdBy: poll.createdBy,
         options,
         totalVotes,
-        winner:
-          poll.status !== PollStatus.ACTIVE && poll.winner
-            ? {
-                id: poll.winner.id,
-                option: poll.winner.option,
-                voteCount:
-                  options.find((o) => o.id === poll.winner?.id)?.voteCount ?? 0,
-              }
-            : null,
+        winner,
       };
     });
 
@@ -248,14 +264,11 @@ export const getAllPollsForTripHandler = async (
   }
 };
 
-export const markPollsAsCompletedHandler = async (
-  req: Request,
-  res: Response,
-) => {
+export const completePollHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
-    const { pollIds } = req.body;
+    const pollId = Number(req.params.pollId);
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -267,8 +280,8 @@ export const markPollsAsCompletedHandler = async (
       return;
     }
 
-    if (!Array.isArray(pollIds) || pollIds.length === 0) {
-      res.status(400).json({ error: 'Invalid poll IDs provided' });
+    if (isNaN(pollId)) {
+      res.status(400).json({ error: 'Invalid poll ID' });
       return;
     }
 
@@ -281,46 +294,57 @@ export const markPollsAsCompletedHandler = async (
       return;
     }
 
-    // Fetch polls to validate permissions
-    const polls = await getPollsByIds(pollIds, tripId);
+    // Fetch the poll with its options and votes
+    const poll = await getPollById(pollId);
 
-    if (polls.length === 0) {
-      res.status(404).json({ error: 'No valid polls found' });
+    if (!poll || poll.tripId !== tripId) {
+      res.status(404).json({ error: 'Poll not found in this trip' });
       return;
     }
 
-    const isCreator = requestingMember.role === 'creator';
+    const isPollCreator = poll.createdById === userId;
+    const isTripCreator = requestingMember.role === 'creator';
     const isAdmin = requestingMember.role === 'admin';
 
-    // Filter out polls that the user is not allowed to complete
-    const allowedPolls = polls.filter(
-      (poll) => isCreator || isAdmin || poll.createdById === userId, // Allow poll creator to complete their own poll
-    );
-
-    if (allowedPolls.length === 0) {
+    // Authorization: Only the poll creator, an admin, or the trip creator can complete the poll
+    if (!isPollCreator && !isTripCreator && !isAdmin) {
       res.status(403).json({
-        error: 'You are not authorized to complete any of these polls',
-      });
-      return;
-    }
-
-    const allowedPollIds = allowedPolls.map((poll) => poll.id);
-
-    // Complete only allowed polls
-    const result = await markPollsAsCompleted(allowedPollIds);
-
-    if (result.count === 0) {
-      res.status(404).json({
         error:
-          'No polls were marked as completed. Please verify poll IDs and try again.',
+          'Only the poll creator, an admin, or the trip creator can complete this poll',
       });
       return;
     }
+
+    // Determine the winning option or if there is a tie
+    const options = poll.options.map((option) => ({
+      id: option.id,
+      option: option.option,
+      voteCount: option.votes.length,
+    }));
+
+    const maxVotes = Math.max(...options.map((o) => o.voteCount));
+    const topOptions = options.filter((o) => o.voteCount === maxVotes);
+
+    let status: PollStatus = PollStatus.COMPLETED;
+    let winnerId: number | null = null;
+    let tiedOptions: { id: number; option: string; voteCount: number }[] = [];
+
+    if (topOptions.length > 1) {
+      status = PollStatus.TIE;
+      tiedOptions = topOptions;
+    } else if (topOptions.length === 1) {
+      winnerId = topOptions[0].id;
+    }
+
+    // Update the poll status and winner
+    const updatedPoll = await markPollAsCompleted(pollId, status, winnerId);
 
     res.status(200).json({
-      message: 'Polls marked as completed successfully',
-      completedCount: result.count,
-      allowedPollIds,
+      message: 'Poll marked as completed successfully',
+      poll: updatedPoll,
+      status,
+      winnerId,
+      tiedOptions,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error marking polls as completed:');
