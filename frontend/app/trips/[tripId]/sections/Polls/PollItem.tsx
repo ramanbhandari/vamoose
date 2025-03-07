@@ -415,7 +415,7 @@ export default function PollItem({
             )}
           </Stack>
         )}
-        {showDelete && (
+        {showDelete && poll.status !== "COMPLETED" && (
           <Box
             sx={{
               display: "flex",
