@@ -21,17 +21,19 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 
 // Section Components
 import Overview from "./sections/Overview/index";
-import Stays from "./sections/Stays";
-import Activities from "./sections/Activities";
+import Stays from "./sections/Stays/index";
+import Activities from "./sections/Activities/index";
 import Polls from "./sections/Polls/index";
-import Itinerary from "./sections/Itinerary";
-import PackingList from "./sections/PackingList";
+import Itinerary from "./sections/Itinerary/index";
+import PackingList from "./sections/PackingList/index";
 import TripMembers from "./sections/TripMembers/index";
 import Expenses from "./sections/Expenses";
 
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
 import { usePollStore } from "@/stores/polls-store";
+import { LocationOn } from "@mui/icons-material";
+import Maps from "./sections/Maps";
 
 const sections = [
   {
@@ -65,6 +67,11 @@ const sections = [
     id: "members",
     label: "Members",
     icon: <GroupIcon fontSize="medium" />,
+  },
+  {
+    id: "maps",
+    label: "Maps",
+    icon: <LocationOn fontSize="medium" />,
   },
 ];
 
@@ -188,7 +195,13 @@ export default function TripSummaryPage() {
         {activeSection === "overview" && (
           <Overview tripData={tripData} onSectionChange={handleSectionChange} />
         )}
-        {activeSection === "stays" && <Stays />}
+        {activeSection === "stays" && tripData && (
+          <Stays
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
         {activeSection === "expenses" && tripData && (
           <Expenses
             tripId={tripData.id}
@@ -202,7 +215,13 @@ export default function TripSummaryPage() {
           />
         )}
 
-        {activeSection === "activities" && <Activities />}
+        {activeSection === "activities" && tripData && (
+          <Activities
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
         {activeSection === "polls" && tripData && (
           <Polls
             tripId={tripData.id}
@@ -213,9 +232,28 @@ export default function TripSummaryPage() {
             members={tripData.members}
           />
         )}
-        {activeSection === "itinerary" && <Itinerary />}
-        {activeSection === "packing" && <PackingList />}
+        {activeSection === "itinerary" && tripData && (
+          <Itinerary
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
+        {activeSection === "packing" && tripData && (
+          <PackingList
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
         {activeSection === "members" && <TripMembers tripData={tripData} />}
+        {activeSection === "maps" && tripData && (
+          <Maps
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
       </Container>
     </Box>
   );
