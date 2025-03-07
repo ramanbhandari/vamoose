@@ -4,7 +4,7 @@ import { Grid, Typography, Box, useTheme, Paper } from "@mui/material";
 import PollIcon from "@mui/icons-material/Poll";
 import { motion } from "framer-motion";
 import { SectionContainer } from "./styled";
-import { Poll } from "@/types";
+import { Poll } from "@/app/trips/[tripId]/sections/Polls/types";
 
 interface PollsSectionProps {
   polls: Poll[];
@@ -12,7 +12,7 @@ interface PollsSectionProps {
 }
 
 interface PollProps {
-  id: string;
+  id: number;
   question: string;
   votes: number;
   onClick?: () => void;
@@ -82,7 +82,7 @@ export default function PollsSection({
             <PollPreviewCard
               id={poll.id}
               question={poll.question}
-              votes={poll.votes}
+              votes={poll.totalVotes}
               onClick={() => onSectionChange("polls")}
             />
           </Grid>

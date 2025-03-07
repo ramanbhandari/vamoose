@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import {
   getTripDebtsSummaryHandler,
   getUserDebtDetailsHandler,
-  settleExpensesHandler,
+  settleExpenseSharesHandler,
 } from '@/controllers/expenseShare.controller.js';
 import prisma from '@/config/prismaClient.js';
 
 // Mock the specific Prisma client methods
-jest.mock('../../../config/prismaClient', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {
@@ -207,7 +207,7 @@ describe('Settle Expenses Controller', () => {
     userId: 'creditor1',
     params: { tripId: '1' },
     body: {
-      expensesToSettle: [
+      expenseSharesToSettle: [
         { expenseId: 1, debtorUserId: 'debtor1' },
         { expenseId: 2, debtorUserId: 'debtor2' },
         { expenseId: 3, debtorUserId: 'invalidDebtor' }, // Invalid
@@ -237,21 +237,21 @@ describe('Settle Expenses Controller', () => {
     );
     (prisma.expenseShare.update as jest.Mock).mockResolvedValue({ count: 2 });
 
-    await settleExpensesHandler(req as Request, res as Response);
+    await settleExpenseSharesHandler(req as Request, res as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Expenses settled successfully',
+      message: 'Expense shares settled successfully',
       settledCount: 2,
-      settledExpenses: [
+      settledExpenseShares: [
         { expenseId: 1, debtorUserId: 'debtor1' },
         { expenseId: 2, debtorUserId: 'debtor2' },
       ],
-      poorlyFormattedExpenses: [],
-      nonExistentExpensePairs: [
+      poorlyFormattedExpenseShares: [],
+      nonExistentExpenseSharePairs: [
         { expenseId: 3, debtorUserId: 'invalidDebtor' },
       ],
-      unauthorizedExpensePairs: [],
+      unauthorizedExpenseSharePairs: [],
     });
   });
 
@@ -269,17 +269,17 @@ describe('Settle Expenses Controller', () => {
       expectedMessage: 'Invalid trip ID',
     },
     {
-      scenario: 'Invalid expensesToSettle format',
-      overrides: { body: { expensesToSettle: 'invalid-format' } },
+      scenario: 'Invalid expenseSharesToSettle format',
+      overrides: { body: { expenseSharesToSettle: 'invalid-format' } },
       expectedStatus: 400,
-      expectedMessage: 'Invalid expensesToSettle array provided',
+      expectedMessage: 'Invalid expenseSharesToSettle array provided',
     },
   ])(
     '[$scenario] → should return $expectedStatus',
     async ({ overrides, expectedStatus, expectedMessage }) => {
       req = setupRequest(overrides);
 
-      await settleExpensesHandler(req as Request, res as Response);
+      await settleExpenseSharesHandler(req as Request, res as Response);
 
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
@@ -290,7 +290,7 @@ describe('Settle Expenses Controller', () => {
     req = setupRequest();
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
 
-    await settleExpensesHandler(req as Request, res as Response);
+    await settleExpenseSharesHandler(req as Request, res as Response);
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -305,12 +305,12 @@ describe('Settle Expenses Controller', () => {
     );
     (prisma.expenseShare.findMany as jest.Mock).mockResolvedValue([]);
 
-    await settleExpensesHandler(req as Request, res as Response);
+    await settleExpenseSharesHandler(req as Request, res as Response);
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
       error: 'No valid, unsettled expense shares found to settle',
-      nonExistentExpensePairs: [
+      nonExistentExpenseSharePairs: [
         { expenseId: 1, debtorUserId: 'debtor1' },
         { expenseId: 2, debtorUserId: 'debtor2' },
         { expenseId: 3, debtorUserId: 'invalidDebtor' },
@@ -327,17 +327,17 @@ describe('Settle Expenses Controller', () => {
       mockExpenseShares,
     );
 
-    await settleExpensesHandler(req as Request, res as Response);
+    await settleExpenseSharesHandler(req as Request, res as Response);
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'You are not authorized to settle any of these expenses',
-      unauthorizedExpensePairs: [
+      error: 'You are not authorized to settle any of these expense shares',
+      unauthorizedExpenseSharePairs: [
         { expenseId: 1, debtorUserId: 'debtor1' },
         { expenseId: 2, debtorUserId: 'debtor2' },
       ],
-      poorlyFormattedExpenses: [],
-      nonExistentExpensePairs: [
+      poorlyFormattedExpenseShares: [],
+      nonExistentExpenseSharePairs: [
         {
           debtorUserId: 'invalidDebtor',
           expenseId: 3,

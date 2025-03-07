@@ -12,7 +12,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-jest.mock('../../../config/prismaClient', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: { findUnique: jest.fn() },

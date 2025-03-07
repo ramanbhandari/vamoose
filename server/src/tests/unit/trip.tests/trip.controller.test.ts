@@ -12,7 +12,7 @@ import { NotFoundError } from '@/utils/errors.js';
 
 // Mock Prisma client functions
 // Add models->functions you want to mock here
-jest.mock('../../../config/prismaClient', () => ({
+jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: {
