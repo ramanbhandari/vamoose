@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
-import { Box, IconButton, useTheme, CircularProgress } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  useTheme,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
 import { MyLocation } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 interface MapComponentProps {
@@ -143,6 +149,13 @@ export default function MapComponent({
           )}
         </IconButton>
       </Box>
+      <footer
+        style={{ position: "absolute", bottom: 0, right: 6, zIndex: 1000 }}
+      >
+        <Typography variant="caption" color="primary">
+          Map data © CARTO, OpenStreetMap contributors
+        </Typography>
+      </footer>
     </Box>
   );
 }
