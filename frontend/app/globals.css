@@ -44,6 +44,7 @@
   --foreground: #171717;
   --background-paper: #ffffff;
   --text: #3a4f6c;
+  --chat: #fff;
 
   --primary: #ff5a5f;
   --primary-hover: #ff7377;
@@ -63,6 +64,7 @@
   --foreground: #ededed;
   --background-paper: #1a1a1a;
   --text: #ededed;
+  --chat: #fff;
 
   --primary: #ff5a5f;
   --primary-hover: #ff7377;
