@@ -3,13 +3,19 @@ export interface PollOption {
   option: string;
   voteCount: number;
   percentage: number;
-  voters: string[];
+  voters: Voter[];
 }
 
 export interface PollCreator {
   id: string;
   email: string;
   fullName: string;
+}
+
+export interface Voter {
+  id: string;
+  email: string;
+  fullName: string | null;
 }
 
 export interface Poll {
