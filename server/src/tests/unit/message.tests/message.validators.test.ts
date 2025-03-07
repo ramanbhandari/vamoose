@@ -27,6 +27,7 @@ describe('Message Validators Middleware', () => {
     it('should pass validation for valid tripId param', async () => {
       mockReq = {
         params: { tripId: '1' } as ParamsDictionary,
+        body: { text: 'Hello world' },
       };
 
       const result = await runValidation(mockReq, validateCreateMessageInput);
@@ -37,22 +38,28 @@ describe('Message Validators Middleware', () => {
       {
         scenario: 'invalid tripId (non-numeric)',
         params: { tripId: 'abc' },
+        body: { text: 'Hello world' }, // Added text field
         expectedError: 'Trip ID must be a positive number',
       },
       {
         scenario: 'invalid tripId (zero)',
         params: { tripId: '0' },
+        body: { text: 'Hello world' }, // Added text field
         expectedError: 'Trip ID must be a positive number',
       },
       {
         scenario: 'invalid tripId (negative)',
         params: { tripId: '-1' },
+        body: { text: 'Hello world' }, // Added text field
         expectedError: 'Trip ID must be a positive number',
       },
     ])(
       'should fail validation when $scenario',
-      async ({ params, expectedError }) => {
-        mockReq = { params: params as ParamsDictionary };
+      async ({ params, body, expectedError }) => {
+        mockReq = {
+          params: params as ParamsDictionary,
+          body: body, // Added the body
+        };
         const result = await runValidation(mockReq, validateCreateMessageInput);
 
         expect(result.isEmpty()).toBe(false);
@@ -142,7 +149,7 @@ describe('Message Validators Middleware', () => {
     it('should pass validation for valid emoji reaction update', async () => {
       mockReq = {
         params: { tripId: '1', messageId: 'msg123' } as ParamsDictionary,
-        body: { emoji: '👍', userId: 'user123' },
+        body: { emoji: '👍' },
       };
 
       const result = await runValidation(mockReq, validateUpdateMessageInput);
@@ -179,12 +186,6 @@ describe('Message Validators Middleware', () => {
         params: { tripId: '1', messageId: 'msg123' },
         body: { reactions: 'not-an-object' },
         expectedError: 'Reactions must be an object',
-      },
-      {
-        scenario: 'emoji without userId',
-        params: { tripId: '1', messageId: 'msg123' },
-        body: { emoji: '👍' },
-        expectedError: 'At least one update field is required',
       },
       {
         scenario: 'userId without emoji',

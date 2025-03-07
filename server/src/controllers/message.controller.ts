@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Message from '@/models/message.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { getTripMember } from '@/models/member.model.js';
 
 /**
  * Add a new message to the chat
@@ -10,18 +12,28 @@ export const addMessageHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
-    const { userId, text } = req.body;
+    const { text } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
 
     if (isNaN(tripId)) {
       res.status(400).json({ error: 'Invalid trip ID' });
       return;
     }
 
-    if (!userId || !text) {
-      res
-        .status(400)
-        .json({ error: 'Missing required field(s): userId, or text' });
+    if (!text) {
+      res.status(400).json({ error: 'Missing required field: text' });
+      return;
+    }
+
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({ error: 'You are not a member of this trip' });
       return;
     }
 
@@ -49,7 +61,13 @@ export const getMessagesHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
 
     if (isNaN(tripId)) {
       res.status(400).json({ error: 'Invalid trip ID' });
@@ -81,11 +99,17 @@ export const updateMessageHandler = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
     const { messageId } = req.params;
-    console.log(req.params);
+
     //reactions is {emoji: [userid1, userid2...], emoji2:[userid1, userid3...]}
-    const { text, reactions, emoji, userId } = req.body;
+    const { text, reactions, emoji } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
 
     if (!tripId) {
       res.status(400).json({ error: 'Missing required field(s): tripId' });
@@ -94,6 +118,12 @@ export const updateMessageHandler = async (
 
     if (!messageId) {
       res.status(400).json({ error: 'Missing required field(s): messageId' });
+      return;
+    }
+
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({ error: 'You are not a member of this trip' });
       return;
     }
 

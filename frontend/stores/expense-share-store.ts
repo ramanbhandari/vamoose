@@ -29,7 +29,7 @@ interface ExpenseShareState {
   settleExpenses: (
     tripId: number,
     debtorEmail: string,
-    expensesToSettle: { expenseId: number, debtorUserId: string }[]
+    expensesToSettle: { expenseId: number; debtorUserId: string }[]
   ) => Promise<void>;
   resetError: () => void;
 }
@@ -42,7 +42,9 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
   fetchExpenseShareData: async (tripId) => {
     set({ loading: true, error: null });
     try {
-      const response = await apiClient.get(`/trips/${tripId}/expenseShares/debt-summary/`);
+      const response = await apiClient.get(
+        `/trips/${tripId}/expenseShares/debt-summary/`
+      );
       set({ memberSummaries: response.data.summary, loading: false });
     } catch (error) {
       let errorMessage = "Failed to load expense share data";
@@ -65,28 +67,48 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       // Call the API to settle expenses
-      const response = await apiClient.patch(`/trips/${tripId}/expenseShares/settle/`, {
-        expenseSharesToSettle: expensesToSettle.map((expense) => ({
-          expenseId: expense.expenseId,
-          debtorUserId: expense.debtorUserId, 
-        })),
-      });
+      const response = await apiClient.patch(
+        `/trips/${tripId}/expenseShares/settle/`,
+        {
+          expenseSharesToSettle: expensesToSettle.map((expense) => ({
+            expenseId: expense.expenseId,
+            debtorUserId: expense.debtorUserId,
+          })),
+        }
+      );
 
-      const { settledExpenseShares, nonExistentExpenseSharePairs, unauthorizedExpenseSharePairs, poorlyFormattedExpenseShares } = response.data;
+      const {
+        settledExpenseShares,
+        nonExistentExpenseSharePairs,
+        unauthorizedExpenseSharePairs,
+        poorlyFormattedExpenseShares,
+      } = response.data;
 
       // Notify the user about the results
       const { setNotification } = useNotificationStore.getState();
       if (settledExpenseShares.length > 0) {
-        setNotification(`${settledExpenseShares.length} expenses settled successfully!`, "success");
+        setNotification(
+          `${settledExpenseShares.length} expenses settled successfully!`,
+          "success"
+        );
       }
       if (nonExistentExpenseSharePairs.length > 0) {
-        setNotification(`${nonExistentExpenseSharePairs.length} expenses could not be found.`, "warning");
+        setNotification(
+          `${nonExistentExpenseSharePairs.length} expenses could not be found.`,
+          "warning"
+        );
       }
       if (unauthorizedExpenseSharePairs.length > 0) {
-        setNotification(`You are not authorized to settle ${unauthorizedExpenseSharePairs.length} expenses.`, "warning");
+        setNotification(
+          `You are not authorized to settle ${unauthorizedExpenseSharePairs.length} expenses.`,
+          "warning"
+        );
       }
       if (poorlyFormattedExpenseShares.length > 0) {
-        setNotification(`${poorlyFormattedExpenseShares.length} expenses were poorly formatted.`, "warning");
+        setNotification(
+          `${poorlyFormattedExpenseShares.length} expenses were poorly formatted.`,
+          "warning"
+        );
       }
 
       // Update the local state with successfully settled expenses
@@ -94,9 +116,11 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
       const updatedMemberSummaries = memberSummaries.map((memberSummary) => {
         if (memberSummary.debtorEmail === debtorEmail) {
           // Find the expenses that were successfully settled
-          const settledExpenseIds = settledExpenseShares.map((e:{ expenseId: number, debtorUserId: string }) => e.expenseId);
-          const settledExpensesForMember = memberSummary.outstanding.filter((expense) =>
-            settledExpenseIds.includes(expense.expenseShareId)
+          const settledExpenseIds = settledExpenseShares.map(
+            (e: { expenseId: number; debtorUserId: string }) => e.expenseId
+          );
+          const settledExpensesForMember = memberSummary.outstanding.filter(
+            (expense) => settledExpenseIds.includes(expense.expenseShareId)
           );
 
           if (settledExpensesForMember.length > 0) {
@@ -107,7 +131,12 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
                 (expense) => !settledExpenseIds.includes(expense.expenseShareId)
               ),
               settled: [...memberSummary.settled, ...settledExpensesForMember],
-              totalOwed: memberSummary.totalOwed - settledExpensesForMember.reduce((sum, expense) => sum + expense.amount, 0),
+              totalOwed:
+                memberSummary.totalOwed -
+                settledExpensesForMember.reduce(
+                  (sum, expense) => sum + expense.amount,
+                  0
+                ),
             };
           }
         }
@@ -126,7 +155,7 @@ export const useExpenseShareStore = create<ExpenseShareState>((set, get) => ({
         }
       } else if (error instanceof Error) {
         errorMessage = error.message;
-        console.error(error)
+        console.error(error);
       }
 
       set({ loading: false });
