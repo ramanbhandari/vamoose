@@ -32,6 +32,8 @@ export default function ExpenseBreakdown({ memberSummaries, tripId }: ExpenseBre
     ? [currentUserSummary, ...otherMemberSummaries]
     : otherMemberSummaries;
 
+  const filterMembersWithDebt = sortedMemberSummaries.filter((summary) => summary.totalOwed > 0)
+
   const handleExpand = (index: number) => {
     if (expandedCard === index) {
       setExpandedCard(null);
@@ -43,14 +45,14 @@ export default function ExpenseBreakdown({ memberSummaries, tripId }: ExpenseBre
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mb: 4 }}>
-        {sortedMemberSummaries.length > 0 ? (
-          sortedMemberSummaries.map((memberSummary, index) => (
+        {filterMembersWithDebt.length > 0 ? (
+          filterMembersWithDebt.map((memberSummary, index) => (
             <MemberOwedCard
               key={index}
               memberSummary={memberSummary}
               isExpanded={expandedCard === index}
               onExpand={() => handleExpand(index)}
-              isLastCard={index === sortedMemberSummaries.length - 1}
+              isLastCard={index === filterMembersWithDebt.length - 1}
               tripId={tripId}
             />
           ))
