@@ -32,6 +32,8 @@ import Expenses from "./sections/Expenses";
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
 import { usePollStore } from "@/stores/polls-store";
+import { LocationOn } from "@mui/icons-material";
+import Maps from "./sections/Maps";
 
 const sections = [
   {
@@ -65,6 +67,11 @@ const sections = [
     id: "members",
     label: "Members",
     icon: <GroupIcon fontSize="medium" />,
+  },
+  {
+    id: "maps",
+    label: "Maps",
+    icon: <LocationOn fontSize="medium" />,
   },
 ];
 
@@ -216,6 +223,13 @@ export default function TripSummaryPage() {
         {activeSection === "itinerary" && <Itinerary />}
         {activeSection === "packing" && <PackingList />}
         {activeSection === "members" && <TripMembers tripData={tripData} />}
+        {activeSection === "maps" && tripData && (
+          <Maps
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+          />
+        )}
       </Container>
     </Box>
   );
