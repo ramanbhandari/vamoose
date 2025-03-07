@@ -234,14 +234,18 @@ export default function Chat() {
                           cursor: "pointer",
                           borderRadius: "4px",
                           "&:hover": {
-                            backgroundColor: "var(--secondary)",
+                            backgroundColor: "var(--secondary-hover)",
+                            color: "var(--chat)",
                           },
                           backgroundColor:
                             selectedTrip === trip.name
-                              ? "var(--secondary-hover)"
+                              ? "var(--secondary)"
                               : "transparent",
                           p: 1,
-                          color: "var(--chat)"
+                          color: 
+                            selectedTrip === trip.name
+                                ? "var(--chat)"
+                                : "#var(--text)"
                         }}
                         onClick={() => selectTrip(trip)}
                       >
@@ -346,7 +350,7 @@ export default function Chat() {
                         width: "100%",
                         backgroundColor:
                           msg.sender === "sent"
-                            ? "var(--primary)"
+                            ? "var(--primary-hover)"
                             : "var(--background-paper)",
                         color:
                           msg.sender === "sent"
@@ -388,6 +392,7 @@ export default function Chat() {
                     borderRadius: 50,
                     p: 1.5,
                     pr: 4,
+                    mb: 2,
                     width: isMaximized ? "60%" : "100%",
                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                   }}
