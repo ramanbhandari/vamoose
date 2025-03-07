@@ -184,7 +184,7 @@ export default function Expenses({
             )}
 
             {currentTab === 1 && (
-              <ExpenseBreakdown memberSummaries={memberSummaries} />
+              <ExpenseBreakdown memberSummaries={memberSummaries} tripId={tripId} />
             )}
         </Box>      
     </>
