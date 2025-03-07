@@ -1,5 +1,6 @@
 import { Box, Typography, useTheme, Container } from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
+import InteractiveMap from "./InteractiveMap";
 
 interface MapsProps {
   tripId: number;
@@ -53,6 +54,9 @@ export default function Maps({ tripId, tripName, imageUrl }: MapsProps) {
           </Box>
         </Container>
       </GradientHeader>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <InteractiveMap />
+      </Container>
     </Box>
   );
 }
