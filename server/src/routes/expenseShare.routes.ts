@@ -5,13 +5,13 @@ import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateTripDebtSummaryInput,
   validateUserDebtSummaryInput,
-  validateSettleExpensesInput,
+  validateSettleExpenseSharesInput,
 } from '@/middleware/expenseShare.validators.js';
 
 import {
   getTripDebtsSummaryHandler,
   getUserDebtDetailsHandler,
-  settleExpensesHandler,
+  settleExpenseSharesHandler,
 } from '@/controllers/expenseShare.controller.js';
 
 const router = express.Router({ mergeParams: true });
@@ -36,9 +36,9 @@ router
   //  Settle expenses for a trip
   .patch(
     '/settle',
-    validateSettleExpensesInput,
+    validateSettleExpenseSharesInput,
     validationErrorHandler,
-    settleExpensesHandler,
+    settleExpenseSharesHandler,
   );
 
 export default router;
