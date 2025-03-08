@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import appRouter from './routes/appRouter.js';
 import prisma from './config/prismaClient.js';
 import cors from 'cors';
+import '@/cron/scheduler.js';
 import connectMongoDB from './db/mongo.js';
 
 dotenv.config();
