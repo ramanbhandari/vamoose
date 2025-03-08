@@ -7,22 +7,12 @@ import {
   Chip,
   Checkbox,
   IconButton,
+  Slide,
 } from "@mui/material";
-import { styled } from "@mui/system";
+import { Box } from "@mui/system";
 import { Member } from "@/types";
 import { DeleteOutline } from "@mui/icons-material";
-
-const StyledCard = styled(Paper)(({ theme }) => ({
-  position: "relative",
-  padding: theme.spacing(2),
-  textAlign: "center",
-  borderRadius: theme.shape.borderRadius * 2,
-  transition: "transform 0.2s ease-in-out",
-  cursor: "pointer",
-  "&:hover": {
-    transform: "scale(1.03)",
-  },
-}));
+import { useTheme } from "@mui/material/styles";
 
 interface MemberCardProps {
   member: Member;
@@ -41,53 +31,121 @@ export default function MemberCard({
   showDelete = false,
   showCheckbox = false,
 }: MemberCardProps) {
+  const theme = useTheme();
+
+  const getInitials = (name: string | null) => {
+    if (!name)
+      return member.role === "creator"
+        ? "C"
+        : member.role.charAt(0).toUpperCase();
+    const names = name.split(" ");
+    return names
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
   return (
-    <StyledCard>
-      {showCheckbox && (
-        <Checkbox
-          checked={checked}
-          onChange={() => onSelect?.(member.userId)}
-          sx={{
-            position: "absolute",
-            left: 8,
-            top: 8,
-            zIndex: 1,
-          }}
-        />
-      )}
-
-      {showDelete && (
-        <IconButton
-          onClick={() => onDelete?.(member.userId)}
-          sx={{
-            position: "absolute",
-            right: 8,
-            top: 8,
-            zIndex: 1,
-            color: "error.main",
-          }}
-        >
-          <DeleteOutline />
-        </IconButton>
-      )}
-
-      <Avatar
+    <Slide direction="up" in={true} mountOnEnter unmountOnExit>
+      <Paper
         sx={{
-          width: 72,
-          height: 72,
-          margin: "0 auto",
-          mb: 1,
-          fontSize: "1.5rem",
-          fontWeight: 700,
-          border: "2px solid white",
+          p: 3,
+          borderRadius: 4,
+          transition: "transform 0.1s, box-shadow 0.1s",
+          "&:hover": {
+            transform: "translateY(-5px)",
+            boxShadow: theme.shadows[8],
+          },
+          position: "relative",
+          overflow: "hidden",
+          background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
         }}
       >
-        {member.role === "creator" ? "C" : member.role.charAt(0).toUpperCase()}
-      </Avatar>
-      <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
-        {member.user.email}
-      </Typography>
-      <Chip label={member.role} color="primary" size="small" />
-    </StyledCard>
+        {showCheckbox && (
+          <Checkbox
+            checked={checked}
+            onChange={() => onSelect?.(member.userId)}
+            sx={{
+              position: "absolute",
+              left: 8,
+              top: 8,
+              zIndex: 1,
+            }}
+          />
+        )}
+
+        {showDelete && (
+          <IconButton
+            onClick={() => onDelete?.(member.userId)}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              zIndex: 1,
+              color: "error.main",
+            }}
+          >
+            <DeleteOutline />
+          </IconButton>
+        )}
+
+        <Avatar
+          sx={{
+            width: 72,
+            height: 72,
+            margin: "0 auto",
+            mb: 1,
+            fontSize: "1.5rem",
+            fontWeight: 700,
+            border: "2px solid white",
+          }}
+        >
+          {getInitials(member.user.fullName)}
+        </Avatar>
+        <Box
+          sx={{
+            display: "flex",
+            alignContent: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+            {member.user.fullName ? member.user.fullName : member.user.email}
+          </Typography>
+        </Box>
+
+        {member.user.fullName !== null && (
+          <Box
+            sx={{
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography variant="caption" sx={{ fontWeight: 600, mb: 1 }}>
+              {member.user.email}
+            </Typography>
+          </Box>
+        )}
+
+        <Box
+          sx={{
+            display: "flex",
+            alignContent: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Chip
+            label={member.role.toUpperCase()}
+            color={
+              member.role === "creator" || member.role === "admin"
+                ? "primary"
+                : "secondary"
+            }
+            size="small"
+          />
+        </Box>
+      </Paper>
+    </Slide>
   );
 }

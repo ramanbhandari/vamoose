@@ -37,14 +37,14 @@ export const fetchSingleTrip = async (
         members: {
           include: {
             user: {
-              select: { email: true },
+              select: { email: true, fullName: true },
             },
           },
         },
         expenses: {
           include: {
             paidBy: {
-              select: { email: true },
+              select: { email: true, fullName: true },
             },
           },
           orderBy: { createdAt: 'desc' }, // Orders by createdAt, newest first
@@ -92,14 +92,14 @@ export const fetchTripsWithFilters = async (
         members: {
           include: {
             user: {
-              select: { email: true },
+              select: { email: true, fullName: true },
             },
           },
         },
         expenses: {
           include: {
             paidBy: {
-              select: { email: true },
+              select: { email: true, fullName: true },
             },
           },
           orderBy: { createdAt: 'desc' }, // Orders by createdAt, newest first

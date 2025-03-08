@@ -31,6 +31,7 @@ interface Expense {
   tripId: number;
   paidBy: {
     email: string;
+    fullName: string | null;
   };
 }
 
@@ -46,7 +47,7 @@ interface TripData {
     tripId: number;
     userId: string;
     role: string;
-    user: { email: string };
+    user: { email: string; fullName: string | null };
   }>;
   expenses: Expense[];
   stays: Array<[]>;
