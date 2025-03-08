@@ -233,7 +233,6 @@ export const getAllPollsForTripHandler = async (
       } else if (poll.status === PollStatus.TIE) {
         const maxVotes = Math.max(...options.map((option) => option.voteCount));
         winner = {
-          tie: true,
           options: options
             .filter((option) => option.voteCount === maxVotes)
             .map((option) => ({

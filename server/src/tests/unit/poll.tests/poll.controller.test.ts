@@ -327,7 +327,6 @@ describe('Get All Polls For Trip Controller', () => {
           fullName: 'Creator Name',
         },
         winner: {
-          tie: true,
           options: [
             { id: 1, option: 'Beach', voteCount: 1 },
             { id: 2, option: 'Mountains', voteCount: 1 },
