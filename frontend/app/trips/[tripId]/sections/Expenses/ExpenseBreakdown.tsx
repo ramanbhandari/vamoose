@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
 import MemberOwedCard from "./MemberOwedCard";
@@ -11,7 +11,10 @@ interface ExpenseBreakdownProps {
   tripId: number;
 }
 
-export default function ExpenseBreakdown({ memberSummaries, tripId }: ExpenseBreakdownProps) {
+export default function ExpenseBreakdown({
+  memberSummaries,
+  tripId,
+}: ExpenseBreakdownProps) {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const { user } = useUserStore();
 
@@ -32,7 +35,9 @@ export default function ExpenseBreakdown({ memberSummaries, tripId }: ExpenseBre
     ? [currentUserSummary, ...otherMemberSummaries]
     : otherMemberSummaries;
 
-  const filterMembersWithDebt = sortedMemberSummaries.filter((summary) => summary.totalOwed > 0)
+  const filterMembersWithDebt = sortedMemberSummaries.filter(
+    (summary) => summary.totalOwed > 0
+  );
 
   const handleExpand = (index: number) => {
     if (expandedCard === index) {

@@ -4,6 +4,7 @@ import expenseRouter from './expense.routes.js';
 import expenseShareRouter from './expenseShare.routes.js';
 import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.js';
 import memberRouter from './member.routes.js';
+import messageRouter from './message.routes.js';
 import pollRouter from './poll.routes.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
 
@@ -22,6 +23,7 @@ router.use('/trips/:tripId/expenses', expenseRouter);
 router.use('/trips/:tripId/expenseShares', expenseShareRouter);
 router.use('/trips/:tripId/invites', inviteRouter);
 router.use('/trips/:tripId/members', memberRouter);
+router.use('/trips/:tripId/messages', messageRouter);
 router.use('/trips/:tripId/polls', pollRouter);
 
 export default router;

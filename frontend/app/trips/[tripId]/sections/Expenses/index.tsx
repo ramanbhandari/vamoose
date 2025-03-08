@@ -1,26 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Tabs, Tab, Box, Typography, useTheme, Theme, useMediaQuery, CircularProgress } from "@mui/material";
+import {
+  Tabs,
+  Tab,
+  Box,
+  Typography,
+  useTheme,
+  Theme,
+  useMediaQuery,
+  CircularProgress,
+} from "@mui/material";
 import styled from "@emotion/styled";
 import BudgetDonut from "@/components/trips/Overview/BudgetDonut";
-import AllExpenses, { ExpensesProps } from "./AllExpenses"; 
+import AllExpenses, { ExpensesProps } from "./AllExpenses";
 import ExpenseBreakdown from "./ExpenseBreakdown";
 import { useExpenseShareStore } from "@/stores/expense-share-store";
 
 const GradientHeader = styled(Box)<{ theme: Theme }>(({}) => ({
-    padding: "3rem 2rem",
-    color: "white",
-    borderRadius: "0 0 80px 80px",
-    position: "relative",
-    overflow: "hidden",
-    "&:before": {
-      content: '""',
-      position: "absolute",
-      background: "rgba(255,255,255,0.1)",
-      borderRadius: "50%",
-    },
-  }));
+  padding: "3rem 2rem",
+  color: "white",
+  borderRadius: "0 0 80px 80px",
+  position: "relative",
+  overflow: "hidden",
+  "&:before": {
+    content: '""',
+    position: "absolute",
+    background: "rgba(255,255,255,0.1)",
+    borderRadius: "50%",
+  },
+}));
 
 type TripTabsProps = ExpensesProps;
 
@@ -45,53 +54,54 @@ export default function Expenses({
 
   const tabs = ["All Expenses", "Expense Debts"];
 
-  const {memberSummaries, loading, error, fetchExpenseShareData} = useExpenseShareStore();
+  const { memberSummaries, loading, error, fetchExpenseShareData } =
+    useExpenseShareStore();
 
   useEffect(() => {
-      if (tripId) fetchExpenseShareData(tripId);
-    }, [tripId, fetchExpenseShareData, budget]);
-  
-    //Just a loading screen
-    if (loading) {
-      return (
-        <Box
+    if (tripId) fetchExpenseShareData(tripId);
+  }, [tripId, fetchExpenseShareData, budget]);
+
+  //Just a loading screen
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: 4,
+        }}
+      >
+        <Typography
+          variant="h2"
+          color="error"
           sx={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            fontWeight: "700",
+            fontFamily: "apple-system",
           }}
         >
-          <CircularProgress />
-        </Box>
-      );
-    }
-  
-    if (error) {
-      return (
-        <Box
-          sx={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            padding: 4,
-          }}
-        >
-          <Typography
-            variant="h2"
-            color="error"
-            sx={{
-              fontWeight: "700",
-              fontFamily: "apple-system",
-            }}
-          >
-            {error}
-          </Typography>
-        </Box>
-      );
-    }
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -137,26 +147,26 @@ export default function Expenses({
         </Box>
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: isMobile ? 'center' : 'flex-start',
-            width: '100%', 
+            display: "flex",
+            justifyContent: isMobile ? "center" : "flex-start",
+            width: "100%",
           }}
         >
-            <Tabs
+          <Tabs
             value={currentTab}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons={false}
             // centered={isMobile ? true : false}
-            sx={{ 
+            sx={{
               mt: 2,
-              '& .MuiTab-root': {
-                color: 'white', 
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                transform: 'translateY(-2px)', 
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              "& .MuiTab-root": {
+                color: "white",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                 },
               },
             }}
@@ -166,27 +176,25 @@ export default function Expenses({
             ))}
           </Tabs>
         </Box>
-        
-
       </GradientHeader>
 
-        <Box>
-            {currentTab === 0 && (
-            <AllExpenses
-                tripId={tripId}
-                tripName={tripName}
-                budget={budget}
-                expenses={expenses}
-                members={members}
-                tripData={tripData}
-                expenseSummary={expenseSummary}
-            />
-            )}
+      <Box>
+        {currentTab === 0 && (
+          <AllExpenses
+            tripId={tripId}
+            tripName={tripName}
+            budget={budget}
+            expenses={expenses}
+            members={members}
+            tripData={tripData}
+            expenseSummary={expenseSummary}
+          />
+        )}
 
-            {currentTab === 1 && (
-              <ExpenseBreakdown memberSummaries={memberSummaries} tripId={tripId} />
-            )}
-        </Box>      
+        {currentTab === 1 && (
+          <ExpenseBreakdown memberSummaries={memberSummaries} tripId={tripId} />
+        )}
+      </Box>
     </>
   );
 }

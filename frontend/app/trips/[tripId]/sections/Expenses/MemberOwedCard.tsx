@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect, useRef, RefObject } from "react";
 import {
@@ -28,7 +28,11 @@ import {
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { CheckCircle, ExpandMore } from "@mui/icons-material";
-import { MemberSummary, ExpenseSummaryItem, useExpenseShareStore } from "@/stores/expense-share-store";
+import {
+  MemberSummary,
+  ExpenseSummaryItem,
+  useExpenseShareStore,
+} from "@/stores/expense-share-store";
 import { useUserStore } from "@/stores/user-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the ConfirmationDialog component
 
@@ -51,7 +55,7 @@ interface MemberOwedCardProps {
   isExpanded: boolean;
   onExpand: () => void;
   isLastCard: boolean;
-  tripId: number; 
+  tripId: number;
 }
 
 const ExpandMoreButton = styled(IconButton, {
@@ -63,15 +67,23 @@ const ExpandMoreButton = styled(IconButton, {
   }),
 }));
 
-export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, isLastCard, tripId }: MemberOwedCardProps) {
+export default function MemberOwedCard({
+  memberSummary,
+  isExpanded,
+  onExpand,
+  isLastCard,
+  tripId,
+}: MemberOwedCardProps) {
   const [filterEmail, setFilterEmail] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCreditor, setSelectedCreditor] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0); // Track active tab (0: Outstanding, 1: Settled)
-  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
-  const [creditorToSettle, setCreditorToSettle] = useState<string | null>(null); 
-  const [transactionToSettle, setTransactionToSettle] = useState<ExpenseSummaryItem | null>(null); // Track the transaction to settle
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
+    useState(false);
+  const [creditorToSettle, setCreditorToSettle] = useState<string | null>(null);
+  const [transactionToSettle, setTransactionToSettle] =
+    useState<ExpenseSummaryItem | null>(null); // Track the transaction to settle
   const itemsPerPage = 3; // Number of items per page
   const cardRef = useRef<HTMLDivElement>(null);
   const { user } = useUserStore();
@@ -79,8 +91,11 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
   const theme = useTheme();
 
   const canSettle = (creditor: string) => {
-    return (memberSummary.outstanding.length > 0 && 
-            (memberSummary.outstanding[0].debtorId === user?.id || creditor === user?.email));
+    return (
+      memberSummary.outstanding.length > 0 &&
+      (memberSummary.outstanding[0].debtorId === user?.id ||
+        creditor === user?.email)
+    );
   };
 
   // Filter outstanding amounts by creditor email
@@ -94,42 +109,53 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
   );
 
   // Group outstanding amounts by creditor
-  const groupedOutstanding = filteredOutstanding.reduce((acc, item) => {
-    if (!acc[item.creditorEmail]) {
-      acc[item.creditorEmail] = { total: 0, items: [] };
-    }
-    acc[item.creditorEmail].total += item.amount;
-    acc[item.creditorEmail].items.push(item);
-    return acc;
-  }, {} as Record<string, { total: number; items: ExpenseSummaryItem[] }>);
+  const groupedOutstanding = filteredOutstanding.reduce(
+    (acc, item) => {
+      if (!acc[item.creditorEmail]) {
+        acc[item.creditorEmail] = { total: 0, items: [] };
+      }
+      acc[item.creditorEmail].total += item.amount;
+      acc[item.creditorEmail].items.push(item);
+      return acc;
+    },
+    {} as Record<string, { total: number; items: ExpenseSummaryItem[] }>
+  );
 
   // Group settled amounts by creditor
-  const groupedSettled = filteredSettled.reduce((acc, item) => {
-    if (!acc[item.creditorEmail]) {
-      acc[item.creditorEmail] = { total: 0, items: [] };
-    }
-    acc[item.creditorEmail].total += item.amount;
-    acc[item.creditorEmail].items.push(item);
-    return acc;
-  }, {} as Record<string, { total: number; items: ExpenseSummaryItem[] }>);
+  const groupedSettled = filteredSettled.reduce(
+    (acc, item) => {
+      if (!acc[item.creditorEmail]) {
+        acc[item.creditorEmail] = { total: 0, items: [] };
+      }
+      acc[item.creditorEmail].total += item.amount;
+      acc[item.creditorEmail].items.push(item);
+      return acc;
+    },
+    {} as Record<string, { total: number; items: ExpenseSummaryItem[] }>
+  );
 
   // Get unique creditors for the Select dropdown
   const creditors = Array.from(
-    new Set([...memberSummary.outstanding, ...memberSummary.settled].map((item) => item.creditorEmail))
+    new Set(
+      [...memberSummary.outstanding, ...memberSummary.settled].map(
+        (item) => item.creditorEmail
+      )
+    )
   );
 
   // Pagination logic
   const paginatedCreditors = Object.keys(
     activeTab === 0 ? groupedOutstanding : groupedSettled
-  ).slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+  ).slice((page - 1) * itemsPerPage, page * itemsPerPage);
   const totalPages = Math.ceil(
-    Object.keys(activeTab === 0 ? groupedOutstanding : groupedSettled).length / itemsPerPage
+    Object.keys(activeTab === 0 ? groupedOutstanding : groupedSettled).length /
+      itemsPerPage
   );
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     setPage(value);
   };
 
@@ -143,7 +169,7 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
 
   useEffect(() => {
     if (isExpanded && cardRef.current) {
-      scrollToCard(cardRef); 
+      scrollToCard(cardRef);
     }
   }, [isExpanded]);
 
@@ -165,28 +191,33 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
   };
 
   // Check if there are any transactions for the active tab
-  const hasTransactions = activeTab === 0
-    ? memberSummary.outstanding.length > 0
-    : memberSummary.settled.length > 0;
+  const hasTransactions =
+    activeTab === 0
+      ? memberSummary.outstanding.length > 0
+      : memberSummary.settled.length > 0;
 
   // Handle settling expenses
-  const handleSettleExpenses = async (creditor: string, transaction?: ExpenseSummaryItem) => {
+  const handleSettleExpenses = async (
+    creditor: string,
+    transaction?: ExpenseSummaryItem
+  ) => {
     if (!canSettle(creditor)) {
       return;
     }
     try {
       const expensesToSettle = transaction
-        ? [{ expenseId: transaction.expenseShareId, debtorUserId: transaction.debtorId }]
+        ? [
+            {
+              expenseId: transaction.expenseShareId,
+              debtorUserId: transaction.debtorId,
+            },
+          ]
         : groupedOutstanding[creditor].items.map((item) => ({
             expenseId: item.expenseShareId,
             debtorUserId: item.debtorId,
           }));
 
-      await settleExpenses(
-        tripId,
-        memberSummary.debtorEmail,
-        expensesToSettle
-      );
+      await settleExpenses(tripId, memberSummary.debtorEmail, expensesToSettle);
 
       // Close the modal if settling a single transaction
       if (transaction) {
@@ -281,20 +312,35 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
 
         {/* Collapsible Section */}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-          <CardContent sx={{ pt: 0, mt:1 }}>
+          <CardContent sx={{ pt: 0, mt: 1 }}>
             {/* Grid container for Tabs and Filter */}
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
               <Grid item xs={12} sm={8}>
-                <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable"
-                  scrollButtons={false}>
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  variant="scrollable"
+                  scrollButtons={false}
+                >
                   <Tab label="Outstanding" />
                   <Tab label="Settled" />
                 </Tabs>
               </Grid>
-              <Grid item xs={12} sm={4} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' }, pr: 3 }}>
+              <Grid
+                item
+                xs={12}
+                sm={4}
+                sx={{
+                  display: "flex",
+                  justifyContent: { xs: "start", sm: "end" },
+                  pr: 3,
+                }}
+              >
                 {hasTransactions && (
                   <FormControl fullWidth size="small" sx={{ maxWidth: 200 }}>
-                    <InputLabel id="filter-by-creditor-label">Filter by Creditor</InputLabel>
+                    <InputLabel id="filter-by-creditor-label">
+                      Filter by Creditor
+                    </InputLabel>
                     <Select
                       labelId="filter-by-creditor-label"
                       value={filterEmail}
@@ -343,7 +389,8 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                 }}
               >
                 <Typography variant="body1" color="text.secondary">
-                  No {activeTab === 0 ? "outstanding" : "settled"} amounts match the filter.
+                  No {activeTab === 0 ? "outstanding" : "settled"} amounts match
+                  the filter.
                 </Typography>
               </Box>
             ) : (
@@ -352,14 +399,21 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                   <List>
                     {paginatedCreditors.map((creditor, index) => {
                       const { total } =
-                        activeTab === 0 ? groupedOutstanding[creditor] : groupedSettled[creditor];
+                        activeTab === 0
+                          ? groupedOutstanding[creditor]
+                          : groupedSettled[creditor];
                       return (
                         <React.Fragment key={creditor}>
                           {/* Creditor Summary */}
                           <ListItem>
                             <Grid container spacing={2} alignItems="center">
-                              <Grid item >
-                                <Avatar sx={{ bgcolor: "secondary.main", color: "white" }}>
+                              <Grid item>
+                                <Avatar
+                                  sx={{
+                                    bgcolor: "secondary.main",
+                                    color: "white",
+                                  }}
+                                >
                                   {creditor[0].toUpperCase()}
                                 </Avatar>
                               </Grid>
@@ -367,16 +421,32 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                                 <Typography variant="body1" fontWeight="bold">
                                   {creditor}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Total Amount {activeTab === 0 ? "Owed" : "Settled"}: ${total.toFixed(2)}
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  Total Amount{" "}
+                                  {activeTab === 0 ? "Owed" : "Settled"}: $
+                                  {total.toFixed(2)}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: { xs: 'start', sm: 'end' }, gap: 1 }}>
+                              <Grid
+                                item
+                                xs={12}
+                                sm={5}
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: { xs: "start", sm: "end" },
+                                  gap: 1,
+                                }}
+                              >
                                 {activeTab === 0 && canSettle(creditor) && (
                                   <Button
                                     variant="contained"
                                     size="small"
-                                    onClick={() => handleOpenConfirmationDialog(creditor)}
+                                    onClick={() =>
+                                      handleOpenConfirmationDialog(creditor)
+                                    }
                                   >
                                     Settle
                                   </Button>
@@ -393,14 +463,18 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
                           </ListItem>
 
                           {/* Divider between creditors */}
-                          {index < paginatedCreditors.length - 1 && <Divider sx={{ my: 2 }} />}
+                          {index < paginatedCreditors.length - 1 && (
+                            <Divider sx={{ my: 2 }} />
+                          )}
                         </React.Fragment>
                       );
                     })}
                   </List>
 
                   {/* Pagination */}
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 2 }}
+                  >
                     <Pagination
                       count={totalPages}
                       page={page}
@@ -419,92 +493,120 @@ export default function MemberOwedCard({ memberSummary, isExpanded, onExpand, is
       <ConfirmationDialog
         open={isConfirmationDialogOpen}
         onClose={handleCloseConfirmationDialog}
-        onConfirm={transactionToSettle ? handleConfirmSingleSettlement : handleConfirmSettlement}
+        onConfirm={
+          transactionToSettle
+            ? handleConfirmSingleSettlement
+            : handleConfirmSettlement
+        }
         title="Confirm Settlement"
-        message={transactionToSettle ? "Are you sure you want to settle this transaction?" : "Are you sure you want to settle these expenses?"}
+        message={
+          transactionToSettle
+            ? "Are you sure you want to settle this transaction?"
+            : "Are you sure you want to settle these expenses?"
+        }
       />
 
       {/* Modal for Transaction Details */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>
-  <Box
-    sx={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      maxWidth: 600,
-      maxHeight: "70vh",
-      bgcolor: "background.paper",
-      boxShadow: 24,
-      p: 4,
-      borderRadius: 2,
-      display: "flex",
-      flexDirection: "column",
-    }}
-  >
-    {/* Modal Header */}
-    <Typography variant="h6" fontWeight="bold" gutterBottom>
-      {activeTab === 0 ? "Outstanding" : "Settled"} Transactions for {selectedCreditor}
-    </Typography>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            maxWidth: 600,
+            maxHeight: "70vh",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Modal Header */}
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            {activeTab === 0 ? "Outstanding" : "Settled"} Transactions for{" "}
+            {selectedCreditor}
+          </Typography>
 
-    {/* Scrollable List */}
-    <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 2 }}>
-      <List>
-        {selectedCreditor &&
-          (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.map(
-            (item, index) => {
-              const category = categories.find((cat) => cat.value === item.category);
-              return (
-                <React.Fragment key={index}>
-                  <ListItem>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={8}>
-                        <Typography variant="body1">
-                          ${item.amount.toFixed(2)} {item.description}
-                        </Typography>
-                        <Box sx={{ mt: 1 }}>
-                          <Chip
-                            label={item.category}
-                            size="small"
-                            sx={{
-                              bgcolor: category ? `${category.color}22` : "#f5f5f5",
-                              color: category ? category.color : "text.primary",
-                            }}
-                          />
-                        </Box>
-                      </Grid>
-                      <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        {activeTab === 0 && canSettle(selectedCreditor!) && (
-                          <Tooltip title="Settle Expense" placement="top">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => handleSettleSingleTransaction(item)}
-                              sx={{ ml: 1 }}
-                            >
-                              <CheckCircle fontSize="medium" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Grid>
-                    </Grid>
-                  </ListItem>
-                  {index < (activeTab === 0 ? groupedOutstanding[selectedCreditor] : groupedSettled[selectedCreditor]).items.length - 1 && <Divider />}
-                </React.Fragment>
-              );
-            }
-          )}
-      </List>
-    </Box>
+          {/* Scrollable List */}
+          <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 2 }}>
+            <List>
+              {selectedCreditor &&
+                (activeTab === 0
+                  ? groupedOutstanding[selectedCreditor]
+                  : groupedSettled[selectedCreditor]
+                ).items.map((item, index) => {
+                  const category = categories.find(
+                    (cat) => cat.value === item.category
+                  );
+                  return (
+                    <React.Fragment key={index}>
+                      <ListItem>
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item xs={8}>
+                            <Typography variant="body1">
+                              ${item.amount.toFixed(2)} {item.description}
+                            </Typography>
+                            <Box sx={{ mt: 1 }}>
+                              <Chip
+                                label={item.category}
+                                size="small"
+                                sx={{
+                                  bgcolor: category
+                                    ? `${category.color}22`
+                                    : "#f5f5f5",
+                                  color: category
+                                    ? category.color
+                                    : "text.primary",
+                                }}
+                              />
+                            </Box>
+                          </Grid>
+                          <Grid
+                            item
+                            xs={4}
+                            sx={{ display: "flex", justifyContent: "flex-end" }}
+                          >
+                            {activeTab === 0 &&
+                              canSettle(selectedCreditor!) && (
+                                <Tooltip title="Settle Expense" placement="top">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() =>
+                                      handleSettleSingleTransaction(item)
+                                    }
+                                    sx={{ ml: 1 }}
+                                  >
+                                    <CheckCircle fontSize="medium" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                          </Grid>
+                        </Grid>
+                      </ListItem>
+                      {index <
+                        (activeTab === 0
+                          ? groupedOutstanding[selectedCreditor]
+                          : groupedSettled[selectedCreditor]
+                        ).items.length -
+                          1 && <Divider />}
+                    </React.Fragment>
+                  );
+                })}
+            </List>
+          </Box>
 
-    {/* Close Button */}
-    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-      <Button variant="contained" onClick={handleCloseModal}>
-        Close
-      </Button>
-    </Box>
-  </Box>
-</Modal>
+          {/* Close Button */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button variant="contained" onClick={handleCloseModal}>
+              Close
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </>
   );
 }

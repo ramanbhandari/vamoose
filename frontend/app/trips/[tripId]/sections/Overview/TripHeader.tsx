@@ -88,7 +88,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
 
   const startDate = DateTime.fromISO(tripData.startDate).toUTC();
   const isUpcoming = startDate > DateTime.now().toUTC();
-  
+
   const isEditable = (isCreator || isAdmin) && isUpcoming;
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -475,7 +475,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
           </Box>
         ) : (
           <>
-            {(isEditable) && (
+            {isEditable && (
               <Tooltip
                 title="Edit"
                 arrow

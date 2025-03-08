@@ -47,7 +47,6 @@ import { useNotificationStore } from "@/stores/notification-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { TripData, Expense, Member, ExpensesSummary } from "@/types";
 
-
 export interface ExpensesProps {
   tripId: number;
   tripName: string;
@@ -317,7 +316,7 @@ export default function Expenses({
             : "Are you sure you want to delete this expense?"
         }
       />
-      
+
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
           <Toolbar
