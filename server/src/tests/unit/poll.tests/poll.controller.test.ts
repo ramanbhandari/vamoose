@@ -3,7 +3,7 @@ import {
   deletePollHandler,
   batchDeletePollsHandler,
   getAllPollsForTripHandler,
-  markPollsAsCompletedHandler,
+  completePollHandler,
 } from '@/controllers/poll.controller.js';
 import { PollStatus } from '@/interfaces/enums.js';
 import prisma from '@/config/prismaClient.js';
@@ -21,7 +21,7 @@ jest.mock('@/config/prismaClient.js', () => ({
       deleteMany: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
-      updateMany: jest.fn(),
+      update: jest.fn(),
     },
     pollOption: {
       createMany: jest.fn(),
@@ -281,7 +281,7 @@ describe('Get All Polls For Trip Controller', () => {
     ...overrides,
   });
 
-  it('should return 200 with poll data', async () => {
+  it('should return 200 with poll data including a TIE', async () => {
     mockReq = setupRequest();
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
@@ -289,7 +289,7 @@ describe('Get All Polls For Trip Controller', () => {
       {
         id: 1,
         question: 'Where to go?',
-        status: PollStatus.ACTIVE,
+        status: PollStatus.TIE,
         expiresAt: new Date(),
         createdAt: new Date(),
         completedAt: null,
@@ -303,15 +303,12 @@ describe('Get All Polls For Trip Controller', () => {
           {
             id: 1,
             option: 'Beach',
-            votes: [
-              {
-                user: {
-                  email: 'voter@test.com',
-                  id: 'user-id',
-                  fullName: 'Voter Name',
-                },
-              },
-            ],
+            votes: [{ user: { id: 'user-1', email: 'user1@test.com' } }],
+          },
+          {
+            id: 2,
+            option: 'Mountains',
+            votes: [{ user: { id: 'user-2', email: 'user2@test.com' } }],
           },
         ],
       },
@@ -320,7 +317,7 @@ describe('Get All Polls For Trip Controller', () => {
       {
         id: 1,
         question: 'Where to go?',
-        status: PollStatus.ACTIVE,
+        status: PollStatus.TIE,
         expiresAt: new Date(),
         createdAt: new Date(),
         completedAt: null,
@@ -329,81 +326,123 @@ describe('Get All Polls For Trip Controller', () => {
           email: 'creator@test.com',
           fullName: 'Creator Name',
         },
-        winner: null,
-        totalVotes: 1,
+        winner: {
+          options: [
+            { id: 1, option: 'Beach', voteCount: 1 },
+            { id: 2, option: 'Mountains', voteCount: 1 },
+          ],
+        },
+        totalVotes: 2,
         options: [
           {
             id: 1,
             option: 'Beach',
-            percentage: 100,
+            percentage: 50,
             voteCount: 1,
-            voters: [
-              {
-                email: 'voter@test.com',
-                fullName: 'Voter Name',
-                id: 'user-id',
-              },
-            ],
+            voters: [{ id: 'user-1', email: 'user1@test.com' }],
+          },
+          {
+            id: 2,
+            option: 'Mountains',
+            percentage: 50,
+            voteCount: 1,
+            voters: [{ id: 'user-2', email: 'user2@test.com' }],
           },
         ],
       },
     ];
+
     (prisma.poll.findMany as jest.Mock).mockResolvedValue(mockPollList);
 
     await getAllPollsForTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
-
     expect(jsonMock).toHaveBeenCalledWith({
       polls: mockResponse,
     });
   });
-});
 
-describe('Mark Polls as Completed Handler', () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let statusMock: jest.Mock;
-  let jsonMock: jest.Mock;
-
-  beforeEach(() => {
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-
-    mockRes = {
-      status: statusMock,
-      json: jsonMock,
-    } as Partial<Response>;
-  });
-
-  const setupRequest = (overrides = {}) => ({
-    userId: 'creator-id',
-    params: { tripId: '1' },
-    body: { pollIds: [1, 2, 3] },
-    ...overrides,
-  });
-
-  it('should mark polls as completed successfully', async () => {
+  it('should return 200 with poll data including a WINNER', async () => {
     mockReq = setupRequest();
 
-    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-      role: 'creator',
-    });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    const mockPollList = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.COMPLETED,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        completedAt: new Date(),
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: {
+          id: 10,
+          option: 'Beach',
+        },
+        options: [
+          {
+            id: 10,
+            option: 'Beach',
+            votes: [{ user: { id: 'user-1', email: 'user1@test.com' } }],
+          },
+          {
+            id: 11,
+            option: 'Mountains',
+            votes: [],
+          },
+        ],
+      },
+    ];
 
-    (prisma.poll.findMany as jest.Mock).mockResolvedValue([
-      { id: 1, status: PollStatus.ACTIVE },
-      { id: 2, status: PollStatus.ACTIVE },
-    ]);
+    const mockResponse = [
+      {
+        id: 1,
+        question: 'Where to go?',
+        status: PollStatus.COMPLETED,
+        expiresAt: expect.any(Date),
+        createdAt: expect.any(Date),
+        completedAt: expect.any(Date),
+        createdBy: {
+          id: 'creator-id',
+          email: 'creator@test.com',
+          fullName: 'Creator Name',
+        },
+        winner: {
+          id: 10,
+          option: 'Beach',
+          voteCount: 1,
+        },
+        totalVotes: 1,
+        options: [
+          {
+            id: 10,
+            option: 'Beach',
+            percentage: 100,
+            voteCount: 1,
+            voters: [{ id: 'user-1', email: 'user1@test.com' }],
+          },
+          {
+            id: 11,
+            option: 'Mountains',
+            percentage: 0,
+            voteCount: 0,
+            voters: [],
+          },
+        ],
+      },
+    ];
 
-    (prisma.poll.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+    (prisma.poll.findMany as jest.Mock).mockResolvedValue(mockPollList);
 
-    await markPollsAsCompletedHandler(mockReq as Request, mockRes as Response);
+    await getAllPollsForTripHandler(mockReq as Request, mockRes as Response);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Polls marked as completed successfully',
-      completedCount: 2,
-      allowedPollIds: [1, 2],
+      polls: mockResponse,
     });
   });
 
@@ -429,44 +468,15 @@ describe('Mark Polls as Completed Handler', () => {
       expectedMessage: 'You are not a member of this trip: 1',
     },
     {
-      scenario: 'User is not authorized',
+      scenario: 'Error fetching polls',
       setupMocks: () => {
-        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-          role: 'member',
-        });
-        (prisma.poll.findMany as jest.Mock).mockResolvedValue([
-          { id: 1, status: PollStatus.ACTIVE },
-          { id: 2, status: PollStatus.ACTIVE },
-        ]);
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+        (prisma.poll.findMany as jest.Mock).mockRejectedValue(
+          new Error('DB error'),
+        );
       },
-      expectedStatus: 403,
-      expectedMessage: 'You are not authorized to complete any of these polls',
-    },
-    {
-      scenario: 'No valid polls found',
-      setupMocks: () => {
-        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-          role: 'creator',
-        });
-        (prisma.poll.findMany as jest.Mock).mockResolvedValue([]);
-      },
-      expectedStatus: 404,
-      expectedMessage: 'No valid polls found',
-    },
-    {
-      scenario: 'No polls were updated',
-      setupMocks: () => {
-        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-          role: 'creator',
-        });
-        (prisma.poll.findMany as jest.Mock).mockResolvedValue([
-          { id: 1, status: PollStatus.COMPLETED },
-        ]);
-        (prisma.poll.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
-      },
-      expectedStatus: 404,
-      expectedMessage:
-        'No polls were marked as completed. Please verify poll IDs and try again.',
+      expectedStatus: 500,
+      expectedMessage: 'An unexpected database error occurred.',
     },
   ])(
     '[$scenario] → should return $expectedStatus',
@@ -475,10 +485,182 @@ describe('Mark Polls as Completed Handler', () => {
 
       if (setupMocks) setupMocks();
 
-      await markPollsAsCompletedHandler(
-        mockReq as Request,
-        mockRes as Response,
-      );
+      await getAllPollsForTripHandler(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(expectedStatus);
+      expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });
+    },
+  );
+});
+
+describe('Complete Poll Handler', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'creator-id',
+    params: { tripId: '1', pollId: '1' },
+    ...overrides,
+  });
+
+  it('should mark a poll as completed with a winner', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'creator',
+    });
+
+    (prisma.poll.findUnique as jest.Mock).mockResolvedValue({
+      id: 1,
+      tripId: 1,
+      createdById: 'creator-id',
+      options: [
+        { id: 10, option: 'Option A', votes: [{}, {}, {}] },
+        { id: 11, option: 'Option B', votes: [{}] },
+      ],
+    });
+
+    (prisma.poll.update as jest.Mock).mockResolvedValue({
+      id: 1,
+      status: PollStatus.COMPLETED,
+      completedAt: new Date(),
+      winnerId: 10,
+    });
+
+    await completePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Poll marked as completed successfully',
+      poll: {
+        id: 1,
+        status: PollStatus.COMPLETED,
+        completedAt: expect.any(Date),
+        winnerId: 10,
+      },
+      status: PollStatus.COMPLETED,
+      winnerId: 10,
+      tiedOptions: [],
+    });
+  });
+
+  it('should mark a poll as completed with a tie status', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      role: 'creator',
+    });
+
+    (prisma.poll.findUnique as jest.Mock).mockResolvedValue({
+      id: 1,
+      tripId: 1,
+      createdById: 'creator-id',
+      options: [
+        { id: 10, option: 'Option A', votes: [{}, {}] },
+        { id: 11, option: 'Option B', votes: [{}, {}] },
+      ],
+    });
+
+    (prisma.poll.update as jest.Mock).mockResolvedValue({
+      id: 1,
+      status: PollStatus.TIE,
+      completedAt: new Date(),
+      winnerId: null,
+    });
+
+    await completePollHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Poll marked as completed successfully',
+      poll: {
+        id: 1,
+        status: PollStatus.TIE,
+        completedAt: expect.any(Date),
+        winnerId: null,
+      },
+      status: PollStatus.TIE,
+      winnerId: null,
+      tiedOptions: [
+        { id: 10, option: 'Option A', voteCount: 2 },
+        { id: 11, option: 'Option B', voteCount: 2 },
+      ],
+    });
+  });
+
+  it.each([
+    {
+      scenario: 'User is not authenticated',
+      overrides: { userId: undefined },
+      expectedStatus: 401,
+      expectedMessage: 'Unauthorized Request',
+    },
+    {
+      scenario: 'Invalid trip ID',
+      overrides: { params: { tripId: 'invalid', pollId: '1' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid trip ID',
+    },
+    {
+      scenario: 'Invalid poll ID',
+      overrides: { params: { tripId: '1', pollId: 'invalid' } },
+      expectedStatus: 400,
+      expectedMessage: 'Invalid poll ID',
+    },
+    {
+      scenario: 'User is not a member of the trip',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+      },
+      expectedStatus: 403,
+      expectedMessage: 'You are not a member of this trip: 1',
+    },
+    {
+      scenario: 'Poll not found in this trip',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+        (prisma.poll.findUnique as jest.Mock).mockResolvedValue(null);
+      },
+      expectedStatus: 404,
+      expectedMessage: 'Poll not found in this trip',
+    },
+    {
+      scenario: 'User is not authorized to complete the poll',
+      setupMocks: () => {
+        (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+          role: 'member',
+        });
+        (prisma.poll.findUnique as jest.Mock).mockResolvedValue({
+          id: 1,
+          tripId: 1,
+          createdById: 'other-user-id',
+          options: [],
+        });
+      },
+      expectedStatus: 403,
+      expectedMessage:
+        'Only the poll creator, an admin, or the trip creator can complete this poll',
+    },
+  ])(
+    '[$scenario] → should return $expectedStatus',
+    async ({ overrides, setupMocks, expectedStatus, expectedMessage }) => {
+      mockReq = setupRequest(overrides);
+
+      if (setupMocks) setupMocks();
+
+      await completePollHandler(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(expectedStatus);
       expect(jsonMock).toHaveBeenCalledWith({ error: expectedMessage });

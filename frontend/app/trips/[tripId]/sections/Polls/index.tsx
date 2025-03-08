@@ -71,7 +71,6 @@ export default function Polls({
 
       setNotification("Vote submitted successfully!", "success");
       await fetchPolls(tripId);
-      await fetchPolls(tripId);
     } catch (error) {
       setNotification(
         "Failed to save Vote. Please refresh and try again!",
@@ -88,7 +87,6 @@ export default function Polls({
       });
 
       setNotification("Vote removed successfully!", "success");
-      await fetchPolls(tripId);
       await fetchPolls(tripId);
     } catch (error) {
       setNotification(
@@ -129,6 +127,21 @@ export default function Polls({
         "error"
       );
       console.error("Error deleting Poll:", error);
+    }
+  };
+
+  const handleCompletePoll = async (pollId: number) => {
+    try {
+      await apiClient.patch(`/trips/${tripId}/polls/${pollId}/complete`);
+
+      setNotification("Poll set to Completed Successfully!", "success");
+      await fetchPolls(tripId);
+    } catch (error) {
+      setNotification(
+        "Failed to set the Poll to Complete. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error completing Poll:", error);
     }
   };
 
@@ -217,6 +230,7 @@ export default function Polls({
             onDeletePoll={handleDeletePoll}
             onVote={handleVote}
             onRemoveVote={handleRemoveVote}
+            onCompletePoll={handleCompletePoll}
             active
           />
         </Box>
@@ -230,6 +244,7 @@ export default function Polls({
           <PollList
             polls={completedPolls}
             onDeletePoll={handleDeletePoll}
+            onCompletePoll={handleCompletePoll}
             onVote={handleVote}
             onRemoveVote={handleRemoveVote}
             active={false}

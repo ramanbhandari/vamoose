@@ -21,7 +21,7 @@ import { useUserStore } from "@/stores/user-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import { getUserInfo } from "@/utils/userHelper";
 import { formatDate } from "@/utils/dateFormatter";
-import { DateTime } from 'luxon';
+import { DateTime } from "luxon";
 
 interface Expense {
   id: number;
@@ -81,7 +81,7 @@ export default function TripCard({ tripData, onDelete }: TripCardProps) {
   const isUpcoming = startDate > DateTime.now().toUTC();
 
   const isEditable = (isCreator || isAdmin) && isUpcoming;
-   
+
   const cardImage = tripData.imageUrl
     ? tripData.imageUrl
     : "/dashboard/dashboard_6.jpg"; // have a default image if trip doesn't have associated image
@@ -133,7 +133,7 @@ export default function TripCard({ tripData, onDelete }: TripCardProps) {
             boxShadow: 6,
           },
         }}
-       >
+      >
         <Box
           sx={{
             position: "absolute",

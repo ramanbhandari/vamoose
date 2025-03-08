@@ -65,7 +65,7 @@ export default function InviteClientComponent({
   const [error, setError] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-  const [wrongEmailError, setWrongEmailError] = useState<string | null>(null); 
+  const [wrongEmailError, setWrongEmailError] = useState<string | null>(null);
 
   const { setNotification } = useNotificationStore();
   const { logoutUser } = useUserStore();
@@ -88,7 +88,9 @@ export default function InviteClientComponent({
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 403) {
-          setWrongEmailError(` This invite is for ${initialInviteInfo.invited}. Please login / signup with that email.`);
+          setWrongEmailError(
+            ` This invite is for ${initialInviteInfo.invited}. Please login / signup with that email.`
+          );
         } else {
           console.error("Error validating invite:", err);
           setError(true);
@@ -101,12 +103,14 @@ export default function InviteClientComponent({
     checkAuth();
   }, [initialInviteInfo.invited, inviteToken]);
 
-  useEffect(()=>{
-    return ()=> {sessionStorage.removeItem("loginInviteRedirect");}
-  },[]);
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem("loginInviteRedirect");
+    };
+  }, []);
 
   const handleLoginRedirect = async () => {
-    if(user){
+    if (user) {
       await logoutUser();
     }
     sessionStorage.setItem("inviteRedirect", `/invite/${inviteToken}`);
@@ -213,7 +217,7 @@ export default function InviteClientComponent({
             alignItems="center"
             textAlign="center"
           >
-            {wrongEmailError ? ( 
+            {wrongEmailError ? (
               <>
                 <Typography
                   variant="h6"
@@ -269,12 +273,22 @@ export default function InviteClientComponent({
                 </Typography>
                 {!user ? (
                   <>
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      <strong>{initialInviteInfo.inviter}</strong> has invited you
-                      to join an amazing trip!
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      <strong>{initialInviteInfo.inviter}</strong> has invited
+                      you to join an amazing trip!
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      This invite is for <strong>{initialInviteInfo.invited}</strong>. Please login / signup with that email.
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      This invite is for{" "}
+                      <strong>{initialInviteInfo.invited}</strong>. Please login
+                      / signup with that email.
                     </Typography>
                     <Paper
                       sx={{
@@ -318,9 +332,13 @@ export default function InviteClientComponent({
                   </>
                 ) : (
                   <>
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      <strong>{initialInviteInfo.inviter}</strong> has invited you
-                      to join an amazing trip to{" "}
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      <strong>{initialInviteInfo.inviter}</strong> has invited
+                      you to join an amazing trip to{" "}
                       <strong>{tripData?.destination}</strong>!
                     </Typography>
                     <Paper
@@ -342,15 +360,16 @@ export default function InviteClientComponent({
                       <Box display="flex" alignItems="center" gap={1} mb={2}>
                         <DateRangeIcon color="primary" />
                         <Typography variant="body1">
-                          <strong>Dates:</strong> {formatDate(tripData?.startDate)}{" "}
-                          - {formatDate(tripData?.endDate)}
+                          <strong>Dates:</strong>{" "}
+                          {formatDate(tripData?.startDate)} -{" "}
+                          {formatDate(tripData?.endDate)}
                         </Typography>
                       </Box>
                       <Box display="flex" alignItems="center" gap={1} mb={2}>
                         <GroupIcon color="primary" />
                         <Typography variant="body1">
-                          <strong>Members:</strong> {tripData?.members.length || 0}{" "}
-                          adventurers
+                          <strong>Members:</strong>{" "}
+                          {tripData?.members.length || 0} adventurers
                         </Typography>
                       </Box>
                       <Box display="flex" alignItems="center" gap={1} mb={2}>
@@ -378,7 +397,11 @@ export default function InviteClientComponent({
                         disabled={isAccepting || isRejecting}
                         sx={{ borderRadius: 2, py: 1.5 }}
                       >
-                        {isAccepting ? <CircularProgress size={24} /> : "Accept"}
+                        {isAccepting ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          "Accept"
+                        )}
                       </Button>
                       <Button
                         fullWidth
@@ -388,7 +411,11 @@ export default function InviteClientComponent({
                         disabled={isAccepting || isRejecting}
                         sx={{ borderRadius: 2, py: 1.5 }}
                       >
-                        {isRejecting ? <CircularProgress size={24} /> : "Reject"}
+                        {isRejecting ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          "Reject"
+                        )}
                       </Button>
                     </Box>
                   </>

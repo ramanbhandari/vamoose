@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 import appRouter from './routes/appRouter.js';
 import prisma from './config/prismaClient.js';
 import cors from 'cors';
-// import connectMongoDB from './db/mongo.js'; // lint error, commenting to stop it
+import connectMongoDB from './db/mongo.js';
 
 dotenv.config();
 
-// connectMongoDB();
+connectMongoDB();
 
 const port: number | string = process.env.PORT || 8000;
 

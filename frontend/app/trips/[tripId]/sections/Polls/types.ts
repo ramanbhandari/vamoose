@@ -6,6 +6,14 @@ export interface PollOption {
   voters: Voter[];
 }
 
+export interface WinnerOption {
+  id: number;
+  option: string;
+  voteCount: number;
+}
+
+export type PollWinner = WinnerOption | { options: WinnerOption[] };
+
 export interface PollCreator {
   id: string;
   email: string;
@@ -28,7 +36,7 @@ export interface Poll {
   options: PollOption[];
   createdBy: PollCreator;
   totalVotes: number;
-  winner: PollOption | null;
+  winner: PollWinner | null;
 }
 
 export interface PollsProps {

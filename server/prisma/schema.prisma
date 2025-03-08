@@ -178,6 +178,7 @@ model Vote {
 enum PollStatus {
   ACTIVE
   COMPLETED
+  TIE
 }
 
 //Unimplemented
