@@ -30,7 +30,7 @@ export const usePollStore = create<PollState>((set) => ({
         (poll: Poll) => poll.status === "ACTIVE"
       );
       const completedPolls = response.data.polls.filter(
-        (poll: Poll) => poll.status === "COMPLETED"
+        (poll: Poll) => poll.status === "COMPLETED" || poll.status === "TIE"
       );
 
       set({
