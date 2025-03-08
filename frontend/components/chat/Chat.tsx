@@ -152,6 +152,16 @@ export default function Chat() {
     setMessageText("");
   };
 
+  // Transition on maximizing chat screen
+  const chatContainerStyle = isMaximized
+    ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
+    : {
+        bottom: 80,
+        width: { xs: "90%", sm: "80%", md: "60%" },
+        maxWidth: 550,
+        height: 650,
+      };
+
   const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   return (
@@ -185,14 +195,7 @@ export default function Chat() {
             flexDirection: "column",
             zIndex: 9999,
             transition: "0.2s ease-in-out",
-            ...(isMaximized
-              ? { top: 0, left: 0, bottom: 0, width: "100%", height: "100%" }
-              : {
-                  bottom: 80,
-                  width: { xs: "90%", sm: "80%", md: "60%" },
-                  maxWidth: 550,
-                  height: 650,
-                }),
+            ...chatContainerStyle,
           }}
         >
           <Paper
