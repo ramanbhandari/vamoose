@@ -11,7 +11,7 @@ import PollItem from "./PollItem";
 interface PollListProps {
   polls: Poll[];
   onDeletePoll: (pollId: number) => void;
-  onCompletePoll: (pollIds: number[]) => void;
+  onCompletePoll: (pollId: number) => void;
   onVote: (pollId: number, optionId: number) => void;
   onRemoveVote: (pollId: number, optionId: number) => void;
   active: boolean;

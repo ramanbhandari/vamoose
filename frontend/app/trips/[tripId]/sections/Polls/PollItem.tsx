@@ -25,12 +25,12 @@ import {
   EmojiPeople,
   HourglassEmpty,
   HowToVote,
-  Public,
   Whatshot,
   Event,
   DeleteOutline,
   Close,
   DoneAll,
+  Balance,
 } from "@mui/icons-material";
 import { formatDateTime } from "@/utils/dateFormatter";
 import { usePollInteractionStore } from "@/stores/poll-interaction-store";
@@ -43,7 +43,7 @@ interface PollItemProps {
   onDeletePoll: (pollId: number) => void;
   onVote: (pollId: number, optionId: number) => void;
   onRemoveVote: (pollId: number, optionId: number) => void;
-  onCompletePoll: (pollIds: number[]) => void;
+  onCompletePoll: (pollId: number) => void;
 }
 
 export default function PollItem({
@@ -69,15 +69,29 @@ export default function PollItem({
   const { tripData } = useTripStore();
 
   const showDelete =
-    userInfo?.isCreator(tripData) ||
-    userInfo?.isAdmin(tripData) ||
-    userInfo?.id === poll.createdBy.id;
+    (userInfo?.isCreator(tripData) ||
+      userInfo?.isAdmin(tripData) ||
+      userInfo?.id === poll.createdBy.id) &&
+    poll.status !== "COMPLETED" &&
+    poll.status !== "TIE";
 
   const userPreviousVote = userVotes[poll.id];
 
   const userVote = poll.options.find((option) =>
     option.voters.some((voter) => voter.id === user?.id)
   );
+
+  const winningOptionIds = new Set<number>();
+
+  if (poll.status === "TIE" && poll.winner && "options" in poll.winner) {
+    poll.winner.options.forEach((w) => winningOptionIds.add(w.id));
+  } else if (
+    poll.status === "COMPLETED" &&
+    poll.winner &&
+    !("options" in poll.winner)
+  ) {
+    winningOptionIds.add(poll.winner.id);
+  }
 
   const handleOptionClick = (optionId: number) => {
     if (poll.status !== "ACTIVE") return;
@@ -112,7 +126,7 @@ export default function PollItem({
   };
 
   const handleCompletePoll = () => {
-    onCompletePoll([poll.id]);
+    onCompletePoll(poll.id);
     setCompleteConfirmOpen(false);
   };
 
@@ -145,11 +159,11 @@ export default function PollItem({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Whatshot sx={{ color: theme.palette.success.main }} />;
+        return <Whatshot />;
       case "COMPLETED":
-        return <HourglassEmpty sx={{ color: theme.palette.error.main }} />;
+        return <HourglassEmpty />;
       default:
-        return <Public sx={{ color: theme.palette.info.main }} />;
+        return <HowToVote />;
     }
   };
 
@@ -177,7 +191,9 @@ export default function PollItem({
             backgroundColor:
               poll.status === "ACTIVE"
                 ? theme.palette.success.main
-                : theme.palette.primary.main,
+                : poll.status === "TIE"
+                  ? theme.palette.warning.main
+                  : theme.palette.primary.main,
             transform: "rotate(45deg)",
             width: 120,
             textAlign: "center",
@@ -198,7 +214,17 @@ export default function PollItem({
             mt: 1,
           }}
         >
-          <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 2 }}>
+          <Avatar
+            sx={{
+              bgcolor:
+                poll.status === "ACTIVE"
+                  ? theme.palette.success.main
+                  : poll.status === "TIE"
+                    ? theme.palette.warning.main
+                    : theme.palette.primary.main,
+              mr: 2,
+            }}
+          >
             {getStatusIcon(poll.status)}
           </Avatar>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -209,7 +235,9 @@ export default function PollItem({
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Event sx={{ mr: 1, color: theme.palette.text.secondary }} />
           <Typography variant="caption">
-            Expires: {formatDateTime(poll.expiresAt)}
+            {poll.status === "ACTIVE"
+              ? `Expires: ${formatDateTime(poll.expiresAt)}`
+              : `Completed: ${poll.completedAt ? formatDateTime(poll.completedAt) : formatDateTime(poll.expiresAt)}`}
           </Typography>
         </Box>
         <Box sx={{ mt: 1, mb: 2, display: "flex", alignItems: "center" }}>
@@ -241,16 +269,26 @@ export default function PollItem({
                   cursor: poll.status === "ACTIVE" ? "pointer" : "default",
                   transition: "transform 0.2s",
                   position: "relative",
-                  ...(poll.status === "COMPLETED" &&
-                  poll.winner?.id === option.id
-                    ? {
-                        border: `2px solid ${theme.palette.success.main}`,
-                        borderRadius: 2,
-                        p: 1.5,
-                        ml: -1.5,
-                        mr: -1.5,
-                        background: `linear-gradient(45deg, ${theme.palette.success.light}22 30%, ${theme.palette.background.paper} 90%)`,
-                      }
+                  ...(winningOptionIds.has(option.id)
+                    ? poll.status === "TIE"
+                      ? {
+                          border: `2px solid ${theme.palette.warning.main}`,
+                          borderRadius: 2,
+                          p: 1.5,
+                          ml: -1.5,
+                          mr: -1.5,
+                          background: `linear-gradient(45deg, ${theme.palette.warning.light}22 30%, ${theme.palette.background.paper} 90%)`,
+                        }
+                      : poll.status === "COMPLETED"
+                        ? {
+                            border: `2px solid ${theme.palette.success.main}`,
+                            borderRadius: 2,
+                            p: 1.5,
+                            ml: -1.5,
+                            mr: -1.5,
+                            background: `linear-gradient(45deg, ${theme.palette.success.light}22 30%, ${theme.palette.background.paper} 90%)`,
+                          }
+                        : {}
                     : {}),
                   "&:hover":
                     poll.status === "ACTIVE"
@@ -269,9 +307,9 @@ export default function PollItem({
                     Your vote
                   </Typography>
                 )}
-                {/* winner crown badge on the poll option that won*/}
+
                 {poll.status === "COMPLETED" &&
-                  poll.winner?.id === option.id && (
+                  winningOptionIds.has(option.id) && (
                     <EmojiEvents
                       sx={{
                         position: "absolute",
@@ -298,7 +336,7 @@ export default function PollItem({
                       fontWeight: 600,
                       mr: 1,
                       ...(poll.status === "COMPLETED" &&
-                      poll.winner?.id === option.id
+                      winningOptionIds.has(option.id)
                         ? {
                             color: theme.palette.success.dark,
                           }
@@ -307,7 +345,7 @@ export default function PollItem({
                   >
                     {option.option}
                     {poll.status === "COMPLETED" &&
-                      poll.winner?.id === option.id && (
+                      winningOptionIds.has(option.id) && (
                         <CheckCircle
                           sx={{
                             fontSize: 16,
@@ -324,16 +362,20 @@ export default function PollItem({
                     icon={<HowToVote fontSize="small" />}
                     sx={{
                       ml: "auto",
-                      ...(poll.status === "COMPLETED" &&
-                      poll.winner?.id === option.id
-                        ? {
-                            bgcolor: theme.palette.success.main,
-                            color: "common.white",
-                            "& .MuiChip-icon": {
+                      ...(winningOptionIds.has(option.id) &&
+                        (poll.status === "TIE"
+                          ? {
+                              bgcolor: theme.palette.warning.main,
                               color: "common.white",
-                            },
-                          }
-                        : {}),
+                              "& .MuiChip-icon": { color: "common.white" },
+                            }
+                          : poll.status === "COMPLETED"
+                            ? {
+                                bgcolor: theme.palette.success.main,
+                                color: "common.white",
+                                "& .MuiChip-icon": { color: "common.white" },
+                              }
+                            : {})),
                     }}
                   />
                 </Box>
@@ -350,8 +392,10 @@ export default function PollItem({
                       bgcolor:
                         poll.status === "ACTIVE"
                           ? theme.palette.primary.main
-                          : poll.winner?.id === option.id
-                            ? theme.palette.success.main
+                          : winningOptionIds.has(option.id)
+                            ? poll.status === "TIE"
+                              ? theme.palette.warning.main
+                              : theme.palette.success.main
                             : theme.palette.text.disabled,
                     },
                   }}
@@ -361,7 +405,37 @@ export default function PollItem({
           })}
         </Box>
 
-        {poll.status === "COMPLETED" && poll.winner && (
+        {poll.status === "COMPLETED" &&
+          poll.winner &&
+          !("options" in poll.winner) && (
+            <Box
+              sx={{
+                mt: 2,
+                pt: 2,
+                borderTop: `1px solid ${theme.palette.divider}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+              }}
+            >
+              <EmojiEvents
+                sx={{
+                  color: theme.palette.warning.main,
+                  fontSize: 24,
+                }}
+              />
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {poll.winner.option} won!
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {poll.winner.voteCount} vote(s)
+                </Typography>
+              </Box>
+            </Box>
+          )}
+
+        {poll.status === "TIE" && poll.winner && "options" in poll.winner && (
           <Box
             sx={{
               mt: 2,
@@ -372,22 +446,20 @@ export default function PollItem({
               gap: 1.5,
             }}
           >
-            <EmojiEvents
+            <Balance
               sx={{
                 color: theme.palette.warning.main,
                 fontSize: 24,
               }}
             />
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {poll.winner.option} won!
-              </Typography>
               <Typography variant="caption" color="text.secondary">
-                {poll.winner.voteCount} votes •{poll.winner.percentage}%
+                Tied with {poll.winner.options[0]?.voteCount} vote(s)
               </Typography>
             </Box>
           </Box>
         )}
+
         {activePollId === poll.id && (
           <Stack direction="row" spacing={2}>
             {selectedOptionId === userVote?.id ? (
@@ -415,7 +487,7 @@ export default function PollItem({
             )}
           </Stack>
         )}
-        {showDelete && poll.status !== "COMPLETED" && (
+        {showDelete && (
           <Box
             sx={{
               display: "flex",
@@ -441,22 +513,24 @@ export default function PollItem({
             >
               Delete
             </Button>
-            <Button
-              variant="text"
-              onClick={() => setCompleteConfirmOpen(true)}
-              startIcon={<DoneAll />}
-              sx={{
-                color: "success.main",
-                fontSize: "0.8rem",
-                "&:hover": {
-                  transform: "translateY(-1px)",
-                  fontWeight: "700",
-                  backgroundColor: "transparent",
-                },
-              }}
-            >
-              Complete
-            </Button>
+            {poll.totalVotes > 0 && (
+              <Button
+                variant="text"
+                onClick={() => setCompleteConfirmOpen(true)}
+                startIcon={<DoneAll />}
+                sx={{
+                  color: "success.main",
+                  fontSize: "0.8rem",
+                  "&:hover": {
+                    transform: "translateY(-1px)",
+                    fontWeight: "700",
+                    backgroundColor: "transparent",
+                  },
+                }}
+              >
+                Complete
+              </Button>
+            )}
           </Box>
         )}
 

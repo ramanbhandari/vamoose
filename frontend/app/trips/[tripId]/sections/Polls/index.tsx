@@ -132,11 +132,9 @@ export default function Polls({
     }
   };
 
-  const handleCompletePoll = async (pollIds: number[]) => {
+  const handleCompletePoll = async (pollId: number) => {
     try {
-      await apiClient.patch(`/trips/${tripId}/polls/complete`, {
-        pollIds: pollIds,
-      });
+      await apiClient.patch(`/trips/${tripId}/polls/${pollId}/complete`);
 
       setNotification("Poll set to Completed Successfully!", "success");
       await fetchPolls(tripId);
