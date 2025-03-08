@@ -52,14 +52,11 @@ export const validateGetAllPollsForTripInput = checkExact([
     .withMessage('Trip ID must be a positive integer'),
 ]);
 
-export const validateMarkPollsAsCompletedInput = checkExact([
+export const validateCompletePollInput = checkExact([
   param('tripId')
     .isInt({ min: 1 })
     .withMessage('Trip ID must be a positive integer'),
-  body('pollIds')
-    .isArray({ min: 1 })
-    .withMessage('pollIds must be a non-empty array of integers'),
-  body('pollIds.*')
+  param('pollId')
     .isInt({ min: 1 })
-    .withMessage('Each poll ID must be a positive integer'),
+    .withMessage('Poll Id must be a positive integer'),
 ]);
