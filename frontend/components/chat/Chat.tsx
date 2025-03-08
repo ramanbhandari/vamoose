@@ -152,7 +152,7 @@ export default function Chat() {
     setMessageText("");
   };
 
-  // Transition on maximizing chat screen
+  // When maximized, position from the right (instead of from left)
   const chatContainerStyle = isMaximized
     ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
     : {
@@ -344,6 +344,7 @@ export default function Chat() {
                   right: 0,
                   bottom: 80, // reserve space for input area
                   overflowY: "auto",
+                  overscrollBehavior: "contain", // prevents scroll chaining to the window
                   p: 2,
                   display: "flex",
                   flexDirection: "column",
