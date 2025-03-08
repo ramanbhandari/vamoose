@@ -9,7 +9,7 @@ import {
   IconButton,
   Slide,
 } from "@mui/material";
-import { Box, styled } from "@mui/system";
+import { Box } from "@mui/system";
 import { Member } from "@/types";
 import { DeleteOutline } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
