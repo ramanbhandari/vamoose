@@ -13,13 +13,25 @@ import { motion } from "framer-motion";
 import { SectionContainer } from "./styled";
 import { Member } from "@/types";
 
+const getInitials = (member: Member) => {
+  if (!member.user.fullName)
+    return member.role === "creator"
+      ? "C"
+      : member.role.charAt(0).toUpperCase();
+  const names = member.user.fullName.split(" ");
+  return names
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+};
+
 const MemberAvatar = ({ member }: { member: Member }) => (
   <motion.div
     whileHover={{ scale: 1.1 }}
     transition={{ type: "spring", stiffness: 300 }}
   >
     <Tooltip
-      title={member.user.email}
+      title={member.user.fullName ? member.user.fullName : member.user.email}
       arrow
       slotProps={{
         tooltip: {
@@ -40,7 +52,7 @@ const MemberAvatar = ({ member }: { member: Member }) => (
           border: "2px solid white",
         }}
       >
-        {member.role === "creator" ? "C" : member.role.charAt(0).toUpperCase()}
+        {getInitials(member)}
       </Avatar>
     </Tooltip>
   </motion.div>

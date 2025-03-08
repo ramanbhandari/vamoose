@@ -272,6 +272,7 @@ export default function MemberOwedCard({
           boxShadow: theme.shadows[3],
           mb: isLastCard ? 2 : 0,
           borderRadius: 2,
+          background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
         }}
       >
         <CardContent
