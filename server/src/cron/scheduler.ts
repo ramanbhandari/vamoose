@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import prisma from '@/config/prismaClient.js';
 import { NotificationType } from '@/interfaces/enums.js';
-import { notifyTripMembersExceptCreator } from '@/utils/notificationhandlers.js';
+import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
 import { DateTime } from 'luxon';
 
 cron.schedule('*/5 * * * *', async () => {
