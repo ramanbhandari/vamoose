@@ -1,65 +1,83 @@
--- Function to sync Supabase auth.users with public.User table and log actions with exception handling
-create or replace function handle_auth_user_changes()
+-- Function for INSERT Trigger
+create or replace function handle_auth_user_insert()
 returns trigger as $$
 begin
-  -- Log the event type and user ID
-  raise notice 'Trigger activated: % for user ID: %', TG_OP, coalesce(NEW.id::text, OLD.id::text);
+  raise notice 'Insert Trigger activated for user ID: %', NEW.id;
 
-  if (TG_OP = 'INSERT') then
-    begin
-      -- Insert user into User table
-      insert into public."User" (id, email, "fullName", "avatarUrl", "createdAt", "updatedAt")
-      values (NEW.id, NEW.email, coalesce(NEW.raw_user_meta_data->>'fullName', NULL), 
-              coalesce(NEW.raw_user_meta_data->>'avatarUrl', NULL), now(), now())
-      on conflict (id) do nothing;
+  -- Insert into public."User" table, casting NEW.id to text
+  insert into public."User" (id, email, "fullName", "avatarUrl", "createdAt", "updatedAt")
+  values (
+    NEW.id::text,  -- Cast NEW.id (uuid) to text
+    NEW.email,
+    coalesce(NEW.raw_user_meta_data->>'display_name', NULL),
+    coalesce(NEW.raw_user_meta_data->>'avatarUrl', NULL),
+    now(),
+    now()
+  )
+  on conflict (id) do nothing;
 
-      raise notice '✅ User inserted: ID=%, Email=%', NEW.id, NEW.email;
-    exception when others then
-      raise notice '❌ Error inserting user: ID=%, Email=%, ERROR=%', NEW.id, NEW.email, sqlerrm;
-    end;
-    return NEW;
-
-  elsif (TG_OP = 'UPDATE') then
-    begin
-      -- Update user fields in User table
-      update public."User"
-      set email = NEW.email,
-          "fullName" = coalesce(NEW.raw_user_meta_data->>'fullName', "fullName"), 
-          "avatarUrl" = coalesce(NEW.raw_user_meta_data->>'avatarUrl', "avatarUrl"),
-          "updatedAt" = now()
-      where id = NEW.id;
-
-      raise notice '✅ User updated: ID=%, Email=%', NEW.id, NEW.email;
-    exception when others then
-      raise notice '❌ Error updating user: ID=%, Email=%, ERROR=%', NEW.id, NEW.email, sqlerrm;
-    end;
-    return NEW;
-
-  elsif (TG_OP = 'DELETE') then
-    begin
-      -- Delete user from User table
-      delete from public."User"
-      where id = OLD.id;
-
-      raise notice '✅ User deleted: ID=%, Email=%', OLD.id, OLD.email;
-    exception when others then
-      raise notice '❌ Error deleting user: ID=%, Email=%, ERROR=%', OLD.id, OLD.email, sqlerrm;
-    end;
-    return OLD;
-  end if;
-
-  return NULL;
+  raise notice '✅ User inserted: ID=%, Email=%', NEW.id, NEW.email;
+  return null;
 end;
 $$ language plpgsql security definer;
 
--- Ensure trigger does not already exist
-drop trigger if exists on_auth_user_changes on auth.users;
+-- Trigger for INSERT
+drop trigger if exists on_auth_user_insert on auth.users;
 
--- Create trigger to sync users between auth.users and User table
-create trigger on_auth_user_changes
-after insert or update or delete on auth.users
+create trigger on_auth_user_insert
+after insert on auth.users
 for each row
-execute function handle_auth_user_changes();
+execute function handle_auth_user_insert();
+
+-- Function for UPDATE Trigger
+create or replace function handle_auth_user_update()
+returns trigger as $$
+begin
+  raise notice 'Update Trigger activated for user ID: %', NEW.id;
+
+  -- Update public."User" table, casting NEW.id to text
+  update public."User"
+  set email = NEW.email,
+      "fullName" = coalesce(NEW.raw_user_meta_data->>'display_name', "fullName"),
+      "avatarUrl" = coalesce(NEW.raw_user_meta_data->>'avatarUrl', "avatarUrl"),
+      "updatedAt" = now()
+  where id = NEW.id::text;  -- Cast NEW.id (uuid) to text
+
+  raise notice '✅ User updated: ID=%, Email=%', NEW.id, NEW.email;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger for UPDATE
+drop trigger if exists on_auth_user_update on auth.users;
+
+create trigger on_auth_user_update
+after update on auth.users
+for each row
+execute function handle_auth_user_update();
+
+-- Function for DELETE Trigger
+create or replace function handle_auth_user_delete()
+returns trigger as $$
+begin
+  raise notice 'Delete Trigger activated for user ID: %', OLD.id;
+
+  -- Delete from public."User" table, casting OLD.id to text
+  delete from public."User"
+  where id = OLD.id::text;  -- Cast OLD.id (uuid) to text
+
+  raise notice '✅ User deleted: ID=%, Email=%', OLD.id, OLD.email;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger for DELETE
+drop trigger if exists on_auth_user_delete on auth.users;
+
+create trigger on_auth_user_delete
+after delete on auth.users
+for each row
+execute function handle_auth_user_delete();
 
 -- Enable Row Level Security (RLS) on User table
 alter table public."User" enable row level security;
@@ -73,16 +91,16 @@ drop policy if exists "Users can delete their own profile" on public."User";
 create policy "Users can view their own profile"
 on public."User"
 for select
-using (auth.uid() = id::uuid);
+using (auth.uid()::text = id);  -- Cast auth.uid() (uuid) to text
 
 -- Policy: Allow users to update their own profile
 create policy "Users can update their own profile"
 on public."User"
 for update
-using (auth.uid() = id::uuid);
+using (auth.uid()::text = id);  -- Cast auth.uid() (uuid) to text
 
 -- Policy: Allow users to delete their own profile
 create policy "Users can delete their own profile"
 on public."User"
 for delete
-using (auth.uid() = id::uuid);
+using (auth.uid()::text = id);  -- Cast auth.uid() (uuid) to text
