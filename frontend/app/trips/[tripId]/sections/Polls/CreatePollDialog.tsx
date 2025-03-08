@@ -69,6 +69,14 @@ export default function CreatePollDialog({
       setError("All options must be filled");
       return false;
     }
+
+    const allOptions = options.map((opt) => opt.trim());
+    if (new Set(allOptions).size !== allOptions.length) {
+      setNotification("Duplicate options are not allowed!", "error");
+      setError("Duplicate options are not allowed");
+      return false;
+    }
+
     if (!expiresAtDate.trim()) {
       setNotification("Please enter a deadline", "error");
       setError("Please enter a deadline");
