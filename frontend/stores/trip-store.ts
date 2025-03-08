@@ -4,6 +4,7 @@ import { AxiosError } from "axios";
 
 export interface MemberDetails {
   email: string;
+  fullName: string | null;
 }
 
 export interface Member {
@@ -24,6 +25,7 @@ export interface ExpensesSummary {
 }
 
 export interface PaidBy {
+  fullName: string | null;
   email: string;
 }
 

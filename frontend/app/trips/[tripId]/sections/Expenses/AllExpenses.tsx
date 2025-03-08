@@ -493,7 +493,10 @@ export default function Expenses({
                       >
                         <Person fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
-                          Paid by {expense.paidBy.email}
+                          Paid by{" "}
+                          {expense.paidBy.fullName
+                            ? expense.paidBy.fullName
+                            : expense.paidBy.email}
                         </Typography>
                       </Box>
                     </Box>
@@ -511,13 +514,25 @@ export default function Expenses({
           ) : (
             <Paper
               sx={{
-                p: 4,
+                p: 8,
                 textAlign: "center",
-                background: `linear-gradient(80deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
+                background: `linear-gradient(45deg, ${theme.palette.background.default} 30%, ${theme.palette.action.hover} 90%)`,
+                borderRadius: 6,
               }}
             >
-              <Typography variant="h6" color="text.secondary">
-                No expenses found
+              <AttachMoney
+                sx={{
+                  fontSize: 80,
+                  color: theme.palette.text.secondary,
+                  mb: 2,
+                }}
+              />
+              <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+                {"No expenses found!"}
+              </Typography>
+
+              <Typography variant="body1" color="text.secondary">
+                Start spending...
               </Typography>
             </Paper>
           )}

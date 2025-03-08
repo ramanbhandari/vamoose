@@ -9,10 +9,12 @@ export interface Expense {
 
 export interface PaidBy {
   email: string;
+  fullName: string | null;
 }
 
 export interface MemberDetails {
   email: string;
+  fullName: string | null;
 }
 
 export interface Member {

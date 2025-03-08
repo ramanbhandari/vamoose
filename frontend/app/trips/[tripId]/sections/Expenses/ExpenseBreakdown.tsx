@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import MemberOwedCard from "./MemberOwedCard";
-import { Box, Container, Paper, Typography } from "@mui/material";
+import { Box, Container, Paper, Typography, useTheme } from "@mui/material";
 import { MemberSummary } from "@/stores/expense-share-store";
 import { useUserStore } from "@/stores/user-store";
+import { CreditCardOff } from "@mui/icons-material";
 
 interface ExpenseBreakdownProps {
   memberSummaries: MemberSummary[];
@@ -15,6 +16,7 @@ export default function ExpenseBreakdown({
   memberSummaries,
   tripId,
 }: ExpenseBreakdownProps) {
+  const theme = useTheme();
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const { user } = useUserStore();
 
@@ -62,11 +64,40 @@ export default function ExpenseBreakdown({
             />
           ))
         ) : (
-          <Paper sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="h6" color="text.secondary">
-              No expense debts found
+          <Paper
+            sx={{
+              p: 8,
+              textAlign: "center",
+              background: `linear-gradient(45deg, ${theme.palette.background.default} 30%, ${theme.palette.action.hover} 90%)`,
+              borderRadius: 6,
+            }}
+          >
+            <CreditCardOff
+              sx={{
+                fontSize: 80,
+                color: theme.palette.text.secondary,
+                mb: 2,
+              }}
+            />
+            <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+              {"No expense debt found!"}
+            </Typography>
+
+            <Typography variant="body1" color="text.secondary">
+              Everything is settled or no expenses incurred yet!
             </Typography>
           </Paper>
+          // <Paper
+          //   sx={{
+          //     p: 4,
+          //     textAlign: "center",
+          //     background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
+          //   }}
+          // >
+          //   <Typography variant="h6" color="text.secondary">
+          //     No expense debts found
+          //   </Typography>
+          // </Paper>
         )}
       </Box>
     </Container>

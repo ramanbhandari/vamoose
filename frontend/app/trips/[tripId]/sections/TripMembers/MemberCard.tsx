@@ -32,6 +32,19 @@ export default function MemberCard({
   showCheckbox = false,
 }: MemberCardProps) {
   const theme = useTheme();
+
+  const getInitials = (name: string | null) => {
+    if (!name)
+      return member.role === "creator"
+        ? "C"
+        : member.role.charAt(0).toUpperCase();
+    const names = name.split(" ");
+    return names
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
   return (
     <Slide direction="up" in={true} mountOnEnter unmountOnExit>
       <Paper
@@ -87,9 +100,7 @@ export default function MemberCard({
             border: "2px solid white",
           }}
         >
-          {member.role === "creator"
-            ? "C"
-            : member.role.charAt(0).toUpperCase()}
+          {getInitials(member.user.fullName)}
         </Avatar>
         <Box
           sx={{
@@ -99,9 +110,23 @@ export default function MemberCard({
           }}
         >
           <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
-            {member.user.email}
+            {member.user.fullName ? member.user.fullName : member.user.email}
           </Typography>
         </Box>
+
+        {member.user.fullName !== null && (
+          <Box
+            sx={{
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography variant="caption" sx={{ fontWeight: 600, mb: 1 }}>
+              {member.user.email}
+            </Typography>
+          </Box>
+        )}
 
         <Box
           sx={{
@@ -110,7 +135,15 @@ export default function MemberCard({
             justifyContent: "center",
           }}
         >
-          <Chip label={member.role} color="primary" size="small" />
+          <Chip
+            label={member.role.toUpperCase()}
+            color={
+              member.role === "creator" || member.role === "admin"
+                ? "primary"
+                : "secondary"
+            }
+            size="small"
+          />
         </Box>
       </Paper>
     </Slide>
