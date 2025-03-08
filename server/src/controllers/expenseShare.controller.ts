@@ -9,6 +9,8 @@ import {
 import { getTripMember } from '@/models/member.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { TripDebtDetail } from '@/interfaces/interfaces.js';
+import { notifyIndividual } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 /**
  * Get a detailed summary of all debts within a trip
@@ -304,6 +306,19 @@ export const settleExpenseSharesHandler = async (
       nonExistentExpenseSharePairs,
       unauthorizedExpenseSharePairs,
     });
+
+    for (const pair of authorizedExpenseSharePairs) {
+      // If the debtor is not the one settling (i.e. current user), notify them.
+      if (pair.debtorUserId !== userId) {
+        await notifyIndividual(pair.debtorUserId, tripId, {
+          type: NotificationType.EXPENSE_SHARE_SETTLED,
+          relatedId: pair.expenseId,
+          title: 'Expense Share Settled',
+          message: 'Your expense share has been settled.',
+          channel: 'IN_APP',
+        });
+      }
+    }
   } catch (error) {
     handleControllerError(error, res, 'Error settling expenses:');
   }

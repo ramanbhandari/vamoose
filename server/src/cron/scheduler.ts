@@ -1,10 +1,12 @@
 import cron from 'node-cron';
 import prisma from '@/config/prismaClient.js';
-import { createNotification } from '@/services/notificationService.js';
+import { NotificationType } from '@/interfaces/enums.js';
+import { notifyTripMembersExceptCreator } from '@/utils/notificationhandlers.js';
+import { DateTime } from 'luxon';
 
 cron.schedule('*/5 * * * *', async () => {
   console.log('[CRON] Checking for due scheduled notifications...');
-  const now = new Date();
+  const now = DateTime.now().toUTC().toJSDate();
 
   // find items that are due now
   const dueItems = await prisma.scheduledNotification.findMany({
@@ -85,25 +87,17 @@ cron.schedule('*/5 * * * *', async () => {
       data: {
         status: 'COMPLETED',
         winnerId: winnerOptionId,
-        completedAt: now,
+        completedAt: poll.expiresAt,
       },
     });
 
-    // Notify all trip members that the poll is completeed
-    const tripMembers = await prisma.tripMember.findMany({
-      where: { tripId: poll.tripId },
-      select: { userId: true },
-    });
-
-    const otherUserIds = tripMembers.map((m) => m.userId);
-
-    await createNotification({
-      userIds: otherUserIds,
-      tripId: poll.tripId,
-      type: 'POLL_COMPLETED',
+    await notifyTripMembersExceptCreator(poll.tripId, poll.createdById, {
+      type: NotificationType.POLL_COMPLETE,
       relatedId: poll.id,
       title: 'Poll Completed',
-      message: `Poll "${poll.question}" has ended.`,
+      message: winnerOptionId
+        ? `Poll "${poll.question}" has ended. Winning option ID: ${winnerOptionId}.`
+        : `Poll "${poll.question}" has ended with no votes.`,
       channel: 'IN_APP',
     });
 
