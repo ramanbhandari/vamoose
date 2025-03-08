@@ -419,7 +419,13 @@ export default function Chat() {
                   left: 0,
                   right: 0,
                   height: 80,
-                  backgroundColor: "var(--background)",
+                  backgroundImage: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? "url('dark-mode.jpg')"
+                      : "url('light-mode.jpg')",
+                  backgroundRepeat: "repeat",  
+                  backgroundSize: "auto",     
+                  backgroundPosition: "center",
                   p: 2,
                   display: "flex",
                   alignItems: "center",
