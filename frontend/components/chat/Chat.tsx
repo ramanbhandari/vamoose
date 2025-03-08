@@ -162,7 +162,9 @@ export default function Chat() {
         height: 650,
       };
 
-  const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth = isMaximized
+    ? maximizedTripTabWidth
+    : MINIMIZED_TAB_WIDTH;
 
   return (
     <>
@@ -332,7 +334,13 @@ export default function Chat() {
               sx={{
                 flex: 1,
                 position: "relative",
-                backgroundColor: "var(--background)",
+                backgroundImage: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "url('dark-mode.jpg')"
+                    : "url('light-mode.jpg')",
+                backgroundRepeat: "repeat",  
+                backgroundSize: "auto",     
+                backgroundPosition: "center",
               }}
             >
               {/* Message Container */}
