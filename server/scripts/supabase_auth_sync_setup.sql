@@ -4,13 +4,21 @@ returns trigger as $$
 begin
   raise notice 'Insert Trigger activated for user ID: %', NEW.id;
 
-  -- Insert into public."User" table, casting NEW.id to text
+  -- Insert into public."User" table, handling both email/password and Google OAuth
   insert into public."User" (id, email, "fullName", "avatarUrl", "createdAt", "updatedAt")
   values (
     NEW.id::text,  -- Cast NEW.id (uuid) to text
     NEW.email,
-    coalesce(NEW.raw_user_meta_data->>'display_name', NULL),
-    coalesce(NEW.raw_user_meta_data->>'avatarUrl', NULL),
+    coalesce(
+      NEW.raw_user_meta_data->>'full_name',  -- Google OAuth
+      NEW.raw_user_meta_data->>'display_name',  -- Email/password
+      NEW.raw_user_meta_data->>'name'  -- Fallback for Google OAuth
+    ),
+    coalesce(
+      NEW.raw_user_meta_data->>'avatar_url',  -- Google OAuth
+      NEW.raw_user_meta_data->>'avatarUrl',  -- Email/password
+      NEW.raw_user_meta_data->>'picture'  -- Fallback for Google OAuth
+    ),
     now(),
     now()
   )
@@ -35,11 +43,21 @@ returns trigger as $$
 begin
   raise notice 'Update Trigger activated for user ID: %', NEW.id;
 
-  -- Update public."User" table, casting NEW.id to text
+  -- Update public."User" table, handling both email/password and Google OAuth
   update public."User"
   set email = NEW.email,
-      "fullName" = coalesce(NEW.raw_user_meta_data->>'display_name', "fullName"),
-      "avatarUrl" = coalesce(NEW.raw_user_meta_data->>'avatarUrl', "avatarUrl"),
+      "fullName" = coalesce(
+        NEW.raw_user_meta_data->>'full_name',  -- Google OAuth
+        NEW.raw_user_meta_data->>'display_name',  -- Email/password
+        NEW.raw_user_meta_data->>'name',  -- Fallback for Google OAuth
+        "fullName"  -- Preserve existing value if no new value is provided
+      ),
+      "avatarUrl" = coalesce(
+        NEW.raw_user_meta_data->>'avatar_url',  -- Google OAuth
+        NEW.raw_user_meta_data->>'avatarUrl',  -- Email/password
+        NEW.raw_user_meta_data->>'picture',  -- Fallback for Google OAuth
+        "avatarUrl"  -- Preserve existing value if no new value is provided
+      ),
       "updatedAt" = now()
   where id = NEW.id::text;  -- Cast NEW.id (uuid) to text
 
@@ -62,7 +80,7 @@ returns trigger as $$
 begin
   raise notice 'Delete Trigger activated for user ID: %', OLD.id;
 
-  -- Delete from public."User" table, casting OLD.id to text
+  -- Delete from public."User" table
   delete from public."User"
   where id = OLD.id::text;  -- Cast OLD.id (uuid) to text
 
