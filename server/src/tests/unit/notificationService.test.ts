@@ -1,6 +1,5 @@
 import { createNotification } from '@/services/notificationService.js';
 import prisma from '@/config/prismaClient.js';
-import { InputJsonValue } from '@prisma/client/runtime/library';
 
 jest.mock('@/config/prismaClient.js', () => ({
   notification: { createMany: jest.fn() },
