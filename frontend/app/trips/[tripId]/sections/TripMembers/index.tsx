@@ -62,6 +62,7 @@ export default function TripMembers({
 
   const [selected, setSelected] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
   // pendingDelete can be either a single user id or an array of string ids
   const [pendingDelete, setPendingDelete] = useState<string | string[] | null>(
     null
@@ -222,6 +223,10 @@ export default function TripMembers({
     }
   };
 
+  const deletableMembers =
+    processedMembers?.filter((member) => member.deletable) || [];
+  const deletableMembersCount = deletableMembers.length;
+
   return (
     <Box>
       <ConfirmationDialog
@@ -320,19 +325,20 @@ export default function TripMembers({
             <Paper
               sx={{
                 p: 1,
-                mb: 2,
                 display: "flex",
                 alignItems: "center",
                 gap: 2,
                 bgcolor: "action.selected",
+                background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
               }}
             >
               <Checkbox
-                checked={selected.length === tripData?.members.length}
+                checked={
+                  selected.length === deletableMembersCount &&
+                  deletableMembersCount > 0
+                }
                 indeterminate={
-                  selected.length > 0 &&
-                  tripData !== null &&
-                  selected.length < tripData.members.length
+                  selected.length > 0 && selected.length < deletableMembersCount
                 }
                 onChange={handleSelectAll}
               />
