@@ -87,17 +87,6 @@ export default function ExpenseBreakdown({
               Everything is settled or no expenses incurred yet!
             </Typography>
           </Paper>
-          // <Paper
-          //   sx={{
-          //     p: 4,
-          //     textAlign: "center",
-          //     background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
-          //   }}
-          // >
-          //   <Typography variant="h6" color="text.secondary">
-          //     No expense debts found
-          //   </Typography>
-          // </Paper>
         )}
       </Box>
     </Container>
