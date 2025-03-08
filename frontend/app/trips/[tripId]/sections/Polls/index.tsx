@@ -71,6 +71,7 @@ export default function Polls({
 
       setNotification("Vote submitted successfully!", "success");
       await fetchPolls(tripId);
+      await fetchPolls(tripId);
     } catch (error) {
       setNotification(
         "Failed to save Vote. Please refresh and try again!",
@@ -87,6 +88,7 @@ export default function Polls({
       });
 
       setNotification("Vote removed successfully!", "success");
+      await fetchPolls(tripId);
       await fetchPolls(tripId);
     } catch (error) {
       setNotification(
