@@ -49,8 +49,8 @@ export default function RootLayout({
               <main>{children}</main>
               <Footer />
               <NotificationSnackbar />
+              <Chat />
             </Providers>
-            <Chat />
           </ThemeProvider>
         </MantineProvider>
       </body>
