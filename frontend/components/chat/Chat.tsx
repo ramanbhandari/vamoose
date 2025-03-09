@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useTheme } from "@mui/material/styles"; // Added useTheme hook
+import { useTheme } from "@mui/material/styles";
 import {
   Box,
   List,
@@ -172,7 +172,7 @@ export default function Chat() {
     setSelectedTrip(trip);
   };
 
-  // New message sending handler (// TODO: reactions: [] as string[], use message object probably)
+  // New message sending handler
   const handleSend = async () => {
     if (messageText.trim() && selectedTrip && user?.id) {
       try {

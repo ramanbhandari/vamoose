@@ -156,10 +156,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     );
   },
 
-  // Clean up socket event listeners
+  // Clean up socket event listeners (just disconnect the socket) hehe
   cleanupSocketListeners: () => {
-    // We would need to keep references to the handlers to remove them
-    // For simplicity, we'll just disconnect the socket
     socketClient.disconnectSocket();
   },
 
@@ -219,7 +217,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     }
   },
 
-  // Clear messages (e.g., when switching trips)
+  // Clear messages
   clearMessages: () => {
     set({ messages: [] });
   },
