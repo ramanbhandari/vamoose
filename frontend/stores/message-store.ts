@@ -161,13 +161,6 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     // We would need to keep references to the handlers to remove them
     // For simplicity, we'll just disconnect the socket
     socketClient.disconnectSocket();
-
-    // If we had references to the handlers, we would do:
-    // socketClient.offSocketEvent(SocketEvent.CONNECT, handleConnect);
-    // socketClient.offSocketEvent(SocketEvent.DISCONNECT, handleDisconnect);
-    // socketClient.offSocketEvent(SocketEvent.NEW_MESSAGE, handleNewMessage);
-    // socketClient.offSocketEvent(SocketEvent.ERROR, handleError);
-    // socketClient.offSocketEvent('local-reaction', handleLocalReaction);
   },
 
   // Join a trip's chat room

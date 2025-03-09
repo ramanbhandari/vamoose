@@ -62,11 +62,6 @@ export const initializeSocketServer = (app: Express): http.Server => {
           return;
         }
 
-        console.log(
-          `Received reaction update for message ${updatedMessage.messageId} in trip ${tripId}`,
-        );
-        console.log('Updated reactions:', updatedMessage.reactions);
-
         // Broadcast the updated message to all users in the trip's room (including sender)
         socketServer
           .to(`trip-${tripId}`)

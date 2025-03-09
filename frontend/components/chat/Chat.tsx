@@ -77,7 +77,6 @@ export default function Chat() {
     fetchMessages,
     initializeSocketListeners,
     cleanupSocketListeners,
-    addReaction,
   } = useMessageStore();
 
   const [messageText, setMessageText] = useState("");
@@ -260,15 +259,6 @@ export default function Chat() {
   // Check if a specific reaction is currently being processed
   const isReactionProcessing = (messageId: string, emoji: string) => {
     return !!processingReactions[`${messageId}-${emoji}`];
-  };
-
-  // Count total reactions for a message
-  const countReactions = (reactions?: { [emoji: string]: string[] }) => {
-    if (!reactions) return 0;
-    return Object.values(reactions).reduce(
-      (total, users) => total + users.length,
-      0
-    );
   };
 
   // Check if the current user has reacted with a specific emoji

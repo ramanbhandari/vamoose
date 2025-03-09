@@ -281,11 +281,6 @@ export const removeReactionHandler = async (
       return;
     }
 
-    console.log(
-      'Reaction removed, updated reactions:',
-      updatedMessage.reactions,
-    );
-
     res
       .status(200)
       .json({ message: 'Reaction removed successfully!', updatedMessage });

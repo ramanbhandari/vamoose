@@ -172,10 +172,6 @@ export const addReaction = async (
       return;
     }
 
-    console.log(
-      `Processing reaction: ${emoji} for message ${messageId} in trip ${tripId}`
-    );
-
     // Send the reaction to the server via API
     // If hasReacted is true, we're removing the reaction
     const endpoint = hasReacted
