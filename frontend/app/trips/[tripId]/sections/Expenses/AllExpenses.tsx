@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Button,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -46,6 +45,7 @@ import { useTripStore } from "@/stores/trip-store";
 import { useNotificationStore } from "@/stores/notification-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import { TripData, Expense, Member, ExpensesSummary } from "@/types";
+import { FloatingDialog } from "../Polls/styled";
 
 export interface ExpensesProps {
   tripId: number;
@@ -66,13 +66,15 @@ interface Filters {
 const ExpenseCard = styled(Paper)(({ theme }: { theme: Theme }) => ({
   padding: theme.spacing(3),
   borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[3],
+  boxShadow: theme.shadows[1],
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  transition: "all 0.3s ease",
+  transition: "transform 0.1s, box-shadow 0.1s",
+  background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
   "&:hover": {
-    boxShadow: theme.shadows[6],
+    transform: "translateY(-1px)",
+    boxShadow: theme.shadows[8],
   },
 }));
 
@@ -322,11 +324,12 @@ export default function Expenses({
           <Toolbar
             sx={{
               p: "8px !important",
-              bgcolor: "background.paper",
               borderRadius: 2,
               mb: 2,
               gap: 2,
               flexWrap: "wrap",
+              boxShadow: theme.shadows[1],
+              background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
             }}
           >
             <Box
@@ -404,6 +407,7 @@ export default function Expenses({
                 alignItems: "center",
                 gap: 2,
                 bgcolor: "action.selected",
+                background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
               }}
             >
               <Checkbox
@@ -426,7 +430,12 @@ export default function Expenses({
           {filteredExpenses.length > 0 ? (
             filteredExpenses.map((expense) => (
               <motion.div key={expense.id} layout>
-                <ExpenseCard theme={theme} sx={{ my: 1.5 }}>
+                <ExpenseCard
+                  theme={theme}
+                  sx={{
+                    my: 1.5,
+                  }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Checkbox
                       checked={selected.includes(expense.id)}
@@ -484,7 +493,10 @@ export default function Expenses({
                       >
                         <Person fontSize="small" color="action" />
                         <Typography variant="body2" color="text.secondary">
-                          Paid by {expense.paidBy.email}
+                          Paid by{" "}
+                          {expense.paidBy.fullName
+                            ? expense.paidBy.fullName
+                            : expense.paidBy.email}
                         </Typography>
                       </Box>
                     </Box>
@@ -500,23 +512,46 @@ export default function Expenses({
               </motion.div>
             ))
           ) : (
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h6" color="text.secondary">
-                No expenses found
+            <Paper
+              sx={{
+                p: 8,
+                textAlign: "center",
+                background: `linear-gradient(45deg, ${theme.palette.background.default} 30%, ${theme.palette.action.hover} 90%)`,
+                borderRadius: 6,
+              }}
+            >
+              <AttachMoney
+                sx={{
+                  fontSize: 80,
+                  color: theme.palette.text.secondary,
+                  mb: 2,
+                }}
+              />
+              <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+                {"No expenses found!"}
+              </Typography>
+
+              <Typography variant="body1" color="text.secondary">
+                Start spending...
               </Typography>
             </Paper>
           )}
         </Box>
       </Container>
 
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>Add New Expense</DialogTitle>
-        <DialogContent>
+      <FloatingDialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle
+          sx={{
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          Add New Expense
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <TextField
@@ -542,7 +577,11 @@ export default function Expenses({
                   {categories.map((cat) => (
                     <MenuItem key={cat.value} value={cat.value}>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
                       >
                         {cat.icon}
                         {cat.label}
@@ -583,13 +622,25 @@ export default function Expenses({
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <DialogActions
+          sx={{
+            p: 3,
+            pt: 2,
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          <Button
+            onClick={() => setOpen(false)}
+            color="inherit"
+            sx={{ mr: "auto" }}
+          >
+            Cancel
+          </Button>
           <Button variant="contained" onClick={handleSubmit}>
             Add Expense
           </Button>
         </DialogActions>
-      </Dialog>
+      </FloatingDialog>
     </Box>
   );
 }

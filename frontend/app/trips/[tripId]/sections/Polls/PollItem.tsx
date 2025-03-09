@@ -528,7 +528,7 @@ export default function PollItem({
                   },
                 }}
               >
-                Complete
+                End Poll
               </Button>
             )}
           </Box>
@@ -568,7 +568,7 @@ export default function PollItem({
             }}
           >
             <Typography variant="body1">
-              Are you sure you want to Delete this Poll?
+              Are you sure you want to delete this Poll?
             </Typography>
           </DialogContent>
 
@@ -617,7 +617,7 @@ export default function PollItem({
               }}
             >
               <Typography variant="h5" fontWeight={600} color="text.primary">
-                Mark Poll Complete
+                End the Poll
               </Typography>
 
               <IconButton
@@ -637,7 +637,7 @@ export default function PollItem({
             }}
           >
             <Typography variant="body1">
-              Are you sure you want to mark this Poll as Complete?
+              Are you sure you want to end this Poll?
             </Typography>
           </DialogContent>
 
