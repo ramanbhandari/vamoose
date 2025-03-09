@@ -12,6 +12,7 @@ import {
   IconButton,
   Collapse,
   Grow,
+  CircularProgress,
 } from "@mui/material";
 
 import Message from "@mui/icons-material/Message";
@@ -21,6 +22,8 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
+import { useMessageStore } from "@/stores/message-store";
+import { format } from "date-fns";
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,77 +37,73 @@ export default function Chat() {
   const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
     useState(MINIMIZED_TAB_WIDTH);
 
-  const [selectedTrip, setSelectedTrip] = useState("Group Chat");
+  const [selectedTrip, setSelectedTrip] = useState<{
+    id: number;
+    name?: string;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
+  const {
+    messages,
+    loading,
+    error,
+    initializeSocket,
+    disconnectSocket,
+    joinTripChat,
+    leaveTripChat,
+    sendMessage,
+    fetchMessages,
+    initializeSocketListeners,
+    cleanupSocketListeners,
+  } = useMessageStore();
 
-  // Initial fake messages for demonstration
-  const fakeMessages = [
-    {
-      id: 1,
-      text: "Hello, how can I help you?",
-      sender: "received",
-      name: "Alice",
-    },
-    {
-      id: 2,
-      text: "I have a question about my order. This is a long message to test scrolling.",
-      sender: "sent",
-      name: "You",
-    },
-    {
-      id: 3,
-      text: "Sure, I'd be happy to help!",
-      sender: "received",
-      name: "Alice",
-    },
-    {
-      id: 4,
-      text: "When will my package arrive?",
-      sender: "sent",
-      name: "You",
-    },
-    {
-      id: 5,
-      text: "Hello, how can I help you?",
-      sender: "received",
-      name: "Alice",
-    },
-    {
-      id: 6,
-      text: "I have a question about my order. This is a long message to test scrolling.",
-      sender: "sent",
-      name: "You",
-    },
-    {
-      id: 7,
-      text: "Sure, I'd be happy to help!",
-      sender: "received",
-      name: "Alice",
-    },
-    {
-      id: 8,
-      text: "When will my package arrive?",
-      sender: "sent",
-      name: "You",
-    },
-  ];
-
-  // Store messages in state so we can add new ones.
-  const [messages, setMessages] = useState(fakeMessages);
   const [messageText, setMessageText] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change.
+  // Initialize socket connection when component mounts
+  useEffect(() => {
+    if (isOpen) {
+      initializeSocket();
+      initializeSocketListeners();
+    }
+
+    return () => {
+      cleanupSocketListeners();
+      disconnectSocket();
+    };
+  }, [
+    isOpen,
+    initializeSocket,
+    disconnectSocket,
+    initializeSocketListeners,
+    cleanupSocketListeners,
+  ]);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Fetch user trips
   useEffect(() => {
     if (user) fetchUserTrips(user.id);
   }, [user, fetchUserTrips]);
+
+  // Handle trip selection
+  useEffect(() => {
+    if (selectedTrip && selectedTrip.id) {
+      // Leave previous trip chat if any
+      leaveTripChat();
+
+      // Join new trip chat
+      joinTripChat(selectedTrip.id.toString());
+
+      // Fetch messages for the selected trip
+      fetchMessages(selectedTrip.id.toString());
+    }
+  }, [selectedTrip, joinTripChat, leaveTripChat, fetchMessages]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -128,28 +127,33 @@ export default function Chat() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, isMaximized]);
+  }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
   if (!user) return null;
 
   const toggleChat = () => setIsOpen((prev) => !prev);
   const toggleMaximize = () => setIsMaximized((prev) => !prev);
   const toggleTripTab = () => setTripTabOpen((prev) => !prev);
-  const selectTrip = (trip: { name?: string }) => {
-    setSelectedTrip(trip?.name || "Unnamed Trip");
+  const selectTrip = (trip: { id: number; name?: string }) => {
+    setSelectedTrip(trip);
   };
 
-  // New message sending handler with transition effect.
-  const handleSend = () => {
-    if (!messageText.trim()) return;
-    const newMessage = {
-      id: Date.now(),
-      text: messageText,
-      sender: "sent",
-      name: "You",
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setMessageText("");
+  // New message sending handler
+  const handleSend = async () => {
+    if (messageText.trim() && selectedTrip && user?.id) {
+      try {
+        await sendMessage(selectedTrip.id.toString(), user.id, messageText);
+        setMessageText("");
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
+    }
+  };
+
+  // Format timestamp
+  const formatTimestamp = (timestamp: Date | string) => {
+    const date = new Date(timestamp);
+    return format(date, "h:mm a");
   };
 
   // When maximized, position from the right (instead of from left)
@@ -219,7 +223,7 @@ export default function Chat() {
               color="#fff"
               sx={{ flex: 1, textAlign: "center", mx: 2 }}
             >
-              {selectedTrip}
+              {selectedTrip?.name || "Select a Trip"}
             </Typography>
             <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
               {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
@@ -265,12 +269,12 @@ export default function Chat() {
                             color: "var(--chat)",
                           },
                           backgroundColor:
-                            selectedTrip === trip.name
+                            selectedTrip?.id === trip.id
                               ? "var(--secondary)"
                               : "transparent",
                           p: 1,
                           color:
-                            selectedTrip === trip.name
+                            selectedTrip?.id === trip.id
                               ? "var(--chat)"
                               : "var(--text)",
                         }}
@@ -284,7 +288,7 @@ export default function Chat() {
                                 wordBreak: "break-word",
                                 width: "100%",
                                 fontWeight:
-                                  selectedTrip === trip.name
+                                  selectedTrip?.id === trip.id
                                     ? "bold"
                                     : "normal",
                               }}
@@ -338,8 +342,8 @@ export default function Chat() {
                   theme.palette.mode === "dark"
                     ? "url('dark-mode.jpg')"
                     : "url('light-mode.jpg')",
-                backgroundRepeat: "repeat",  
-                backgroundSize: "auto",     
+                backgroundRepeat: "repeat",
+                backgroundSize: "auto",
                 backgroundPosition: "center",
               }}
             >
@@ -359,54 +363,98 @@ export default function Chat() {
                   gap: 1,
                 }}
               >
-                {messages.map((msg) => (
-                  <Grow
-                    in={true}
-                    style={{ transformOrigin: "0 0 0" }}
-                    timeout={500}
-                    key={msg.id}
+                {loading ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
                   >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignSelf:
-                          msg.sender === "sent" ? "flex-end" : "flex-start",
-                        gap: 0.5,
-                      }}
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
+                  >
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : messages.length === 0 ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontStyle: "italic", color: "text.secondary" }}
                     >
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color:
-                            msg.sender === "sent" ? "grey.500" : "grey.600",
-                        }}
-                      >
-                        {msg.name}
-                      </Typography>
+                      {selectedTrip
+                        ? "No messages yet. Start the conversation!"
+                        : "Select a trip to view messages"}
+                    </Typography>
+                  </Box>
+                ) : (
+                  messages.map((msg) => (
+                    <Grow
+                      in={true}
+                      style={{ transformOrigin: "0 0 0" }}
+                      timeout={500}
+                      key={msg.messageId}
+                    >
                       <Box
                         sx={{
-                          width: "100%",
-                          backgroundColor:
-                            msg.sender === "sent"
-                              ? "var(--primary-hover)"
-                              : "var(--background-paper)",
-                          color:
-                            msg.sender === "sent"
-                              ? "var(--chat)"
-                              : "var(--text)",
-                          padding: "10px 16px",
-                          borderRadius:
-                            msg.sender === "sent"
-                              ? "16px 16px 0 16px"
-                              : "16px 16px 16px 0",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignSelf:
+                            msg.userId === user.id ? "flex-end" : "flex-start",
+                          gap: 0.5,
                         }}
                       >
-                        <Typography variant="body1">{msg.text}</Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color:
+                              msg.userId === user.id ? "grey.500" : "grey.600",
+                          }}
+                        >
+                          {msg.userName || msg.userId === user.id
+                            ? "You"
+                            : "User"}{" "}
+                          • {formatTimestamp(msg.createdAt)}
+                        </Typography>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            backgroundColor:
+                              msg.userId === user.id
+                                ? "var(--primary-hover)"
+                                : "var(--background-paper)",
+                            color:
+                              msg.userId === user.id
+                                ? "var(--chat)"
+                                : "var(--text)",
+                            padding: "10px 16px",
+                            borderRadius:
+                              msg.userId === user.id
+                                ? "16px 16px 0 16px"
+                                : "16px 16px 16px 0",
+                          }}
+                        >
+                          <Typography variant="body1">{msg.text}</Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  </Grow>
-                ))}
+                    </Grow>
+                  ))
+                )}
                 {/* Dummy element to scroll into view */}
                 <Box ref={messagesEndRef} />
               </Box>
@@ -423,8 +471,8 @@ export default function Chat() {
                     theme.palette.mode === "dark"
                       ? "url('dark-mode.jpg')"
                       : "url('light-mode.jpg')",
-                  backgroundRepeat: "repeat",  
-                  backgroundSize: "auto",     
+                  backgroundRepeat: "repeat",
+                  backgroundSize: "auto",
                   backgroundPosition: "center",
                   p: 2,
                   display: "flex",
@@ -447,7 +495,11 @@ export default function Chat() {
                 >
                   <TextField
                     variant="outlined"
-                    placeholder="Type your message..."
+                    placeholder={
+                      selectedTrip
+                        ? "Type your message..."
+                        : "Select a trip to start chatting"
+                    }
                     fullWidth
                     size="small"
                     value={messageText}
@@ -458,6 +510,7 @@ export default function Chat() {
                         handleSend();
                       }
                     }}
+                    disabled={!selectedTrip}
                     sx={{
                       backgroundColor: "transparent",
                       border: "none",
@@ -477,6 +530,7 @@ export default function Chat() {
                   <Button
                     variant="contained"
                     onClick={handleSend}
+                    disabled={!selectedTrip || !messageText.trim()}
                     sx={{
                       ml: 2,
                       backgroundColor: "var(--primary)",
