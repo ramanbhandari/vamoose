@@ -24,6 +24,7 @@ interface MessageState {
   sendMessage: (tripId: string, userId: string, text: string) => Promise<void>;
   fetchMessages: (tripId: string) => Promise<void>;
   clearMessages: () => void;
+  addReaction: (messageId: string, userId: string, emoji: string) => void;
 
   // Trip chat actions
   joinTripChat: (tripId: string) => void;
@@ -93,11 +94,29 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }
     };
 
+    // Handle local reactions (non-persistent)
+    const handleLocalReaction = (data: unknown) => {
+      if (
+        data &&
+        typeof data === "object" &&
+        "messageId" in data &&
+        "userId" in data &&
+        "emoji" in data &&
+        typeof data.messageId === "string" &&
+        typeof data.userId === "string" &&
+        typeof data.emoji === "string"
+      ) {
+        // Use the addReaction function we already defined
+        get().addReaction(data.messageId, data.userId, data.emoji);
+      }
+    };
+
     // Register event listeners
     socketClient.onSocketEvent(SocketEvent.CONNECT, handleConnect);
     socketClient.onSocketEvent(SocketEvent.DISCONNECT, handleDisconnect);
     socketClient.onSocketEvent(SocketEvent.NEW_MESSAGE, handleNewMessage);
     socketClient.onSocketEvent(SocketEvent.ERROR, handleError);
+    socketClient.onSocketEvent("local-reaction", handleLocalReaction);
   },
 
   // Clean up socket event listeners
@@ -105,6 +124,13 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     // We would need to keep references to the handlers to remove them
     // For simplicity, we'll just disconnect the socket
     socketClient.disconnectSocket();
+
+    // If we had references to the handlers, we would do:
+    // socketClient.offSocketEvent(SocketEvent.CONNECT, handleConnect);
+    // socketClient.offSocketEvent(SocketEvent.DISCONNECT, handleDisconnect);
+    // socketClient.offSocketEvent(SocketEvent.NEW_MESSAGE, handleNewMessage);
+    // socketClient.offSocketEvent(SocketEvent.ERROR, handleError);
+    // socketClient.offSocketEvent('local-reaction', handleLocalReaction);
   },
 
   // Join a trip's chat room
@@ -185,5 +211,47 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   disconnectSocket: () => {
     socketClient.disconnectSocket();
+  },
+
+  // Add reaction to a message
+  addReaction: (messageId, userId, emoji) => {
+    set((state) => {
+      const updatedMessages = state.messages.map((message) => {
+        if (message.messageId === messageId) {
+          // Create a copy of the reactions object or initialize it if it doesn't exist
+          const reactions = { ...(message.reactions || {}) };
+
+          // Check if this emoji reaction already exists
+          if (reactions[emoji]) {
+            // Check if user has already reacted with this emoji
+            const userIndex = reactions[emoji].indexOf(userId);
+
+            if (userIndex !== -1) {
+              // User already reacted with this emoji, so remove the reaction
+              reactions[emoji] = reactions[emoji].filter((id) => id !== userId);
+
+              // If no users left for this emoji, remove the emoji entry
+              if (reactions[emoji].length === 0) {
+                delete reactions[emoji];
+              }
+            } else {
+              // User hasn't reacted with this emoji yet, add the reaction
+              reactions[emoji] = [...reactions[emoji], userId];
+            }
+          } else {
+            // This emoji reaction doesn't exist yet, create it
+            reactions[emoji] = [userId];
+          }
+
+          return {
+            ...message,
+            reactions,
+          };
+        }
+        return message;
+      });
+
+      return { messages: updatedMessages };
+    });
   },
 }));

@@ -143,6 +143,30 @@ export const sendMessage = async (
 };
 
 /**
+ * Add a reaction to a message
+ * @param messageId Message ID
+ * @param userId User ID
+ * @param emoji Emoji reaction
+ */
+export const addReaction = (
+  messageId: string,
+  userId: string,
+  emoji: string
+): void => {
+  // For now, we're just handling reactions locally without persistence
+  // When we implement the backend, we'll add the API call here
+  console.log(`User ${userId} reacted with ${emoji} to message ${messageId}`);
+
+  // In a real implementation, we would:
+  // 1. Send the reaction to the server via API
+  // 2. The server would update the message in the database
+  // 3. The server would broadcast the updated message to all clients in the trip
+
+  // For now, we'll just emit a local event that the message store can listen to
+  eventEmitter.emit("local-reaction", { messageId, userId, emoji });
+};
+
+/**
  * Subscribe to a socket event
  * @param event Event name
  * @param listener Event listener function
@@ -173,6 +197,7 @@ const socketClient = {
   joinTripChat,
   leaveTripChat,
   sendMessage,
+  addReaction,
   onSocketEvent,
   offSocketEvent,
 };
