@@ -19,6 +19,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
 
@@ -26,6 +29,7 @@ export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
@@ -139,7 +143,7 @@ export default function Chat() {
     setSelectedTrip(trip?.name || "Unnamed Trip");
   };
 
-  // New message sending handler with transition effect.
+  // New message sending handler.
   const handleSend = () => {
     if (!messageText.trim()) return;
     const newMessage = {
@@ -152,6 +156,12 @@ export default function Chat() {
     setMessageText("");
   };
 
+  // Handler for emoji selection with explicit type.
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setMessageText((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
   // When maximized, position from the right (instead of from left)
   const chatContainerStyle = isMaximized
     ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
@@ -162,9 +172,7 @@ export default function Chat() {
         height: 650,
       };
 
-  const tripTabWidth = isMaximized
-    ? maximizedTripTabWidth
-    : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   return (
     <>
@@ -284,9 +292,7 @@ export default function Chat() {
                                 wordBreak: "break-word",
                                 width: "100%",
                                 fontWeight:
-                                  selectedTrip === trip.name
-                                    ? "bold"
-                                    : "normal",
+                                  selectedTrip === trip.name ? "bold" : "normal",
                               }}
                             >
                               {trip.name || "Unnamed Trip"}
@@ -338,8 +344,8 @@ export default function Chat() {
                   theme.palette.mode === "dark"
                     ? "url('dark-mode.jpg')"
                     : "url('light-mode.jpg')",
-                backgroundRepeat: "repeat",  
-                backgroundSize: "auto",     
+                backgroundRepeat: "repeat",
+                backgroundSize: "auto",
                 backgroundPosition: "center",
               }}
             >
@@ -352,7 +358,7 @@ export default function Chat() {
                   right: 0,
                   bottom: 80, // reserve space for input area
                   overflowY: "auto",
-                  overscrollBehavior: "contain", // prevents scroll chaining to the window
+                  overscrollBehavior: "contain",
                   p: 2,
                   display: "flex",
                   flexDirection: "column",
@@ -423,8 +429,8 @@ export default function Chat() {
                     theme.palette.mode === "dark"
                       ? "url('dark-mode.jpg')"
                       : "url('light-mode.jpg')",
-                  backgroundRepeat: "repeat",  
-                  backgroundSize: "auto",     
+                  backgroundRepeat: "repeat",
+                  backgroundSize: "auto",
                   backgroundPosition: "center",
                   p: 2,
                   display: "flex",
@@ -443,12 +449,12 @@ export default function Chat() {
                     mb: 2,
                     width: isMaximized ? "60%" : "100%",
                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                    position: "relative",
                   }}
                 >
                   <TextField
                     variant="outlined"
                     placeholder="Type your message..."
-                    fullWidth
                     size="small"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
@@ -459,10 +465,10 @@ export default function Chat() {
                       }
                     }}
                     sx={{
+                      flex: 1,
                       backgroundColor: "transparent",
                       border: "none",
                       outline: "none",
-                      width: "100%",
                       borderRadius: 50,
                       padding: "10px 12px",
                       fontSize: "1rem",
@@ -474,6 +480,21 @@ export default function Chat() {
                       },
                     }}
                   />
+
+                  {/* Emoji Button */}
+                  <IconButton 
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    sx={{
+                      borderRadius: 3.5,
+                      padding: "8px",
+                      
+                    }}
+                  >
+                    <EmojiEmotionsIcon />
+
+                  </IconButton>
+
+                  {/* Send Button */}
                   <Button
                     variant="contained"
                     onClick={handleSend}
@@ -490,6 +511,30 @@ export default function Chat() {
                   >
                     Send
                   </Button>
+
+                  {/* Emoji Picker Pop-up with conditional scale */}
+                  {showEmojiPicker && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: "80px",
+                        zIndex: 1000,
+                        ...(isMaximized
+                          ? {
+                              left: "60%",
+                              transform: "translateX(-50%) scale(0.8)",
+                              transformOrigin: "bottom center",
+                            }
+                          : {
+                              right: 0,
+                              transform: "scale(0.6)",
+                              transformOrigin: "bottom center",
+                            }),
+                      }}
+                    >
+                      <EmojiPicker onEmojiClick={onEmojiClick} />
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Box>
