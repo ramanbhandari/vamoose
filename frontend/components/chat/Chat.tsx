@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "@mui/material/styles"; // Added useTheme hook
 import {
   Box,
   List,
@@ -20,12 +21,16 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import EmojiPicker, { EmojiClickData, Theme as EmojiTheme } from "emoji-picker-react";
 
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
 
 export default function Chat() {
+  const theme = useTheme();
+  // Automatically set emoji picker theme based on MUI theme mode
+  const currentEmojiTheme = theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
@@ -35,9 +40,7 @@ export default function Chat() {
   const MAX_TAB_MIN_WIDTH = 200;
   const MAX_TAB_MAX_WIDTH = 400;
 
-  const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
-    useState(MINIMIZED_TAB_WIDTH);
-
+  const [maximizedTripTabWidth, setMaximizedTripTabWidth] = useState(MINIMIZED_TAB_WIDTH);
   const [selectedTrip, setSelectedTrip] = useState("Group Chat");
   const [isDragging, setIsDragging] = useState(false);
   const { userTrips, fetchUserTrips } = useTripStore();
@@ -95,10 +98,8 @@ export default function Chat() {
     },
   ];
 
-  // Store messages in state so we can add new ones.
   const [messages, setMessages] = useState(fakeMessages);
   const [messageText, setMessageText] = useState("");
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change.
@@ -156,7 +157,7 @@ export default function Chat() {
     setMessageText("");
   };
 
-  // Handler for emoji selection with explicit type.
+  // Handler for emoji selection.
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
@@ -222,11 +223,7 @@ export default function Chat() {
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography
-              variant="h6"
-              color="#fff"
-              sx={{ flex: 1, textAlign: "center", mx: 2 }}
-            >
+            <Typography variant="h6" color="#fff" sx={{ flex: 1, textAlign: "center", mx: 2 }}>
               {selectedTrip}
             </Typography>
             <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
@@ -250,13 +247,7 @@ export default function Chat() {
                   p: 1,
                 }}
               >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: "bold",
-                    m: 2,
-                  }}
-                >
+                <Typography variant="body2" sx={{ fontWeight: "bold", m: 2 }}>
                   Trips
                 </Typography>
                 <List sx={{ width: "100%" }}>
@@ -273,14 +264,9 @@ export default function Chat() {
                             color: "var(--chat)",
                           },
                           backgroundColor:
-                            selectedTrip === trip.name
-                              ? "var(--secondary)"
-                              : "transparent",
+                            selectedTrip === trip.name ? "var(--secondary)" : "transparent",
                           p: 1,
-                          color:
-                            selectedTrip === trip.name
-                              ? "var(--chat)"
-                              : "var(--text)",
+                          color: selectedTrip === trip.name ? "var(--chat)" : "var(--text)",
                         }}
                         onClick={() => selectTrip(trip)}
                       >
@@ -291,8 +277,7 @@ export default function Chat() {
                                 whiteSpace: "normal",
                                 wordBreak: "break-word",
                                 width: "100%",
-                                fontWeight:
-                                  selectedTrip === trip.name ? "bold" : "normal",
+                                fontWeight: selectedTrip === trip.name ? "bold" : "normal",
                               }}
                             >
                               {trip.name || "Unnamed Trip"}
@@ -302,14 +287,7 @@ export default function Chat() {
                       </ListItem>
                     ))
                   ) : (
-                    <Typography
-                      sx={{
-                        textAlign: "center",
-                        fontStyle: "italic",
-                        width: "100%",
-                        p: 2,
-                      }}
-                    >
+                    <Typography sx={{ textAlign: "center", fontStyle: "italic", width: "100%", p: 2 }}>
                       No trips found.
                     </Typography>
                   )}
@@ -366,46 +344,26 @@ export default function Chat() {
                 }}
               >
                 {messages.map((msg) => (
-                  <Grow
-                    in={true}
-                    style={{ transformOrigin: "0 0 0" }}
-                    timeout={500}
-                    key={msg.id}
-                  >
+                  <Grow in={true} style={{ transformOrigin: "0 0 0" }} timeout={500} key={msg.id}>
                     <Box
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        alignSelf:
-                          msg.sender === "sent" ? "flex-end" : "flex-start",
+                        alignSelf: msg.sender === "sent" ? "flex-end" : "flex-start",
                         gap: 0.5,
                       }}
                     >
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color:
-                            msg.sender === "sent" ? "grey.500" : "grey.600",
-                        }}
-                      >
+                      <Typography variant="caption" sx={{ color: msg.sender === "sent" ? "grey.500" : "grey.600" }}>
                         {msg.name}
                       </Typography>
                       <Box
                         sx={{
                           width: "100%",
                           backgroundColor:
-                            msg.sender === "sent"
-                              ? "var(--primary-hover)"
-                              : "var(--background-paper)",
-                          color:
-                            msg.sender === "sent"
-                              ? "var(--chat)"
-                              : "var(--text)",
+                            msg.sender === "sent" ? "var(--primary-hover)" : "var(--background-paper)",
+                          color: msg.sender === "sent" ? "var(--chat)" : "var(--text)",
                           padding: "10px 16px",
-                          borderRadius:
-                            msg.sender === "sent"
-                              ? "16px 16px 0 16px"
-                              : "16px 16px 16px 0",
+                          borderRadius: msg.sender === "sent" ? "16px 16px 0 16px" : "16px 16px 16px 0",
                         }}
                       >
                         <Typography variant="body1">{msg.text}</Typography>
@@ -474,24 +432,18 @@ export default function Chat() {
                       fontSize: "1rem",
                       "& .MuiInputBase-root": { padding: 0 },
                       "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                      "& .MuiInputBase-input": {
-                        fontSize: "1rem",
-                        lineHeight: "1.5",
-                      },
                     }}
                   />
 
                   {/* Emoji Button */}
-                  <IconButton 
+                  <IconButton
                     onClick={() => setShowEmojiPicker((prev) => !prev)}
                     sx={{
                       borderRadius: 3.5,
                       padding: "8px",
-                      
                     }}
                   >
                     <EmojiEmotionsIcon />
-
                   </IconButton>
 
                   {/* Send Button */}
@@ -503,36 +455,35 @@ export default function Chat() {
                       backgroundColor: "var(--primary)",
                       borderRadius: 50,
                       padding: "8px 20px",
-                      height: "fit-content",
-                      "&:hover": {
-                        backgroundColor: "var(--primary-hover)",
-                      },
+                      "&:hover": { backgroundColor: "var(--primary-hover)" },
                     }}
                   >
                     Send
                   </Button>
 
-                  {/* Emoji Picker Pop-up with conditional scale */}
+                  {/* Emoji Picker Pop-up */}
                   {showEmojiPicker && (
                     <Box
                       sx={{
                         position: "absolute",
-                        bottom: "80px",
+                        bottom: "80px", 
                         zIndex: 1000,
                         ...(isMaximized
                           ? {
-                              left: "60%",
+                              left: "65%",
                               transform: "translateX(-50%) scale(0.8)",
                               transformOrigin: "bottom center",
                             }
                           : {
                               right: 0,
-                              transform: "scale(0.6)",
+                              transform: "scale(0.7)",
                               transformOrigin: "bottom center",
                             }),
+                        backgroundColor: "var(--background-paper)",
+                        color: "var(--text)",
                       }}
                     >
-                      <EmojiPicker onEmojiClick={onEmojiClick} />
+                      <EmojiPicker onEmojiClick={onEmojiClick} theme={currentEmojiTheme} />
                     </Box>
                   )}
                 </Box>
