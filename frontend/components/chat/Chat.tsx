@@ -21,7 +21,10 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import EmojiPicker, { EmojiClickData, Theme as EmojiTheme } from "emoji-picker-react";
+import EmojiPicker, {
+  EmojiClickData,
+  Theme as EmojiTheme,
+} from "emoji-picker-react";
 
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
@@ -29,7 +32,8 @@ import { useUserStore } from "@/stores/user-store";
 export default function Chat() {
   const theme = useTheme();
   // Automatically set emoji picker theme based on MUI theme mode
-  const currentEmojiTheme = theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
+  const currentEmojiTheme =
+    theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -40,7 +44,8 @@ export default function Chat() {
   const MAX_TAB_MIN_WIDTH = 200;
   const MAX_TAB_MAX_WIDTH = 400;
 
-  const [maximizedTripTabWidth, setMaximizedTripTabWidth] = useState(MINIMIZED_TAB_WIDTH);
+  const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
+    useState(MINIMIZED_TAB_WIDTH);
   const [selectedTrip, setSelectedTrip] = useState("Group Chat");
   const [isDragging, setIsDragging] = useState(false);
   const { userTrips, fetchUserTrips } = useTripStore();
@@ -50,7 +55,9 @@ export default function Chat() {
   const REACTION_EMOJIS = ["👍", "😂", "❤️", "😮", "😢"];
 
   // Track which message's reaction picker is open.
-  const [openReactionPickerFor, setOpenReactionPickerFor] = useState<number | null>(null);
+  const [openReactionPickerFor, setOpenReactionPickerFor] = useState<
+    number | null
+  >(null);
 
   // Initial fake messages for demonstration (now with an empty reactions array).
   const fakeMessages = [
@@ -192,7 +199,9 @@ export default function Chat() {
         height: 650,
       };
 
-  const tripTabWidth = isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth = isMaximized
+    ? maximizedTripTabWidth
+    : MINIMIZED_TAB_WIDTH;
 
   return (
     <>
@@ -242,9 +251,19 @@ export default function Chat() {
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography variant="h6" color="#fff" sx={{ flex: 1, textAlign: "center", mx: 2 }}>
+            <Typography
+              variant="h6"
+              color="#fff"
+              sx={{
+                flex: 1,
+                textAlign: "center",
+                mx: 2,
+                fontFamily: "var(--font-brand), cursive",
+              }}
+            >
               {selectedTrip}
             </Typography>
+
             <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
               {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
             </IconButton>
@@ -283,9 +302,14 @@ export default function Chat() {
                             color: "var(--chat)",
                           },
                           backgroundColor:
-                            selectedTrip === trip.name ? "var(--secondary)" : "transparent",
+                            selectedTrip === trip.name
+                              ? "var(--secondary)"
+                              : "transparent",
                           p: 1,
-                          color: selectedTrip === trip.name ? "var(--chat)" : "var(--text)",
+                          color:
+                            selectedTrip === trip.name
+                              ? "var(--chat)"
+                              : "var(--text)",
                         }}
                         onClick={() => selectTrip(trip)}
                       >
@@ -296,7 +320,10 @@ export default function Chat() {
                                 whiteSpace: "normal",
                                 wordBreak: "break-word",
                                 width: "100%",
-                                fontWeight: selectedTrip === trip.name ? "bold" : "normal",
+                                fontWeight:
+                                  selectedTrip === trip.name
+                                    ? "bold"
+                                    : "normal",
                               }}
                             >
                               {trip.name || "Unnamed Trip"}
@@ -306,7 +333,14 @@ export default function Chat() {
                       </ListItem>
                     ))
                   ) : (
-                    <Typography sx={{ textAlign: "center", fontStyle: "italic", width: "100%", p: 2 }}>
+                    <Typography
+                      sx={{
+                        textAlign: "center",
+                        fontStyle: "italic",
+                        width: "100%",
+                        p: 2,
+                      }}
+                    >
                       No trips found.
                     </Typography>
                   )}
@@ -363,28 +397,48 @@ export default function Chat() {
                 }}
               >
                 {messages.map((msg) => (
-                  <Grow in={true} style={{ transformOrigin: "0 0 0" }} timeout={500} key={msg.id}>
+                  <Grow
+                    in={true}
+                    style={{ transformOrigin: "0 0 0" }}
+                    timeout={500}
+                    key={msg.id}
+                  >
                     <Box
                       sx={{
                         position: "relative",
                         display: "flex",
                         flexDirection: "column",
-                        alignSelf: msg.sender === "sent" ? "flex-end" : "flex-start",
+                        alignSelf:
+                          msg.sender === "sent" ? "flex-end" : "flex-start",
                         gap: 0.5,
                         mb: 4,
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: msg.sender === "sent" ? "grey.500" : "grey.600" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color:
+                            msg.sender === "sent" ? "grey.500" : "grey.600",
+                        }}
+                      >
                         {msg.name}
                       </Typography>
                       <Box
                         sx={{
                           width: "100%",
                           backgroundColor:
-                            msg.sender === "sent" ? "var(--primary-hover)" : "var(--background-paper)",
-                          color: msg.sender === "sent" ? "var(--chat)" : "var(--text)",
+                            msg.sender === "sent"
+                              ? "var(--primary-hover)"
+                              : "var(--background-paper)",
+                          color:
+                            msg.sender === "sent"
+                              ? "var(--chat)"
+                              : "var(--text)",
                           padding: "10px 16px",
-                          borderRadius: msg.sender === "sent" ? "16px 16px 0 16px" : "16px 16px 16px 0",
+                          borderRadius:
+                            msg.sender === "sent"
+                              ? "16px 16px 0 16px"
+                              : "16px 16px 16px 0",
                         }}
                       >
                         <Typography variant="body1">{msg.text}</Typography>
@@ -392,7 +446,7 @@ export default function Chat() {
 
                       {/* Display reactions if any */}
                       {msg.reactions && msg.reactions.length > 0 && (
-                       <Box sx={{ display: "flex", mt: -2 }}>
+                        <Box sx={{ display: "flex", mt: -2 }}>
                           {msg.reactions.map((reaction, index) => (
                             <Box
                               key={index}
@@ -406,7 +460,7 @@ export default function Chat() {
                                 border: "1px solid var(--divider)",
                               }}
                             >
-                               {reaction}
+                              {reaction}
                             </Box>
                           ))}
                         </Box>
@@ -415,7 +469,9 @@ export default function Chat() {
                       {/* Reaction button */}
                       <IconButton
                         onClick={() =>
-                          setOpenReactionPickerFor(openReactionPickerFor === msg.id ? null : msg.id)
+                          setOpenReactionPickerFor(
+                            openReactionPickerFor === msg.id ? null : msg.id
+                          )
                         }
                         size="small"
                         sx={{
@@ -453,9 +509,12 @@ export default function Chat() {
                                 setMessages((prevMessages) =>
                                   prevMessages.map((m) => {
                                     if (m.id === msg.id) {
-                                      const alreadyReacted = m.reactions.includes(emoji);
+                                      const alreadyReacted =
+                                        m.reactions.includes(emoji);
                                       const newReactions = alreadyReacted
-                                        ? m.reactions.filter((r: string) => r !== emoji)
+                                        ? m.reactions.filter(
+                                            (r: string) => r !== emoji
+                                          )
                                         : [...m.reactions, emoji];
                                       return { ...m, reactions: newReactions };
                                     }
@@ -586,7 +645,10 @@ export default function Chat() {
                         color: "var(--text)",
                       }}
                     >
-                      <EmojiPicker onEmojiClick={onEmojiClick} theme={currentEmojiTheme} />
+                      <EmojiPicker
+                        onEmojiClick={onEmojiClick}
+                        theme={currentEmojiTheme}
+                      />
                     </Box>
                   )}
                 </Box>
