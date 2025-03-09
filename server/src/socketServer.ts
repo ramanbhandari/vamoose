@@ -51,6 +51,38 @@ export const initializeSocketServer = (app: Express): http.Server => {
       }
     });
 
+    // listen for reaction-updated event
+    socket.on('reaction-updated', (data) => {
+      try {
+        const { tripId, updatedMessage } = data;
+
+        if (!tripId || !updatedMessage) {
+          console.error('Invalid reaction data received:', data);
+          socket.emit('error', { message: 'Invalid reaction data' });
+          return;
+        }
+
+        console.log(
+          `Received reaction update for message ${updatedMessage.messageId} in trip ${tripId}`,
+        );
+        console.log('Updated reactions:', updatedMessage.reactions);
+
+        // Broadcast the updated message to all users in the trip's room (including sender)
+        socketServer
+          .to(`trip-${tripId}`)
+          .emit('reaction-updated', updatedMessage);
+        console.log(
+          `Reaction update broadcast to trip-${tripId} for message:`,
+          updatedMessage.messageId,
+        );
+      } catch (error) {
+        console.error('Error broadcasting reaction update:', error);
+        socket.emit('error', {
+          message: 'Failed to broadcast reaction update',
+        });
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
     });

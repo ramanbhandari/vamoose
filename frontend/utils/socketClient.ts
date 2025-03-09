@@ -16,6 +16,7 @@ export enum SocketEvent {
   DISCONNECT = "disconnect",
   ERROR = "error",
   NEW_MESSAGE = "new-message",
+  REACTION_UPDATED = "reaction-updated",
 }
 
 // Message data interface
@@ -58,6 +59,11 @@ export const initializeSocket = (): ReturnType<typeof io> => {
   socket.on(SocketEvent.NEW_MESSAGE, (message: MessageData) => {
     console.log("New message received:", message);
     eventEmitter.emit(SocketEvent.NEW_MESSAGE, message);
+  });
+
+  socket.on(SocketEvent.REACTION_UPDATED, (message: MessageData) => {
+    console.log("Reaction update received:", message);
+    eventEmitter.emit(SocketEvent.REACTION_UPDATED, message);
   });
 
   socket.on(SocketEvent.ERROR, (error: { message: string }) => {
@@ -143,27 +149,64 @@ export const sendMessage = async (
 };
 
 /**
- * Add a reaction to a message
+ * Add or remove a reaction to a message
  * @param messageId Message ID
  * @param userId User ID
  * @param emoji Emoji reaction
+ * @param tripId Trip ID
+ * @param hasReacted Whether the user has already reacted with this emoji (for toggling)
  */
-export const addReaction = (
+export const addReaction = async (
   messageId: string,
   userId: string,
-  emoji: string
-): void => {
-  // For now, we're just handling reactions locally without persistence
-  // When we implement the backend, we'll add the API call here
-  console.log(`User ${userId} reacted with ${emoji} to message ${messageId}`);
+  emoji: string,
+  tripId?: string,
+  hasReacted?: boolean
+): Promise<void> => {
+  try {
+    if (!tripId) {
+      console.error("No tripId provided for reaction");
+      eventEmitter.emit(SocketEvent.ERROR, {
+        message: "No tripId provided for reaction",
+      });
+      return;
+    }
 
-  // In a real implementation, we would:
-  // 1. Send the reaction to the server via API
-  // 2. The server would update the message in the database
-  // 3. The server would broadcast the updated message to all clients in the trip
+    console.log(
+      `Processing reaction: ${emoji} for message ${messageId} in trip ${tripId}`
+    );
 
-  // For now, we'll just emit a local event that the message store can listen to
-  eventEmitter.emit("local-reaction", { messageId, userId, emoji });
+    // Send the reaction to the server via API
+    // If hasReacted is true, we're removing the reaction
+    const endpoint = hasReacted
+      ? `/trips/${tripId}/messages/${messageId}/removeReaction`
+      : `/trips/${tripId}/messages/${messageId}`;
+
+    const response = await apiClient.patch(
+      endpoint,
+      { emoji },
+      {
+        headers: {
+          userId: userId,
+        },
+      }
+    );
+
+    const updatedMessage = response.data.updatedMessage;
+    console.log("Received updated message from server:", updatedMessage);
+
+    // Emit the updated message to the socket server for broadcasting
+    const currentSocket = getSocket();
+    currentSocket.emit("reaction-updated", { tripId, updatedMessage });
+    console.log("Emitted reaction-updated event to socket server");
+
+    // Also emit a local event for immediate UI update
+    eventEmitter.emit("local-reaction", { messageId, userId, emoji });
+  } catch (error) {
+    console.error("Error adding reaction:", error);
+    eventEmitter.emit(SocketEvent.ERROR, { message: "Failed to add reaction" });
+    throw error;
+  }
 };
 
 /**

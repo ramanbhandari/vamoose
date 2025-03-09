@@ -84,6 +84,11 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
 
+  // Track which reactions are currently being processed
+  const [processingReactions, setProcessingReactions] = useState<{
+    [key: string]: boolean;
+  }>({});
+
   // Initialize socket connection when component mounts
   useEffect(() => {
     if (isOpen) {
@@ -154,6 +159,11 @@ export default function Chat() {
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
+  // Add a useEffect to log messages when they change
+  useEffect(() => {
+    console.log("Messages updated:", messages);
+  }, [messages]);
+
   if (!user) return null;
 
   const toggleChat = () => setIsOpen((prev) => !prev);
@@ -202,11 +212,54 @@ export default function Chat() {
     : MINIMIZED_TAB_WIDTH;
 
   // Handle adding a reaction to a message
-  const handleReaction = (messageId: string, emoji: string) => {
-    if (user?.id) {
-      socketClient.addReaction(messageId, user.id, emoji);
-      setOpenReactionPickerFor(null);
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (user?.id && selectedTrip) {
+      try {
+        console.log(
+          `User ${user.id} reacting with ${emoji} to message ${messageId}`
+        );
+
+        // Set this reaction as processing
+        setProcessingReactions((prev) => ({
+          ...prev,
+          [`${messageId}-${emoji}`]: true,
+        }));
+
+        // Check if the user has already reacted with this emoji
+        const hasReacted = hasUserReacted(
+          messages.find((m) => m.messageId === messageId)?.reactions,
+          emoji
+        );
+
+        console.log(`Has user already reacted: ${hasReacted}`);
+
+        // Send the reaction to the server
+        await socketClient.addReaction(
+          messageId,
+          user.id,
+          emoji,
+          selectedTrip.id.toString(),
+          hasReacted
+        );
+
+        // Close the reaction picker
+        setOpenReactionPickerFor(null);
+      } catch (error) {
+        console.error("Error adding reaction:", error);
+      } finally {
+        // Clear the processing state
+        setProcessingReactions((prev) => {
+          const newState = { ...prev };
+          delete newState[`${messageId}-${emoji}`];
+          return newState;
+        });
+      }
     }
+  };
+
+  // Check if a specific reaction is currently being processed
+  const isReactionProcessing = (messageId: string, emoji: string) => {
+    return !!processingReactions[`${messageId}-${emoji}`];
   };
 
   // Count total reactions for a message
@@ -611,6 +664,10 @@ export default function Chat() {
                                 onClick={() =>
                                   handleReaction(msg.messageId, emoji)
                                 }
+                                disabled={isReactionProcessing(
+                                  msg.messageId,
+                                  emoji
+                                )}
                                 sx={{
                                   padding: "4px",
                                   backgroundColor: hasUserReacted(
@@ -619,9 +676,21 @@ export default function Chat() {
                                   )
                                     ? "var(--primary-light)"
                                     : "transparent",
+                                  opacity: isReactionProcessing(
+                                    msg.messageId,
+                                    emoji
+                                  )
+                                    ? 0.5
+                                    : 1,
                                 }}
                               >
-                                <Typography variant="body2">{emoji}</Typography>
+                                {isReactionProcessing(msg.messageId, emoji) ? (
+                                  <CircularProgress size={16} />
+                                ) : (
+                                  <Typography variant="body2">
+                                    {emoji}
+                                  </Typography>
+                                )}
                               </IconButton>
                             ))}
                           </Box>

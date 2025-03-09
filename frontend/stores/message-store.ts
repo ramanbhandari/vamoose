@@ -24,7 +24,7 @@ interface MessageState {
   sendMessage: (tripId: string, userId: string, text: string) => Promise<void>;
   fetchMessages: (tripId: string) => Promise<void>;
   clearMessages: () => void;
-  addReaction: (messageId: string, userId: string, emoji: string) => void;
+  addReaction: (messageId: string, userId: string, emoji: string) => boolean;
 
   // Trip chat actions
   joinTripChat: (tripId: string) => void;
@@ -83,6 +83,39 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }
     };
 
+    const handleReactionUpdated = (message: unknown) => {
+      if (message && typeof message === "object" && "messageId" in message) {
+        const updatedMessage = message as Message;
+        console.log(
+          "Handling reaction update for message:",
+          updatedMessage.messageId
+        );
+
+        // Update the message with the new reactions
+        set((state) => {
+          const updatedMessages = state.messages.map((msg) => {
+            if (msg.messageId === updatedMessage.messageId) {
+              console.log(
+                "Updating message reactions:",
+                updatedMessage.reactions
+              );
+              return {
+                ...msg,
+                reactions: updatedMessage.reactions,
+              };
+            }
+            return msg;
+          });
+
+          return {
+            messages: updatedMessages,
+          };
+        });
+      } else {
+        console.error("Invalid reaction update received:", message);
+      }
+    };
+
     const handleError = (error: unknown) => {
       if (
         error &&
@@ -117,6 +150,10 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     socketClient.onSocketEvent(SocketEvent.NEW_MESSAGE, handleNewMessage);
     socketClient.onSocketEvent(SocketEvent.ERROR, handleError);
     socketClient.onSocketEvent("local-reaction", handleLocalReaction);
+    socketClient.onSocketEvent(
+      SocketEvent.REACTION_UPDATED,
+      handleReactionUpdated
+    );
   },
 
   // Clean up socket event listeners
@@ -215,6 +252,16 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   // Add reaction to a message
   addReaction: (messageId, userId, emoji) => {
+    // First, check if the user has already reacted with this emoji
+    const hasReacted = get().messages.some(
+      (message) =>
+        message.messageId === messageId &&
+        message.reactions &&
+        message.reactions[emoji] &&
+        message.reactions[emoji].includes(userId)
+    );
+
+    // Update the UI immediately for better user experience
     set((state) => {
       const updatedMessages = state.messages.map((message) => {
         if (message.messageId === messageId) {
@@ -253,5 +300,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
       return { messages: updatedMessages };
     });
+
+    return hasReacted;
   },
 }));
