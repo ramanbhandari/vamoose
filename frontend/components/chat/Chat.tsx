@@ -46,65 +46,83 @@ export default function Chat() {
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
 
-  // Initial fake messages for demonstration
+  // Constant list of reaction emojis.
+  const REACTION_EMOJIS = ["👍", "😂", "❤️", "😮", "😢"];
+
+  // Track which message's reaction picker is open.
+  const [openReactionPickerFor, setOpenReactionPickerFor] = useState<number | null>(null);
+
+  // Initial fake messages for demonstration (now with an empty reactions array).
   const fakeMessages = [
     {
       id: 1,
       text: "Hello, how can I help you?",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 2,
       text: "I have a question about my order. This is a long message to test scrolling.",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 3,
       text: "Sure, I'd be happy to help!",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 4,
       text: "When will my package arrive?",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 5,
       text: "Hello, how can I help you?",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 6,
       text: "I have a question about my order. This is a long message to test scrolling.",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 7,
       text: "Sure, I'd be happy to help!",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 8,
       text: "When will my package arrive?",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
   ];
 
   const [messages, setMessages] = useState(fakeMessages);
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   // Scroll to bottom when messages change.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
   }, [messages]);
 
   useEffect(() => {
@@ -152,12 +170,13 @@ export default function Chat() {
       text: messageText,
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     };
     setMessages((prev) => [...prev, newMessage]);
     setMessageText("");
   };
 
-  // Handler for emoji selection.
+  // Handler for emoji selection in the input area.
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
@@ -347,10 +366,12 @@ export default function Chat() {
                   <Grow in={true} style={{ transformOrigin: "0 0 0" }} timeout={500} key={msg.id}>
                     <Box
                       sx={{
+                        position: "relative",
                         display: "flex",
                         flexDirection: "column",
                         alignSelf: msg.sender === "sent" ? "flex-end" : "flex-start",
                         gap: 0.5,
+                        mb: 4,
                       }}
                     >
                       <Typography variant="caption" sx={{ color: msg.sender === "sent" ? "grey.500" : "grey.600" }}>
@@ -368,6 +389,88 @@ export default function Chat() {
                       >
                         <Typography variant="body1">{msg.text}</Typography>
                       </Box>
+
+                      {/* Display reactions if any */}
+                      {msg.reactions && msg.reactions.length > 0 && (
+                       <Box sx={{ display: "flex", mt: -2 }}>
+                          {msg.reactions.map((reaction, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                backgroundColor: "var(--background-paper)",
+                                borderRadius: "12px",
+                                padding: "2px 6px",
+                                fontSize: "0.8rem",
+                                display: "flex",
+                                alignItems: "center",
+                                border: "1px solid var(--divider)",
+                              }}
+                            >
+                               {reaction}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+
+                      {/* Reaction button */}
+                      <IconButton
+                        onClick={() =>
+                          setOpenReactionPickerFor(openReactionPickerFor === msg.id ? null : msg.id)
+                        }
+                        size="small"
+                        sx={{
+                          position: "absolute",
+                          bottom: -12,
+                          right: -12,
+                          backgroundColor: "var(--primary)",
+                          color: "white",
+                          zIndex: 2,
+                        }}
+                      >
+                        <EmojiEmotionsIcon fontSize="small" />
+                      </IconButton>
+
+                      {/* Reaction picker for this message */}
+                      {openReactionPickerFor === msg.id && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: "30px",
+                            right: 0,
+                            backgroundColor: "var(--background-paper)",
+                            border: "1px solid var(--divider)",
+                            borderRadius: "8px",
+                            p: 0.5,
+                            display: "flex",
+                            gap: 0.5,
+                            zIndex: 10,
+                          }}
+                        >
+                          {REACTION_EMOJIS.map((emoji) => (
+                            <IconButton
+                              key={emoji}
+                              onClick={() => {
+                                setMessages((prevMessages) =>
+                                  prevMessages.map((m) => {
+                                    if (m.id === msg.id) {
+                                      const alreadyReacted = m.reactions.includes(emoji);
+                                      const newReactions = alreadyReacted
+                                        ? m.reactions.filter((r: string) => r !== emoji)
+                                        : [...m.reactions, emoji];
+                                      return { ...m, reactions: newReactions };
+                                    }
+                                    return m;
+                                  })
+                                );
+                                setOpenReactionPickerFor(null);
+                              }}
+                              sx={{ padding: "4px" }}
+                            >
+                              <Typography variant="body2">{emoji}</Typography>
+                            </IconButton>
+                          ))}
+                        </Box>
+                      )}
                     </Box>
                   </Grow>
                 ))}
@@ -466,7 +569,7 @@ export default function Chat() {
                     <Box
                       sx={{
                         position: "absolute",
-                        bottom: "80px", 
+                        bottom: "80px",
                         zIndex: 1000,
                         ...(isMaximized
                           ? {
