@@ -141,7 +141,9 @@ describe('ItineraryEvent Validators Middleware', () => {
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ msg: 'Invalid event category' }),
+          expect.objectContaining({
+            msg: 'Category must be one of: GENERAL, TRAVEL, ACTIVITY, MEAL, MEETING, FREE_TIME, OTHER',
+          }),
         ]),
       );
     });
