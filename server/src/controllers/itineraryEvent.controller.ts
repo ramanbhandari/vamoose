@@ -37,9 +37,10 @@ export const createItineraryEventHandler = async (
     // Check if the user is a member of the trip
     const requestingMember = await getTripMember(tripId, userId);
     if (!requestingMember) {
-      return res.status(403).json({
+      res.status(403).json({
         error: `You are not a member of this trip: ${tripId}`,
       });
+      return;
     }
 
     // Convert times to UTC if provided
