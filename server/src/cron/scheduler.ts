@@ -42,7 +42,7 @@ cron.schedule('*/5 * * * *', async () => {
   const expiredPolls = await prisma.poll.findMany({
     where: {
       status: 'ACTIVE',
-      expiresAt: { lt: now },
+      expiresAt: { lte: now },
     },
     include: {
       options: {
