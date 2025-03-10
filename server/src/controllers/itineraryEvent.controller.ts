@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
-import { createItineraryEvent } from '@/models/itineraryEvent.model';
-import { getTripMember } from '@/models/member.model';
-import { AuthenticatedRequest } from '@/interfaces/interfaces';
-import { handleControllerError } from '@/utils/errorHandlers';
+import { createItineraryEvent } from '@/models/itineraryEvent.model.js';
+import {
+  getTripMember,
+  getManyTripMembersFilteredByUserId,
+} from '@/models/member.model.js';
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
-import { EventCategory } from '@/interfaces/enums';
+import { EventCategory } from '@/interfaces/enums.js';
 
 export const createItineraryEventHandler = async (
   req: Request,
@@ -41,6 +44,26 @@ export const createItineraryEventHandler = async (
         error: `You are not a member of this trip: ${tripId}`,
       });
       return;
+    }
+
+    // Check if all assigned users are members of the trip
+    if (assignedUserIds && assignedUserIds.length > 0) {
+      const tripMembers = await getManyTripMembersFilteredByUserId(
+        tripId,
+        assignedUserIds,
+      );
+
+      const validUserIds = new Set(tripMembers.map((member) => member.userId));
+      const invalidUserIds = assignedUserIds.filter(
+        (id: string) => !validUserIds.has(id),
+      );
+
+      if (invalidUserIds.length > 0) {
+        res.status(400).json({
+          error: `The following users are not members of this trip: ${invalidUserIds.join(', ')}`,
+        });
+        return;
+      }
     }
 
     // Convert times to UTC if provided

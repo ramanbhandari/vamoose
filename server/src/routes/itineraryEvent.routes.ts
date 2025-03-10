@@ -5,7 +5,7 @@ import { createItineraryEventHandler } from '@/controllers/itineraryEvent.contro
 
 const router = express.Router({ mergeParams: true });
 
-router.get(
+router.post(
   '/',
   validateCreateItineraryEventInput,
   validationErrorHandler,

@@ -22,7 +22,7 @@ export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
         notes: {
           create: data.notes?.map((note) => ({
             content: note.content,
-            createdBy: note.createdBy,
+            createdBy: data.createdById,
           })),
         },
       },
