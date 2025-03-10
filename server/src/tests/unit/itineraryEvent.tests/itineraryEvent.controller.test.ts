@@ -11,6 +11,9 @@ import { EventCategory } from '@/interfaces/enums.js';
 jest.mock('@/config/prismaClient.js', () => ({
   __esModule: true,
   default: {
+    trip: {
+      findUnique: jest.fn(),
+    },
     tripMember: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
@@ -58,6 +61,12 @@ describe('Create Itinerary Event Controller', () => {
   it('should create an itinerary event successfully', async () => {
     mockReq = setupRequest();
 
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-15T14:00:00.000Z',
+      endDate: '2025-04-15T16:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([
       { userId: 'user-1' },
@@ -136,6 +145,12 @@ describe('Create Itinerary Event Controller', () => {
       },
     });
 
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-15T14:00:00.000Z',
+      endDate: '2025-04-15T16:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.tripMember.findMany as jest.Mock).mockResolvedValue([]);
 

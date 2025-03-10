@@ -8,6 +8,7 @@ import {
   getTripMember,
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
@@ -48,6 +49,34 @@ export const createItineraryEventHandler = async (
         error: `You are not a member of this trip: ${tripId}`,
       });
       return;
+    }
+
+    // Fetch trip details
+    const tripDetails = await fetchSingleTrip(userId, tripId);
+    const { startDate, endDate } = tripDetails;
+
+    const tripStartDate = DateTime.fromJSDate(startDate);
+    const tripEndDate = DateTime.fromJSDate(endDate);
+
+    // Ensure event's dates are within trip's dates
+    if (startTime) {
+      const startTimeUtc = DateTime.fromISO(startTime).toUTC();
+      if (startTimeUtc < tripStartDate || startTimeUtc > tripEndDate) {
+        res.status(400).json({
+          error: `Start time must be within the trip's duration: ${tripStartDate.toISO()} to ${tripEndDate.toISO()}`,
+        });
+        return;
+      }
+    }
+
+    if (endTime) {
+      const endTimeUtc = DateTime.fromISO(endTime).toUTC();
+      if (endTimeUtc < tripStartDate || endTimeUtc > tripEndDate) {
+        res.status(400).json({
+          error: `End time must be within the trip's duration: ${tripStartDate.toISO()} to ${tripEndDate.toISO()}`,
+        });
+        return;
+      }
     }
 
     // Check if all assigned users are members of the trip
