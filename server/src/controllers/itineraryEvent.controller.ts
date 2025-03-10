@@ -152,8 +152,9 @@ export const updateItineraryEventHandler = async (
     }
 
     if (
-      event.createdById !== userId ||
-      (requestingMember.role !== 'creator' && requestingMember.role !== 'admin')
+      event.createdById !== userId &&
+      requestingMember.role !== 'creator' &&
+      requestingMember.role !== 'admin'
     ) {
       res.status(403).json({
         error: 'Only the creator or an admin can update the event details.',
