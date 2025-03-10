@@ -263,6 +263,19 @@ export default function Chat() {
     return reactions[emoji]?.includes(user.id) || false;
   };
 
+  const getUserFullName = (userId: string) => {
+    if (userId === user?.id) return "You";
+    
+    const memberNames = userTrips
+      .filter(trip => trip.id === selectedTrip?.id)
+      .flatMap(trip => trip.members || [])
+      .filter(member => member.userId === userId)
+      .map(member => member.user?.fullName)
+      .filter(Boolean);
+      
+    return memberNames[0] ?? "Unknown User";
+  };
+
   return (
     <>
       <IconButton
@@ -345,7 +358,16 @@ export default function Chat() {
                   p: 1,
                 }}
               >
-                <Typography variant="body2" sx={{ fontWeight: "bold", m: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    m: 2,
+                    textAlign: "center",
+                    borderBottom: "1px solid var(--divider)",
+                    pb: 1,
+                  }}
+                >
                   Trips
                 </Typography>
                 <List sx={{ width: "100%" }}>
@@ -521,9 +543,7 @@ export default function Chat() {
                               msg.userId === user.id ? "grey.500" : "grey.600",
                           }}
                         >
-                          {msg.userName || msg.userId === user.id
-                            ? "You"
-                            : "User"}{" "}
+                          {getUserFullName(msg.userId)}{" "}
                           • {formatTimestamp(msg.createdAt)}
                         </Typography>
                         <Box
