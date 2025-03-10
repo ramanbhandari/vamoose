@@ -1,19 +1,6 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { UpdateTripMemberInput } from '@/interfaces/interfaces.js';
-
-interface CreateItineraryEventInput {
-  tripId: number;
-  title: string;
-  description?: string;
-  location?: string;
-  startTime: Date;
-  endTime?: Date;
-  category: string;
-  createdById: string;
-  assignedUserIds: string[];
-  notes?: { content: string; createdBy: string }[];
-}
+import { CreateItineraryEventInput } from '@/interfaces/interfaces.js';
 
 export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   try {
@@ -28,7 +15,7 @@ export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
         category: data.category,
         createdById: data.createdById,
         assignedUsers: {
-          create: data.assignedUserIds.map((userId) => ({
+          create: data.assignedUserIds?.map((userId) => ({
             userId,
           })),
         },

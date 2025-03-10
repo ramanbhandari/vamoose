@@ -1,22 +1,35 @@
-import { checkExact, body } from 'express-validator';
+import { checkExact, body, param } from 'express-validator';
 export const validateCreateItineraryEventInput = checkExact([
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
+
   body('title')
     .isString()
     .notEmpty()
     .withMessage('Title is required and must be a string'),
 
+  body('description')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Description must be a string'),
+
+  body('location')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Location must be a string'),
+
   body('startTime')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('Start time must be a valid ISO8601 date'),
 
   body('endTime')
-    .optional()
+    .optional({ values: 'null' })
     .isISO8601()
     .withMessage('End time must be a valid ISO8601 date'),
 
   body('category')
     .isString()
+    .toUpperCase()
     .isIn([
       'GENERAL',
       'TRAVEL',
@@ -29,22 +42,26 @@ export const validateCreateItineraryEventInput = checkExact([
     .withMessage('Invalid event category'),
 
   body('assignedUserIds')
-    .optional()
+    .optional({ values: 'null' })
     .isArray()
     .withMessage('Assigned user IDs must be an array of strings'),
 
+  body('assignedUserIds.*')
+    .isString()
+    .withMessage('Each assigned user ID must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Each assigned user ID must be a non-empty string'),
+
   body('notes')
-    .optional()
+    .optional({ values: 'null' })
     .isArray()
     .withMessage('Notes must be an array of objects'),
 
   body('notes.*.content')
-    .optional()
     .isString()
-    .withMessage('Note content must be a string'),
-
-  body('notes.*.createdBy')
-    .optional()
-    .isString()
-    .withMessage('Note createdBy must be a string'),
+    .withMessage('Each Note content must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Each Note content must be a non-empty string'),
 ]);

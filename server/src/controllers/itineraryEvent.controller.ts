@@ -4,6 +4,7 @@ import { getTripMember } from '@/models/member.model';
 import { AuthenticatedRequest } from '@/interfaces/interfaces';
 import { handleControllerError } from '@/utils/errorHandlers';
 import { DateTime } from 'luxon';
+import { EventCategory } from '@/interfaces/enums';
 
 export const createItineraryEventHandler = async (
   req: Request,
@@ -49,6 +50,13 @@ export const createItineraryEventHandler = async (
       ? DateTime.fromISO(endTime).toUTC().toJSDate()
       : undefined;
 
+    // Map category to EventCategory enum
+    const categoryEnum = Object.values(EventCategory).includes(
+      category?.toUpperCase(),
+    )
+      ? (category.toUpperCase() as EventCategory)
+      : EventCategory.GENERAL;
+
     // Create the itinerary event
     const itineraryEvent = await createItineraryEvent({
       tripId,
@@ -57,7 +65,7 @@ export const createItineraryEventHandler = async (
       location,
       startTime: startTimeUtc,
       endTime: endTimeUtc,
-      category,
+      category: categoryEnum,
       createdById: userId,
       assignedUserIds: assignedUserIds ?? [],
       notes: notes ?? [],
