@@ -210,6 +210,7 @@ model EventNote {
   content   String
   createdBy String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   event ItineraryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)

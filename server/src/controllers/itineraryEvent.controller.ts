@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { createItineraryEvent } from '@/models/itineraryEvent.model.js';
+import {
+  createItineraryEvent,
+  getAllItineraryEventsForTrip,
+  getItineraryEventById,
+} from '@/models/itineraryEvent.model.js';
 import {
   getTripMember,
   getManyTripMembersFilteredByUserId,
@@ -101,5 +105,108 @@ export const createItineraryEventHandler = async (
     });
   } catch (error) {
     handleControllerError(error, res, 'Error creating itinerary event:');
+  }
+};
+
+export const getAllItineraryEventsForTripHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const { category, startTime, endTime } = req.query;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const isMember = await getTripMember(tripId, userId);
+    if (!isMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Convert filters to appropriate formats
+    const categoryFilter = category
+      ? ((category as string).toUpperCase() as EventCategory)
+      : undefined;
+    const startTimeFilter = startTime
+      ? DateTime.fromISO(startTime as string)
+          .toUTC()
+          .toJSDate()
+      : undefined;
+    const endTimeFilter = endTime
+      ? DateTime.fromISO(endTime as string)
+          .toUTC()
+          .toJSDate()
+      : undefined;
+
+    // Fetch itinerary events
+    const itineraryEvents = await getAllItineraryEventsForTrip(tripId, {
+      category: categoryFilter,
+      startTime: startTimeFilter,
+      endTime: endTimeFilter,
+    });
+
+    res.status(200).json({ itineraryEvents });
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching itinerary events:');
+  }
+};
+
+export const getItineraryEventByIdHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const eventId = Number(req.params.eventId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (isNaN(eventId)) {
+      res.status(400).json({ error: 'Invalid event ID' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const isMember = await getTripMember(tripId, userId);
+    if (!isMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Fetch the itinerary event
+    const itineraryEvent = await getItineraryEventById(tripId, eventId);
+
+    if (!itineraryEvent) {
+      res.status(404).json({ error: 'Itinerary event not found' });
+      return;
+    }
+
+    res.status(200).json({ itineraryEvent });
+  } catch (error) {
+    handleControllerError(error, res, 'Error fetching itinerary event:');
   }
 };
