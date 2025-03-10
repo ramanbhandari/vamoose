@@ -74,6 +74,10 @@ export const initializeSocket = (): ReturnType<typeof io> => {
   return socket;
 };
 
+export const isConnected = (): boolean => {
+  return !!socket && socket.connected;
+};
+
 /**
  * Get the socket instance, initializing if necessary
  * @returns Socket.io instance
@@ -239,6 +243,7 @@ const socketClient = {
   addReaction,
   onSocketEvent,
   offSocketEvent,
+  isConnected,
 };
 
 export default socketClient;

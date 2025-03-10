@@ -70,7 +70,6 @@ export default function Chat() {
     loading,
     error,
     initializeSocket,
-    disconnectSocket,
     joinTripChat,
     leaveTripChat,
     sendMessage,
@@ -90,22 +89,16 @@ export default function Chat() {
 
   // Initialize socket connection when component mounts
   useEffect(() => {
-    if (isOpen) {
-      initializeSocket();
-      initializeSocketListeners();
-    }
+    initializeSocket();
+    initializeSocketListeners();
 
     return () => {
       cleanupSocketListeners();
-      disconnectSocket();
+      if (selectedTrip) {
+        leaveTripChat();
+      }
     };
-  }, [
-    isOpen,
-    initializeSocket,
-    disconnectSocket,
-    initializeSocketListeners,
-    cleanupSocketListeners,
-  ]);
+  }, [selectedTrip]);
 
   // Scroll to bottom when messages change
   useEffect(() => {

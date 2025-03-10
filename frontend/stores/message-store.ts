@@ -1,7 +1,10 @@
 "use client";
 import { create } from "zustand";
 import apiClient from "@/utils/apiClient";
-import socketClient, { SocketEvent } from "@/utils/socketClient";
+import socketClient, {
+  initializeSocket,
+  SocketEvent,
+} from "@/utils/socketClient";
 
 export interface Message {
   messageId: string;
@@ -163,6 +166,11 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   // Join a trip's chat room
   joinTripChat: (tripId) => {
+    if (!socketClient.isConnected()) {
+      console.warn("Trying to join chat without active connection");
+      initializeSocket();
+    }
+
     socketClient.joinTripChat(tripId);
     set({ currentTripId: tripId });
   },
@@ -178,6 +186,12 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   // Send a message
   sendMessage: async (tripId, userId, text) => {
+    if (!socketClient.isConnected()) {
+      set({ error: "Connection lost. Reconnecting..." });
+      initializeSocket();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
     set({ error: null });
     try {
       // Send message via socket client
@@ -232,9 +246,17 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     set({ isConnected });
   },
 
-  // Add these implementations in the create function
   initializeSocket: () => {
-    socketClient.initializeSocket();
+    if (!socketClient.isConnected()) {
+      const socket = socketClient.initializeSocket();
+
+      socket.on(SocketEvent.CONNECT, () => {
+        const { currentTripId } = get();
+        if (currentTripId) {
+          socketClient.joinTripChat(currentTripId);
+        }
+      });
+    }
   },
 
   disconnectSocket: () => {
@@ -293,5 +315,18 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     });
 
     return hasReacted;
+  },
+
+  checkConnection: () => {
+    return socketClient.isConnected();
+  },
+
+  reconnect: async () => {
+    if (!socketClient.isConnected()) {
+      initializeSocket();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return socketClient.isConnected();
+    }
+    return true;
   },
 }));
