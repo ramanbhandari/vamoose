@@ -83,3 +83,12 @@ export interface CreateItineraryEventInput {
   assignedUserIds: string[];
   notes?: { content: string; createdBy: string }[];
 }
+
+export interface UpdateItineraryEventInput {
+  title: string;
+  description?: string;
+  location?: string;
+  startTime?: Date;
+  endTime?: Date;
+  category: EventCategory;
+}
