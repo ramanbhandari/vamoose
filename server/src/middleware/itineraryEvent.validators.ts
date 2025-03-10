@@ -65,3 +65,47 @@ export const validateCreateItineraryEventInput = checkExact([
     .notEmpty()
     .withMessage('Each Note content must be a non-empty string'),
 ]);
+
+export const validateUpdateItineraryEventInput = checkExact([
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
+  param('eventId').isInt({ min: 1 }).withMessage('Event ID must be a number'),
+
+  body('title')
+    .isString()
+    .notEmpty()
+    .withMessage('Title is required and must be a string'),
+
+  body('description')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Description must be a string'),
+
+  body('location')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Location must be a string'),
+
+  body('startTime')
+    .optional({ values: 'null' })
+    .isISO8601()
+    .withMessage('Start time must be a valid ISO8601 date'),
+
+  body('endTime')
+    .optional({ values: 'null' })
+    .isISO8601()
+    .withMessage('End time must be a valid ISO8601 date'),
+
+  body('category')
+    .isString()
+    .toUpperCase()
+    .isIn([
+      'GENERAL',
+      'TRAVEL',
+      'ACTIVITY',
+      'MEAL',
+      'MEETING',
+      'FREE_TIME',
+      'OTHER',
+    ])
+    .withMessage('Invalid event category'),
+]);
