@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "@mui/material/styles"; // Added useTheme hook
 import {
   Box,
   List,
@@ -19,13 +20,25 @@ import CloseIcon from "@mui/icons-material/Close";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import EmojiPicker, {
+  EmojiClickData,
+  Theme as EmojiTheme,
+} from "emoji-picker-react";
+
 import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
 
 export default function Chat() {
+  const theme = useTheme();
+  // Automatically set emoji picker theme based on MUI theme mode
+  const currentEmojiTheme =
+    theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
@@ -33,73 +46,90 @@ export default function Chat() {
 
   const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
     useState(MINIMIZED_TAB_WIDTH);
-
   const [selectedTrip, setSelectedTrip] = useState("Group Chat");
   const [isDragging, setIsDragging] = useState(false);
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
 
-  // Initial fake messages for demonstration
+  // Constant list of reaction emojis.
+  const REACTION_EMOJIS = ["👍", "😂", "❤️", "😮", "😢"];
+
+  // Track which message's reaction picker is open.
+  const [openReactionPickerFor, setOpenReactionPickerFor] = useState<
+    number | null
+  >(null);
+
+  // Initial fake messages for demonstration (now with an empty reactions array).
   const fakeMessages = [
     {
       id: 1,
       text: "Hello, how can I help you?",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 2,
       text: "I have a question about my order. This is a long message to test scrolling.",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 3,
       text: "Sure, I'd be happy to help!",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 4,
       text: "When will my package arrive?",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 5,
       text: "Hello, how can I help you?",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 6,
       text: "I have a question about my order. This is a long message to test scrolling.",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
     {
       id: 7,
       text: "Sure, I'd be happy to help!",
       sender: "received",
       name: "Alice",
+      reactions: [] as string[],
     },
     {
       id: 8,
       text: "When will my package arrive?",
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     },
   ];
 
-  // Store messages in state so we can add new ones.
   const [messages, setMessages] = useState(fakeMessages);
   const [messageText, setMessageText] = useState("");
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   // Scroll to bottom when messages change.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
   }, [messages]);
 
   useEffect(() => {
@@ -139,7 +169,7 @@ export default function Chat() {
     setSelectedTrip(trip?.name || "Unnamed Trip");
   };
 
-  // New message sending handler with transition effect.
+  // New message sending handler.
   const handleSend = () => {
     if (!messageText.trim()) return;
     const newMessage = {
@@ -147,9 +177,16 @@ export default function Chat() {
       text: messageText,
       sender: "sent",
       name: "You",
+      reactions: [] as string[],
     };
     setMessages((prev) => [...prev, newMessage]);
     setMessageText("");
+  };
+
+  // Handler for emoji selection in the input area.
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setMessageText((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
   };
 
   // When maximized, position from the right (instead of from left)
@@ -217,10 +254,16 @@ export default function Chat() {
             <Typography
               variant="h6"
               color="#fff"
-              sx={{ flex: 1, textAlign: "center", mx: 2 }}
+              sx={{
+                flex: 1,
+                textAlign: "center",
+                mx: 2,
+                fontFamily: "var(--font-brand), cursive",
+              }}
             >
               {selectedTrip}
             </Typography>
+
             <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
               {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
             </IconButton>
@@ -242,13 +285,7 @@ export default function Chat() {
                   p: 1,
                 }}
               >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: "bold",
-                    m: 2,
-                  }}
-                >
+                <Typography variant="body2" sx={{ fontWeight: "bold", m: 2 }}>
                   Trips
                 </Typography>
                 <List sx={{ width: "100%" }}>
@@ -338,8 +375,8 @@ export default function Chat() {
                   theme.palette.mode === "dark"
                     ? "url('dark-mode.jpg')"
                     : "url('light-mode.jpg')",
-                backgroundRepeat: "repeat",  
-                backgroundSize: "auto",     
+                backgroundRepeat: "repeat",
+                backgroundSize: "auto",
                 backgroundPosition: "center",
               }}
             >
@@ -352,7 +389,7 @@ export default function Chat() {
                   right: 0,
                   bottom: 80, // reserve space for input area
                   overflowY: "auto",
-                  overscrollBehavior: "contain", // prevents scroll chaining to the window
+                  overscrollBehavior: "contain",
                   p: 2,
                   display: "flex",
                   flexDirection: "column",
@@ -368,11 +405,13 @@ export default function Chat() {
                   >
                     <Box
                       sx={{
+                        position: "relative",
                         display: "flex",
                         flexDirection: "column",
                         alignSelf:
                           msg.sender === "sent" ? "flex-end" : "flex-start",
                         gap: 0.5,
+                        mb: 4,
                       }}
                     >
                       <Typography
@@ -404,6 +443,93 @@ export default function Chat() {
                       >
                         <Typography variant="body1">{msg.text}</Typography>
                       </Box>
+
+                      {/* Display reactions if any */}
+                      {msg.reactions && msg.reactions.length > 0 && (
+                        <Box sx={{ display: "flex", mt: -2 }}>
+                          {msg.reactions.map((reaction, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                backgroundColor: "var(--background-paper)",
+                                borderRadius: "12px",
+                                padding: "2px 6px",
+                                fontSize: "0.8rem",
+                                display: "flex",
+                                alignItems: "center",
+                                border: "1px solid var(--divider)",
+                              }}
+                            >
+                              {reaction}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+
+                      {/* Reaction button */}
+                      <IconButton
+                        onClick={() =>
+                          setOpenReactionPickerFor(
+                            openReactionPickerFor === msg.id ? null : msg.id
+                          )
+                        }
+                        size="small"
+                        sx={{
+                          position: "absolute",
+                          bottom: -12,
+                          right: -12,
+                          backgroundColor: "var(--primary)",
+                          color: "white",
+                          zIndex: 2,
+                        }}
+                      >
+                        <EmojiEmotionsIcon fontSize="small" />
+                      </IconButton>
+
+                      {/* Reaction picker for this message */}
+                      {openReactionPickerFor === msg.id && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: "30px",
+                            right: 0,
+                            backgroundColor: "var(--background-paper)",
+                            border: "1px solid var(--divider)",
+                            borderRadius: "8px",
+                            p: 0.5,
+                            display: "flex",
+                            gap: 0.5,
+                            zIndex: 10,
+                          }}
+                        >
+                          {REACTION_EMOJIS.map((emoji) => (
+                            <IconButton
+                              key={emoji}
+                              onClick={() => {
+                                setMessages((prevMessages) =>
+                                  prevMessages.map((m) => {
+                                    if (m.id === msg.id) {
+                                      const alreadyReacted =
+                                        m.reactions.includes(emoji);
+                                      const newReactions = alreadyReacted
+                                        ? m.reactions.filter(
+                                            (r: string) => r !== emoji
+                                          )
+                                        : [...m.reactions, emoji];
+                                      return { ...m, reactions: newReactions };
+                                    }
+                                    return m;
+                                  })
+                                );
+                                setOpenReactionPickerFor(null);
+                              }}
+                              sx={{ padding: "4px" }}
+                            >
+                              <Typography variant="body2">{emoji}</Typography>
+                            </IconButton>
+                          ))}
+                        </Box>
+                      )}
                     </Box>
                   </Grow>
                 ))}
@@ -423,8 +549,8 @@ export default function Chat() {
                     theme.palette.mode === "dark"
                       ? "url('dark-mode.jpg')"
                       : "url('light-mode.jpg')",
-                  backgroundRepeat: "repeat",  
-                  backgroundSize: "auto",     
+                  backgroundRepeat: "repeat",
+                  backgroundSize: "auto",
                   backgroundPosition: "center",
                   p: 2,
                   display: "flex",
@@ -443,12 +569,12 @@ export default function Chat() {
                     mb: 2,
                     width: isMaximized ? "60%" : "100%",
                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                    position: "relative",
                   }}
                 >
                   <TextField
                     variant="outlined"
                     placeholder="Type your message..."
-                    fullWidth
                     size="small"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
@@ -459,21 +585,30 @@ export default function Chat() {
                       }
                     }}
                     sx={{
+                      flex: 1,
                       backgroundColor: "transparent",
                       border: "none",
                       outline: "none",
-                      width: "100%",
                       borderRadius: 50,
                       padding: "10px 12px",
                       fontSize: "1rem",
                       "& .MuiInputBase-root": { padding: 0 },
                       "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                      "& .MuiInputBase-input": {
-                        fontSize: "1rem",
-                        lineHeight: "1.5",
-                      },
                     }}
                   />
+
+                  {/* Emoji Button */}
+                  <IconButton
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    sx={{
+                      borderRadius: 3.5,
+                      padding: "8px",
+                    }}
+                  >
+                    <EmojiEmotionsIcon />
+                  </IconButton>
+
+                  {/* Send Button */}
                   <Button
                     variant="contained"
                     onClick={handleSend}
@@ -482,14 +617,40 @@ export default function Chat() {
                       backgroundColor: "var(--primary)",
                       borderRadius: 50,
                       padding: "8px 20px",
-                      height: "fit-content",
-                      "&:hover": {
-                        backgroundColor: "var(--primary-hover)",
-                      },
+                      "&:hover": { backgroundColor: "var(--primary-hover)" },
                     }}
                   >
                     Send
                   </Button>
+
+                  {/* Emoji Picker Pop-up */}
+                  {showEmojiPicker && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: "80px",
+                        zIndex: 1000,
+                        ...(isMaximized
+                          ? {
+                              left: "65%",
+                              transform: "translateX(-50%) scale(0.8)",
+                              transformOrigin: "bottom center",
+                            }
+                          : {
+                              right: 0,
+                              transform: "scale(0.7)",
+                              transformOrigin: "bottom center",
+                            }),
+                        backgroundColor: "var(--background-paper)",
+                        color: "var(--text)",
+                      }}
+                    >
+                      <EmojiPicker
+                        onEmojiClick={onEmojiClick}
+                        theme={currentEmojiTheme}
+                      />
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Box>
