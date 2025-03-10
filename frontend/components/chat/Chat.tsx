@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-
 import { useTheme } from "@mui/material/styles";
-
 import {
   Box,
   List,
@@ -57,7 +55,6 @@ export default function Chat() {
     id: number;
     name?: string;
   } | null>(null);
-    
   const [isDragging, setIsDragging] = useState(false);
   const { userTrips, fetchUserTrips } = useTripStore();
   const { user } = useUserStore();
@@ -105,7 +102,6 @@ export default function Chat() {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-
     if (messages.length > prevMessagesLengthRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
@@ -185,12 +181,6 @@ export default function Chat() {
   const formatTimestamp = (timestamp: Date | string) => {
     const date = new Date(timestamp);
     return format(date, "h:mm a");
-  };
-
-  // Handler for emoji selection in the input area.
-  const onEmojiClick = (emojiData: EmojiClickData) => {
-    setMessageText((prev) => prev + emojiData.emoji);
-    setShowEmojiPicker(false);
   };
 
   // Handler for emoji selection in the input area.
@@ -692,7 +682,6 @@ export default function Chat() {
                     </Grow>
                   ))
                 )}
-
                 {/* Dummy element to scroll into view */}
                 <Box ref={messagesEndRef} />
               </Box>
