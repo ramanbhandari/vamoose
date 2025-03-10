@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useTheme } from "@mui/material/styles"; // Added useTheme hook
+import { useTheme } from "@mui/material/styles";
+
 import {
   Box,
   List,
