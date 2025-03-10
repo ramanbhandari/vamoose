@@ -1,6 +1,9 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { CreateItineraryEventInput } from '@/interfaces/interfaces.js';
+import {
+  CreateItineraryEventInput,
+  UpdateItineraryEventInput,
+} from '@/interfaces/interfaces.js';
 
 export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   try {
@@ -30,6 +33,35 @@ export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
         assignedUsers: true,
         notes: true,
       },
+    });
+  } catch (error) {
+    console.error('Error creating itinerary event:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const fetchSingleItineraryEvent = async (
+  tripId: number,
+  eventId: number,
+) => {
+  try {
+    return await prisma.itineraryEvent.findUnique({
+      where: { id: eventId, tripId: tripId },
+    });
+  } catch (error) {
+    console.error('Error fetching single itinerary event:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const updateItineraryEvent = async (
+  eventId: number,
+  eventData: UpdateItineraryEventInput,
+) => {
+  try {
+    return await prisma.itineraryEvent.update({
+      where: { id: eventId },
+      data: { ...eventData },
     });
   } catch (error) {
     console.error('Error creating itinerary event:', error);
