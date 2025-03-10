@@ -214,7 +214,6 @@ describe('Update Itinerary Event Controller', () => {
       }),
     });
     expect(statusMock).toHaveBeenCalledWith(201);
-
   });
 
   it.each([
@@ -271,8 +270,7 @@ describe('Update Itinerary Event Controller', () => {
 
     expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'Event not found',
+      error: 'Event not found',
     });
   });
 
@@ -288,10 +286,7 @@ describe('Update Itinerary Event Controller', () => {
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'Only the creator or an admin can update the event details.',
+      error: 'Only the creator or an admin can update the event details.',
     });
   });
-
-
 });
