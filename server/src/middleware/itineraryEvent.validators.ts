@@ -99,3 +99,20 @@ export const validateGetSingleItineraryEventInput = checkExact([
   param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
   param('eventId').isInt({ min: 1 }).withMessage('Event ID must be a number'),
 ]);
+
+export const validateDeleteItineraryEventInput = checkExact([
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
+  param('eventId').isInt({ min: 1 }).withMessage('Event ID must be a number'),
+]);
+
+export const validateBatchDeleteItineraryEventsInput = checkExact([
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
+
+  body('eventIds')
+    .isArray({ min: 1 })
+    .withMessage('Event IDs must be a non-empty array of integers'),
+
+  body('eventIds.*')
+    .isInt({ min: 1 })
+    .withMessage('Each Event ID must be a positive integer'),
+]);

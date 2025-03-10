@@ -161,3 +161,33 @@ export const getItineraryEventById = async (
     throw handlePrismaError(error);
   }
 };
+
+// Delete a single itinerary event by ID and trip ID
+export const deleteItineraryEvent = async (tripId: number, eventId: number) => {
+  try {
+    return await prisma.itineraryEvent.delete({
+      where: { id: eventId, tripId },
+    });
+  } catch (error) {
+    console.error('Error deleting itinerary event:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Batch delete itinerary events by IDs and trip ID
+export const deleteItineraryEventsByIds = async (
+  tripId: number,
+  eventIds: number[],
+) => {
+  try {
+    return await prisma.itineraryEvent.deleteMany({
+      where: {
+        tripId,
+        id: { in: eventIds },
+      },
+    });
+  } catch (error) {
+    console.error('Error batch deleting itinerary events:', error);
+    throw handlePrismaError(error);
+  }
+};
