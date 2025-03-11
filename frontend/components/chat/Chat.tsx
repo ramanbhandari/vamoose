@@ -166,7 +166,7 @@ export default function Chat() {
     setSelectedTrip(trip);
   };
 
-  // New message sending handler
+  // Message sending handler
   const handleSend = async () => {
     if (messageText.trim() && selectedTrip && user?.id) {
       try {
