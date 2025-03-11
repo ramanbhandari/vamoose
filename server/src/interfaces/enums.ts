@@ -11,3 +11,13 @@ export enum NotificationType {
   EXPENSE_SHARE_SETTLED = 'EXPENSE_SHARE_SETTLED',
   MEMBER_JOINED = 'MEMBER_JOINED',
 }
+
+export enum EventCategory {
+  GENERAL = 'GENERAL',
+  TRAVEL = 'TRAVEL',
+  ACTIVITY = 'ACTIVITY',
+  MEAL = 'MEAL',
+  MEETING = 'MEETING',
+  FREE_TIME = 'FREE_TIME',
+  OTHER = 'OTHER',
+}

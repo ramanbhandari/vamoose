@@ -19,50 +19,55 @@ datasource db {
 }
 
 model User {
-  id                    String                  @id @default(uuid())
-  email                 String                  @unique
-  fullName              String?
-  avatarUrl             String?
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  expenses              Expense[]
-  ExpenseShare          ExpenseShare[]
-  messages              Message[]
-  packingItems          PackingItem[]
-  polls                 Poll[]
-  staysBooked           Stay[]
-  createdTrips          Trip[]
-  tripInvites           TripInvitee[]           @relation("CreatorRelation")
-  invitedTrips          TripInvitee[]           @relation("InvitedUserRelation")
-  tripMembers           TripMember[]
-  pollVotes             Vote[]
-  Notification          Notification[]
-  ScheduledNotification ScheduledNotification[]
+  expenses               Expense[]
+  ExpenseShare           ExpenseShare[]
+  messages               Message[]
+  packingItems           PackingItem[]
+  polls                  Poll[]
+  staysBooked            Stay[]
+  createdTrips           Trip[]
+  tripInvites            TripInvitee[]              @relation("CreatorRelation")
+  invitedTrips           TripInvitee[]              @relation("InvitedUserRelation")
+  tripMembers            TripMember[]
+  pollVotes              Vote[]
+  notifications          Notification[]
+  scheduledNotifications ScheduledNotification[]
+  assignedEvents         ItineraryEventAssignment[]
+  eventNotes             EventNote[]
+  ItineraryEvent         ItineraryEvent[]
 }
 
 model Trip {
-  id          Int           @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
   destination String
   startDate   DateTime
   endDate     DateTime
   budget      Float?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   createdBy   String
   imageUrl    String?
+
   // Relations
-  expenses    Expense[]
-  itineraries Itinerary[]
-  messages    Message[]
-  packingList PackingItem[]
-  polls       Poll[]
-  stays       Stay[]
-  creator     User          @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  invitees    TripInvitee[]
-  members     TripMember[]
+  expenses        Expense[]
+  itineraryEvents ItineraryEvent[]
+  messages        Message[]
+  packingList     PackingItem[]
+  polls           Poll[]
+  stays           Stay[]
+  creator         User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  invitees        TripInvitee[]
+  members         TripMember[]
 }
 
 model TripMember {
@@ -90,20 +95,6 @@ model TripInvitee {
   trip          Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@unique([tripId, email])
-}
-
-model Stay {
-  id           Int      @id @default(autoincrement())
-  tripId       Int
-  name         String
-  address      String?
-  checkInDate  DateTime
-  checkOutDate DateTime
-  bookedById   String?
-  url          String?
-  // Relations
-  bookedBy     User?    @relation(fields: [bookedById], references: [id])
-  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
 
 model Expense {
@@ -183,40 +174,57 @@ enum PollStatus {
   TIE
 }
 
-//Unimplemented
-model Itinerary {
-  id          Int      @id @default(autoincrement())
+model ItineraryEvent {
+  id          Int           @id @default(autoincrement())
   tripId      Int
-  date        DateTime
   title       String
-  description String
+  description String?
   location    String?
-  assignedTo  String?
-  createdAt   DateTime @default(now())
-  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  startTime   DateTime?
+  endTime     DateTime?
+  category    EventCategory @default(GENERAL)
+  createdById String?
+  createdAt   DateTime      @default(now())
+
+  // Relations
+  trip          Trip                       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy     User?                      @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  assignedUsers ItineraryEventAssignment[]
+  notes         EventNote[]
 }
 
-model Message {
+model ItineraryEventAssignment {
+  eventId Int
+  userId  String
+
+  // Relations
+  event ItineraryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+}
+
+model EventNote {
   id        Int      @id @default(autoincrement())
+  eventId   Int
   content   String
-  tripId    Int
-  senderId  String
+  createdBy String?
   createdAt DateTime @default(now())
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event ItineraryEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User?          @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 }
 
-model PackingItem {
-  id         Int      @id @default(autoincrement())
-  name       String
-  quantity   Int      @default(1)
-  packed     Boolean  @default(false)
-  assignedTo String?
-  tripId     Int
-  createdAt  DateTime @default(now())
-  userId     String?
-  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  User       User?    @relation(fields: [userId], references: [id])
+enum EventCategory {
+  GENERAL
+  TRAVEL
+  ACTIVITY
+  MEAL
+  MEETING
+  FREE_TIME
+  OTHER
 }
 
 model Notification {
@@ -257,4 +265,42 @@ model ScheduledNotification {
   @@index([userId])
   @@index([sendAt])
   @@index([isSent])
+}
+
+//Unimplemented
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  tripId    Int
+  senderId  String
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model PackingItem {
+  id         Int      @id @default(autoincrement())
+  name       String
+  quantity   Int      @default(1)
+  packed     Boolean  @default(false)
+  assignedTo String?
+  tripId     Int
+  createdAt  DateTime @default(now())
+  userId     String?
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  User       User?    @relation(fields: [userId], references: [id])
+}
+
+model Stay {
+  id           Int      @id @default(autoincrement())
+  tripId       Int
+  name         String
+  address      String?
+  checkInDate  DateTime
+  checkOutDate DateTime
+  bookedById   String?
+  url          String?
+  // Relations
+  bookedBy     User?    @relation(fields: [bookedById], references: [id])
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
