@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import prisma from '@/config/prismaClient.js';
-import { NotificationType } from '@/interfaces/enums.js';
-import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
+import { NotificationType, PollStatus } from '@/interfaces/enums.js';
+import { notifyTripMembers } from '@/utils/notificationHandlers.js';
 import { DateTime } from 'luxon';
 
 cron.schedule('*/5 * * * *', async () => {
@@ -42,7 +42,7 @@ cron.schedule('*/5 * * * *', async () => {
   const expiredPolls = await prisma.poll.findMany({
     where: {
       status: 'ACTIVE',
-      expiresAt: { lt: now },
+      expiresAt: { lte: now },
     },
     include: {
       options: {
@@ -70,39 +70,56 @@ cron.schedule('*/5 * * * *', async () => {
       }
     }
 
+    let status: PollStatus = PollStatus.COMPLETED;
     let winnerOptionId: number | null = null;
-    if (tiedOptionIds.length === 0) {
-      // if no votes, no winner
-      winnerOptionId = null;
+    let tiedOptions: { id: number; option: string; voteCount: number }[] = [];
+
+    if (tiedOptionIds.length > 1) {
+      status = PollStatus.TIE;
+      tiedOptions = poll.options
+        .filter((option) => tiedOptionIds.includes(option.id))
+        .map((option) => ({
+          id: option.id,
+          option: option.option,
+          voteCount: option.votes.length,
+        }));
     } else if (tiedOptionIds.length === 1) {
       winnerOptionId = tiedOptionIds[0];
-    } else {
-      // in case of tie lets just take the smallest option id
-      winnerOptionId = Math.min(...tiedOptionIds);
     }
 
-    // update the poll, mark it COMPLETED, record the winner, set completedAt
+    // mark it complete or tie
     await prisma.poll.update({
       where: { id: poll.id },
       data: {
-        status: 'COMPLETED',
+        status: status,
         winnerId: winnerOptionId,
         completedAt: poll.expiresAt,
       },
     });
 
-    await notifyTripMembersExceptCreator(poll.tripId, poll.createdById, {
+    // notification message based on status
+    const notificationMessage =
+      status === 'TIE'
+        ? `Poll "${poll.question}" ended in a tie among the top options: ${tiedOptions
+            .map((opt) => opt.option)
+            .join(', ')}.`
+        : winnerOptionId
+          ? `Poll "${poll.question}" has been completed. The winning option is "${
+              poll.options.find((opt) => opt.id === winnerOptionId)?.option
+            }".`
+          : `Poll "${poll.question}" has ended with no votes.`;
+
+    // notify all trip members except the poll creator
+    await notifyTripMembers(poll.tripId, {
       type: NotificationType.POLL_COMPLETE,
       relatedId: poll.id,
       title: 'Poll Completed',
-      message: winnerOptionId
-        ? `Poll "${poll.question}" has ended. Winning option ID: ${winnerOptionId}.`
-        : `Poll "${poll.question}" has ended with no votes.`,
+      message: notificationMessage,
       channel: 'IN_APP',
     });
 
     console.log(
-      `[CRON] Poll ${poll.id} expired and completed. Winner Option ID: ${winnerOptionId}`,
+      `[CRON] Poll ${poll.id} expired and completed. Status: ${status}, Winner Option ID: ${winnerOptionId}`,
     );
   }
 });
