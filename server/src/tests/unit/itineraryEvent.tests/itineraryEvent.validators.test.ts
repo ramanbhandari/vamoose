@@ -1,4 +1,8 @@
-import { validateCreateItineraryEventInput } from '@/middleware/itineraryEvent.validators.js';
+import {
+  validateCreateItineraryEventInput,
+  validateGetAllItineraryEventsInput,
+  validateGetSingleItineraryEventInput,
+} from '@/middleware/itineraryEvent.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 
@@ -192,6 +196,104 @@ describe('ItineraryEvent Validators Middleware', () => {
           expect.objectContaining({
             msg: 'Each Note content must be a non-empty string',
           }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Getting All Itinerary Events
+  describe('validateGetAllItineraryEventsInput', () => {
+    it('should pass validation with valid optional filters', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        query: {
+          category: 'MEETING',
+          startTime: '2025-04-10T10:00:00Z',
+          endTime: '2025-04-10T12:00:00Z',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if category is invalid', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        query: { category: 'INVALID_CATEGORY' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Invalid event category' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if startTime or endTime are invalid dates', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        query: { startTime: 'invalid-date', endTime: 'invalid-date' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Start time filter must be a valid ISO8601 date',
+          }),
+          expect.objectContaining({
+            msg: 'End time filter must be a valid ISO8601 date',
+          }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Getting a Single Itinerary Event
+  describe('validateGetSingleItineraryEventInput', () => {
+    it('should pass validation with a valid event ID', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: '5' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetSingleItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if event ID is not a valid number', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: 'invalid' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetSingleItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Event ID must be a number' }),
         ]),
       );
     });
