@@ -29,17 +29,22 @@ describe('Get Notifications Controller', () => {
   it('should return 200 with notifications data', async () => {
     mockReq = setupRequest({
       query: {
-        isRead: 'true',
-        type: 'REMINDER',
-        tripId: '1',
+        type: 'EXPENSE_SHARE_SETTLED',
       },
     });
 
     const mockNotifications = [
-      { id: 1, title: 'Reminder', isRead: true, type: 'REMINDER' },
+      {
+        id: 1,
+        title: 'Reminder',
+        isRead: false,
+        type: 'EXPENSE_SHARE_SETTLED',
+      },
     ];
 
-    (getNotificationsForUser as jest.Mock).mockResolvedValue(mockNotifications);
+    (getNotificationsForUser as jest.Mock)
+      .mockResolvedValueOnce(mockNotifications)
+      .mockResolvedValueOnce([]);
 
     await getNotificationsHandler(mockReq as Request, mockRes as Response);
 
@@ -53,12 +58,6 @@ describe('Get Notifications Controller', () => {
       overrides: { userId: undefined },
       expectedStatus: 401,
       expectedMessage: 'Unauthorized Request',
-    },
-    {
-      scenario: 'Invalid trip ID',
-      overrides: { query: { tripId: 'invalid' } },
-      expectedStatus: 400,
-      expectedMessage: 'Trip ID must be a valid positive integer',
     },
   ])(
     '[$scenario] → should return $expectedStatus',
@@ -83,7 +82,105 @@ describe('Get Notifications Controller', () => {
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Error fetching notifications: Database Error',
+      error: 'Internal Server Error',
+    });
+  });
+
+  // New tests for notification padding and type filtering
+  describe('Notification Padding and Type Filtering', () => {
+    it('should pad notifications when fewer than 10 unread notifications exist', async () => {
+      const unreadNotifications = [
+        { id: 1, title: 'Poll created', isRead: false, type: 'POLL_CREATED' },
+        {
+          id: 2,
+          title: 'Poll completed',
+          isRead: false,
+          type: 'POLL_COMPLETED',
+        },
+      ];
+      const readNotifications = Array.from({ length: 8 }, (_, i) => ({
+        id: i + 1,
+        title: `Notification ${i + 1}`,
+        isRead: true,
+        type: 'POLL_CREATED',
+      }));
+
+      const paddedNotifications = [
+        ...unreadNotifications,
+        ...readNotifications,
+      ];
+
+      mockReq = setupRequest();
+
+      (getNotificationsForUser as jest.Mock)
+        .mockResolvedValueOnce(unreadNotifications)
+        .mockResolvedValueOnce(readNotifications);
+
+      await getNotificationsHandler(mockReq as Request, mockRes as Response);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith({
+        notifications: paddedNotifications,
+      });
+    });
+
+    it('should return exactly 10 notifications when there are 10 unread notifications', async () => {
+      const tenNotifications = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        title: `Notification ${i + 1}`,
+        isRead: false,
+        type: 'POLL_CREATED',
+      }));
+
+      mockReq = setupRequest();
+
+      (getNotificationsForUser as jest.Mock).mockResolvedValue(
+        tenNotifications,
+      );
+
+      await getNotificationsHandler(mockReq as Request, mockRes as Response);
+
+      expect(getNotificationsForUser).toHaveBeenCalledTimes(1);
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith({
+        notifications: tenNotifications,
+      });
+    });
+
+    it.each([
+      {
+        type: 'POLL_CREATED',
+        description: 'should filter notifications of type POLL_CREATED',
+      },
+      {
+        type: 'POLL_COMPLETED',
+        description: 'should filter notifications of type POLL_COMPLETED',
+      },
+      {
+        type: 'EXPENSE_SHARE_SETTLED',
+        description:
+          'should filter notifications of type EXPENSE_SHARE_SETTLED',
+      },
+    ])('$description', async ({ type }) => {
+      const filteredNotifications = [
+        { id: 1, title: `${type} Notification`, isRead: false, type },
+      ];
+
+      mockReq = setupRequest({
+        query: { type },
+      });
+
+      (getNotificationsForUser as jest.Mock)
+        .mockResolvedValueOnce(filteredNotifications)
+        .mockResolvedValueOnce([]);
+
+      await getNotificationsHandler(mockReq as Request, mockRes as Response);
+
+      expect(getNotificationsForUser).toHaveBeenCalledTimes(2);
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith({
+        notifications: filteredNotifications,
+      });
     });
   });
 });

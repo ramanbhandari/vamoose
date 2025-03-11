@@ -1,19 +1,7 @@
 import { checkExact, query } from 'express-validator';
 import { NotificationType } from '@/interfaces/enums.js';
 
-export const validateGetNotificationsInput = checkExact([
-  query('tripId')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Trip ID must be a valid positive integer')
-    .toInt(),
-
-  query('isRead')
-    .optional()
-    .isBoolean()
-    .withMessage('isRead must be a boolean (true or false)')
-    .toBoolean(),
-
+export const validateGetNotificationsInput = checkExact(
   query('type')
     .optional()
     .isString()

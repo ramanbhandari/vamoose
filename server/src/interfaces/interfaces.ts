@@ -87,5 +87,5 @@ export interface CreateItineraryEventInput {
 export interface NotificationFilterOptions {
   isRead?: boolean;
   type?: string;
-  tripId?: number;
+  limit?: number;
 }

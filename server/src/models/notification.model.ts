@@ -10,11 +10,10 @@ export const getNotificationsForUser = async (
     return await prisma.notification.findMany({
       where: {
         userId,
-        ...(filters?.isRead !== undefined && { isRead: filters.isRead }),
         ...(filters?.type && { type: filters.type }),
-        ...(filters?.tripId && { tripId: filters.tripId }),
       },
       orderBy: { createdAt: 'desc' },
+      take: filters?.limit,
     });
   } catch (error) {
     console.error('Error fetching notifications:', error);
