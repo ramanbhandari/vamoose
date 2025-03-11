@@ -25,7 +25,7 @@ export const getNotificationsForUser = async (
 
 export const markNotificationsAsRead = async (
   userId: string,
-  notificationIds: number | number[], // Accepts both a single ID and an array
+  notificationIds: number | number[],
 ) => {
   try {
     const idsArray = Array.isArray(notificationIds)
@@ -53,7 +53,7 @@ export const markNotificationsAsRead = async (
 
 export const markNotificationsAsUnread = async (
   userId: string,
-  notificationIds: number | number[], // Accepts both a single ID and an array
+  notificationIds: number | number[],
 ) => {
   try {
     const idsArray = Array.isArray(notificationIds)
