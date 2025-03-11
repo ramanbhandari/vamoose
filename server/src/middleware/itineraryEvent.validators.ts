@@ -97,17 +97,15 @@ export const validateUpdateItineraryEventInput = checkExact([
 
   body('category')
     .isString()
+    .withMessage('Category must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Category cannot be empty')
     .toUpperCase()
-    .isIn([
-      'GENERAL',
-      'TRAVEL',
-      'ACTIVITY',
-      'MEAL',
-      'MEETING',
-      'FREE_TIME',
-      'OTHER',
-    ])
-    .withMessage('Invalid event category'),
+    .isIn(Object.values(EventCategory))
+    .withMessage(
+      `Category must be one of: ${Object.values(EventCategory).join(', ')}`,
+    ),
 ]);
 
 export const validateGetAllItineraryEventsInput = checkExact([

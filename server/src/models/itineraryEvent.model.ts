@@ -41,6 +41,21 @@ export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   }
 };
 
+export const updateItineraryEvent = async (
+  eventId: number,
+  eventData: UpdateItineraryEventInput,
+) => {
+  try {
+    return await prisma.itineraryEvent.update({
+      where: { id: eventId },
+      data: { ...eventData },
+    });
+  } catch (error) {
+    console.error('Error creating itinerary event:', error);
+    throw handlePrismaError(error);
+  }
+};
+
 export const getAllItineraryEventsForTrip = async (
   tripId: number,
   filters?: {

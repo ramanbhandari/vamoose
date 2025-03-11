@@ -176,7 +176,7 @@ export const updateItineraryEventHandler = async (
     }
 
     //check if the event exists
-    const event = await fetchSingleItineraryEvent(tripId, eventId);
+    const event = await getItineraryEventById(tripId, eventId);
 
     if (!event) {
       res.status(404).json({ error: 'Event not found' });
@@ -189,7 +189,8 @@ export const updateItineraryEventHandler = async (
       requestingMember.role !== 'admin'
     ) {
       res.status(403).json({
-        error: 'Only the creator or an admin can update the event details.',
+        error:
+          'Only the trip creator, event creator or an admin can update the event details.',
       });
       return;
     }

@@ -200,7 +200,7 @@ describe('Update Itinerary Event Controller', () => {
     ...overrides,
   });
 
-  it('should create an itinerary event successfully', async () => {
+  it('should update an itinerary event successfully', async () => {
     mockReq = setupRequest();
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
@@ -296,7 +296,7 @@ describe('Update Itinerary Event Controller', () => {
     });
   });
 
-  it('should return 403 if user is not the creator of an event or creator or admin of the trip', async () => {
+  it('should return 403 if user is not the creator of an event or trip creator or admin of the trip', async () => {
     mockReq = setupRequest();
 
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
@@ -308,7 +308,8 @@ describe('Update Itinerary Event Controller', () => {
 
     expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Only the creator or an admin can update the event details.',
+      error:
+        'Only the trip creator, event creator or an admin can update the event details.',
     });
   });
 });
