@@ -170,7 +170,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     const { currentTripId } = get();
     if (currentTripId) {
       socketClient.leaveTripChat(currentTripId);
-      set({ currentTripId: null });
+      set({ currentTripId: null, messages: [] });
     }
   },
 

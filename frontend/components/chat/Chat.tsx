@@ -157,6 +157,14 @@ export default function Chat() {
     }
   }, [selectedTrip, joinTripChat, leaveTripChat, fetchMessages]);
 
+  // check if trip still exists in user trips
+  useEffect(() => {
+    const trips = getAllTrips();
+    if (selectedTrip && !trips.some((trip) => trip.id === selectedTrip.id)) {
+      setSelectedTrip(null);
+    }
+  }, [userTrips, selectedTrip, getAllTrips]);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && isMaximized) {
