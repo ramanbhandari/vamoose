@@ -10,7 +10,7 @@ import {
 } from '@/models/member.model.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { fetchSingleItineraryEvent } from '@/models/itineraryEvent.model';
+import { getItineraryEventById } from '@/models/itineraryEvent.model';
 
 export const assignUsersToItineraryEventHandler = async (
   req: Request,
@@ -48,7 +48,7 @@ export const assignUsersToItineraryEventHandler = async (
       return;
     }
 
-    const event = await fetchSingleItineraryEvent(tripId, eventId);
+    const event = await getItineraryEventById(tripId, eventId);
     if (!event) {
       res.status(404).json({ error: 'Event not found' });
       return;
@@ -59,9 +59,10 @@ export const assignUsersToItineraryEventHandler = async (
       requestingMember.role === 'creator' || requestingMember.role === 'admin';
 
     if (!isEventCreator && !isTripAdmin) {
-      res
-        .status(403)
-        .json({ error: 'Only the creator or an admin can assign users.' });
+      res.status(403).json({
+        error:
+          'Only an admin, the trip creator, or the event creator can assign users.',
+      });
       return;
     }
 
@@ -149,7 +150,7 @@ export const unassignUserFromItineraryEventHandler = async (
       return;
     }
 
-    const event = await fetchSingleItineraryEvent(tripId, eventId);
+    const event = await getItineraryEventById(tripId, eventId);
     if (!event) {
       res.status(404).json({ error: 'Event not found' });
       return;
@@ -160,9 +161,10 @@ export const unassignUserFromItineraryEventHandler = async (
       requestingMember.role === 'creator' || requestingMember.role === 'admin';
 
     if (!isEventCreator && !isTripAdmin) {
-      res
-        .status(403)
-        .json({ error: 'Only the creator or an admin can unassign users.' });
+      res.status(403).json({
+        error:
+          'Only an admin, the trip creator, or the event creator can unassign users.',
+      });
       return;
     }
 
