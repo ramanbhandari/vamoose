@@ -29,7 +29,6 @@ import EmojiPicker, {
   Theme as EmojiTheme,
 } from "emoji-picker-react";
 
-import { useTripStore } from "@/stores/trip-store";
 import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
 import { format } from "date-fns";
@@ -43,6 +42,7 @@ interface ChatMessage {
   text: string;
   reactions?: { [emoji: string]: string[] };
 }
+import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
   const theme = useTheme();
@@ -67,7 +67,7 @@ export default function Chat() {
     name?: string;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const { userTrips, fetchUserTrips } = useTripStore();
+  const { getAllTrips, fetchUserTrips } = useUserTripsStore();
   const { user } = useUserStore();
   // Constant list of reaction emojis.
   const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👏"];
@@ -109,7 +109,31 @@ export default function Chat() {
         leaveTripChat();
       }
     };
-  }, [selectedTrip]);
+  }, [
+    cleanupSocketListeners,
+    initializeSocket,
+    initializeSocketListeners,
+    leaveTripChat,
+    selectedTrip,
+  ]);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      const allTrips = getAllTrips();
+      if (allTrips.length === 0) {
+        await Promise.all([
+          fetchUserTrips("current"),
+          fetchUserTrips("upcoming"),
+          fetchUserTrips("past"),
+        ]);
+      }
+    };
+
+    fetchTrips();
+  }, [fetchUserTrips, getAllTrips]);
+
+  // Get combined trips for chat
+  const userTrips = getAllTrips();
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -118,11 +142,6 @@ export default function Chat() {
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages]);
-
-  // Fetch user trips
-  useEffect(() => {
-    if (user) fetchUserTrips(user.id);
-  }, [user, fetchUserTrips]);
 
   // Handle trip selection
   useEffect(() => {
