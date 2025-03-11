@@ -4,6 +4,7 @@ import {
   CreateItineraryEventInput,
   UpdateItineraryEventInput,
 } from '@/interfaces/interfaces.js';
+import { EventCategory } from '@/interfaces/enums.js';
 
 export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   try {
@@ -40,31 +41,156 @@ export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   }
 };
 
-export const fetchSingleItineraryEvent = async (
+export const getAllItineraryEventsForTrip = async (
+  tripId: number,
+  filters?: {
+    category?: EventCategory;
+    startTime?: Date;
+    endTime?: Date;
+  },
+) => {
+  try {
+    return await prisma.itineraryEvent.findMany({
+      where: {
+        tripId,
+        ...(filters?.category && { category: filters.category }),
+        ...(filters?.startTime && {
+          startTime: {
+            gte: filters.startTime,
+          },
+        }),
+        ...(filters?.endTime && {
+          endTime: {
+            lte: filters.endTime,
+          },
+        }),
+      },
+      include: {
+        assignedUsers: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+        },
+        notes: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching itinerary events:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const getItineraryEventById = async (
   tripId: number,
   eventId: number,
 ) => {
   try {
     return await prisma.itineraryEvent.findUnique({
-      where: { id: eventId, tripId: tripId },
+      where: { id: eventId, tripId },
+      include: {
+        assignedUsers: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+        },
+        notes: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
     });
   } catch (error) {
-    console.error('Error fetching single itinerary event:', error);
+    console.error('Error fetching itinerary event by ID:', error);
     throw handlePrismaError(error);
   }
 };
 
-export const updateItineraryEvent = async (
-  eventId: number,
-  eventData: UpdateItineraryEventInput,
-) => {
+// Delete a single itinerary event by ID and trip ID
+export const deleteItineraryEvent = async (tripId: number, eventId: number) => {
   try {
-    return await prisma.itineraryEvent.update({
-      where: { id: eventId },
-      data: { ...eventData },
+    return await prisma.itineraryEvent.delete({
+      where: { id: eventId, tripId },
     });
   } catch (error) {
-    console.error('Error creating itinerary event:', error);
+    console.error('Error deleting itinerary event:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Batch delete itinerary events by IDs and trip ID
+export const deleteItineraryEventsByIds = async (
+  tripId: number,
+  eventIds: number[],
+) => {
+  try {
+    return await prisma.itineraryEvent.deleteMany({
+      where: {
+        tripId,
+        id: { in: eventIds },
+      },
+    });
+  } catch (error) {
+    console.error('Error batch deleting itinerary events:', error);
     throw handlePrismaError(error);
   }
 };
