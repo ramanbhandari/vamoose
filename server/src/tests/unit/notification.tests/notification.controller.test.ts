@@ -254,7 +254,6 @@ describe('Mark Notification As Read Controller', () => {
   });
 });
 
-// New tests for marking notifications as unread
 describe('Mark Notification As Unread Controller', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
