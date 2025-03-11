@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "@mui/material/styles";
-import { differenceInHours, startOfDay, parseISO } from "date-fns";
+import { differenceInHours, startOfDay } from "date-fns";
 
 import {
   Box,
@@ -35,6 +35,14 @@ import { useMessageStore } from "@/stores/message-store";
 import { format } from "date-fns";
 import socketClient from "@/utils/socketClient";
 import DateDivider from "./DateDivider";
+
+interface ChatMessage {
+  messageId: string;
+  createdAt: string | Date;
+  userId: string;
+  text: string;
+  reactions?: { [emoji: string]: string[] };
+}
 
 export default function Chat() {
   const theme = useTheme();
@@ -295,15 +303,15 @@ export default function Chat() {
   };
 
   const shouldShowDateDivider = (
-    currentMsg: any,
-    previousMsg: any | null
+    currentMsg: ChatMessage,
+    previousMsg: ChatMessage | null
   ): boolean => {
     if (!previousMsg) return true; // Always show for first message
 
     const currentDate = new Date(currentMsg.createdAt);
     const previousDate = new Date(previousMsg.createdAt);
 
-    // Check if the messages are from different days or more than 24 hours apart
+    // Check the 24hr gap
     return (
       startOfDay(currentDate).getTime() !==
         startOfDay(previousDate).getTime() ||
