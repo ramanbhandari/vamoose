@@ -14,4 +14,4 @@ export const validateGetNotificationsInput = checkExact(
     .withMessage(
       `Notification type must be one of: ${Object.values(NotificationType).join(', ')}`,
     ),
-]);
+);

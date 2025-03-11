@@ -20,9 +20,10 @@ router.use('/trips/invites', nonAuthInviteRouter);
 // Apply authMiddleware globally to all routes
 router.use(authMiddleware);
 
+// Non-trip-specific routes
 router.use('/notifications', notificationRouter);
 
-// Trip-specifc routes
+// Trip-specific routes
 router.use('/trips', tripRouter);
 router.use('/trips/:tripId/expenses', expenseRouter);
 router.use('/trips/:tripId/expenseShares', expenseShareRouter);

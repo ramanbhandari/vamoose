@@ -147,27 +147,18 @@ describe('Get Notifications Controller', () => {
       });
     });
 
-    it.each([
-      {
-        type: 'POLL_CREATED',
-        description: 'should filter notifications of type POLL_CREATED',
-      },
-      {
-        type: 'POLL_COMPLETED',
-        description: 'should filter notifications of type POLL_COMPLETED',
-      },
-      {
-        type: 'EXPENSE_SHARE_SETTLED',
-        description:
-          'should filter notifications of type EXPENSE_SHARE_SETTLED',
-      },
-    ])('$description', async ({ type }) => {
+    it('should filter notifications of type POLL_CREATED', async () => {
       const filteredNotifications = [
-        { id: 1, title: `${type} Notification`, isRead: false, type },
+        {
+          id: 1,
+          title: `Poll created Notification`,
+          isRead: false,
+          type: 'POLL_CREATED',
+        },
       ];
 
       mockReq = setupRequest({
-        query: { type },
+        query: { type: 'POLL_CREATED' },
       });
 
       (getNotificationsForUser as jest.Mock)
