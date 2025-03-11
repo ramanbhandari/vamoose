@@ -55,12 +55,10 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   initializeSocketListeners: () => {
     const handleConnect = () => {
       set({ isConnected: true });
-      console.log("Socket connected");
     };
 
     const handleDisconnect = () => {
       set({ isConnected: false });
-      console.log("Socket disconnected");
     };
 
     const handleNewMessage = (message: unknown) => {
@@ -89,19 +87,11 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     const handleReactionUpdated = (message: unknown) => {
       if (message && typeof message === "object" && "messageId" in message) {
         const updatedMessage = message as Message;
-        console.log(
-          "Handling reaction update for message:",
-          updatedMessage.messageId
-        );
 
         // Update the message with the new reactions
         set((state) => {
           const updatedMessages = state.messages.map((msg) => {
             if (msg.messageId === updatedMessage.messageId) {
-              console.log(
-                "Updating message reactions:",
-                updatedMessage.reactions
-              );
               return {
                 ...msg,
                 reactions: updatedMessage.reactions,

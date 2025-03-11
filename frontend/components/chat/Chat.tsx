@@ -181,11 +181,6 @@ export default function Chat() {
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
-  // Add a useEffect to log messages when they change
-  useEffect(() => {
-    console.log("Messages updated:", messages);
-  }, [messages]);
-
   if (!user) return null;
 
   //with delay to play chat open/close animation
@@ -252,10 +247,6 @@ export default function Chat() {
   const handleReaction = async (messageId: string, emoji: string) => {
     if (user?.id && selectedTrip) {
       try {
-        console.log(
-          `User ${user.id} reacting with ${emoji} to message ${messageId}`
-        );
-
         // Set this reaction as processing
         setProcessingReactions((prev) => ({
           ...prev,
@@ -267,8 +258,6 @@ export default function Chat() {
           messages.find((m) => m.messageId === messageId)?.reactions,
           emoji
         );
-
-        console.log(`Has user already reacted: ${hasReacted}`);
 
         // Send the reaction to the server
         await socketClient.addReaction(

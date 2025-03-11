@@ -187,8 +187,6 @@ export const updateMessageHandler = async (
       return;
     }
 
-    console.log('Message updated with reactions:', updatedMessage.reactions);
-
     res
       .status(200)
       .json({ message: 'Message updated Successfully!', updatedMessage });

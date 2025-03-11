@@ -47,22 +47,18 @@ export const initializeSocket = (): ReturnType<typeof io> => {
 
   // Set up event listeners
   socket.on(SocketEvent.CONNECT, () => {
-    console.log("Socket connected");
     eventEmitter.emit(SocketEvent.CONNECT);
   });
 
   socket.on(SocketEvent.DISCONNECT, () => {
-    console.log("Socket disconnected");
     eventEmitter.emit(SocketEvent.DISCONNECT);
   });
 
   socket.on(SocketEvent.NEW_MESSAGE, (message: MessageData) => {
-    console.log("New message received:", message);
     eventEmitter.emit(SocketEvent.NEW_MESSAGE, message);
   });
 
   socket.on(SocketEvent.REACTION_UPDATED, (message: MessageData) => {
-    console.log("Reaction update received:", message);
     eventEmitter.emit(SocketEvent.REACTION_UPDATED, message);
   });
 
@@ -193,12 +189,10 @@ export const addReaction = async (
     );
 
     const updatedMessage = response.data.updatedMessage;
-    console.log("Received updated message from server:", updatedMessage);
 
     // Emit the updated message to the socket server for broadcasting
     const currentSocket = getSocket();
     currentSocket.emit("reaction-updated", { tripId, updatedMessage });
-    console.log("Emitted reaction-updated event to socket server");
 
     // Also emit a local event for immediate UI update
     eventEmitter.emit("local-reaction", { messageId, userId, emoji });
