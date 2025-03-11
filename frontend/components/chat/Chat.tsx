@@ -159,7 +159,22 @@ export default function Chat() {
 
   if (!user) return null;
 
-  const toggleChat = () => setIsOpen((prev) => !prev);
+  //with delay to play chat open/close animation
+  const toggleChat = () => {
+    if (isOpen) {
+      const chatElement = document.querySelector(".chat-container");
+      if (chatElement) {
+        chatElement.classList.add("closing");
+        setTimeout(() => {
+          setIsOpen(false);
+        }, 200);
+      } else {
+        setIsOpen(false);
+      }
+    } else {
+      setIsOpen(true);
+    }
+  };
   const toggleMaximize = () => setIsMaximized((prev) => !prev);
   const toggleTripTab = () => setTripTabOpen((prev) => !prev);
   const selectTrip = (trip: { id: number; name?: string }) => {
@@ -290,7 +305,23 @@ export default function Chat() {
           p: 1.5,
           boxShadow: 3,
           zIndex: 9999,
-          "&:hover": { bgcolor: "primary.dark" },
+          "&:hover": {
+            bgcolor: "primary.dark",
+            transform: "scale(1.1)",
+          },
+          transition: "transform 0.2s ease, background-color 0.2s ease",
+          animation: isOpen
+            ? "buttonExpand 0.3s ease forwards"
+            : "buttonContract 0.3s ease forwards",
+          "@keyframes buttonExpand": {
+            "0%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.2)" },
+            "100%": { transform: "scale(1)" },
+          },
+          "@keyframes buttonContract": {
+            "0%": { transform: "scale(1)" },
+            "100%": { transform: "scale(1)" },
+          },
         }}
       >
         <Message fontSize="medium" />
@@ -298,6 +329,7 @@ export default function Chat() {
 
       {isOpen && (
         <Box
+          className="chat-container"
           sx={{
             position: "fixed",
             right: 20,
@@ -307,7 +339,26 @@ export default function Chat() {
             display: "flex",
             flexDirection: "column",
             zIndex: 9999,
-            transition: "0.2s ease-in-out",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            opacity: 1,
+            transform: "translateY(0) scale(1)",
+            transformOrigin: "bottom right",
+            animation: "chatOpen 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&.closing": {
+              opacity: 0,
+              transform: "translateY(20px) scale(0.95)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            },
+            "@keyframes chatOpen": {
+              "0%": {
+                opacity: 0,
+                transform: "translateY(20px) scale(0.95)",
+              },
+              "100%": {
+                opacity: 1,
+                transform: "translateY(0) scale(1)",
+              },
+            },
             ...chatContainerStyle,
           }}
         >
