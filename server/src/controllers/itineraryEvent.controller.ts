@@ -3,6 +3,8 @@ import {
   createItineraryEvent,
   getAllItineraryEventsForTrip,
   getItineraryEventById,
+  deleteItineraryEvent,
+  deleteItineraryEventsByIds,
 } from '@/models/itineraryEvent.model.js';
 import {
   getTripMember,
@@ -237,5 +239,144 @@ export const getItineraryEventByIdHandler = async (
     res.status(200).json({ itineraryEvent });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching itinerary event:');
+  }
+};
+
+export const deleteItineraryEventHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const eventId = Number(req.params.eventId);
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (isNaN(eventId)) {
+      res.status(400).json({ error: 'Invalid event ID' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Check for permissions (creator, admin, or event creator)
+    const isAdmin = requestingMember.role === 'admin';
+    const isTripCreator = requestingMember.role === 'creator';
+
+    // Fetch the itinerary event
+    const itineraryEvent = await getItineraryEventById(tripId, eventId);
+    if (!itineraryEvent) {
+      res.status(404).json({ error: 'Itinerary event not found' });
+      return;
+    }
+
+    const isEventCreator = itineraryEvent.createdById === userId;
+
+    if (!isAdmin && !isTripCreator && !isEventCreator) {
+      res.status(403).json({
+        error:
+          'Only an admin, the trip creator, or the event creator can delete this event',
+      });
+      return;
+    }
+
+    // Delete the itinerary event
+    await deleteItineraryEvent(tripId, eventId);
+
+    res.status(200).json({ message: 'Itinerary event deleted successfully' });
+  } catch (error) {
+    handleControllerError(error, res, 'Error deleting itinerary event:');
+  }
+};
+
+export const batchDeleteItineraryEventsHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const { eventIds } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (!Array.isArray(eventIds) || eventIds.length === 0) {
+      res.status(400).json({ error: 'Invalid event IDs' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    const isAdmin = requestingMember.role === 'admin';
+    const isTripCreator = requestingMember.role === 'creator';
+
+    // Fetch the itinerary events to check permissions
+    const events = await getAllItineraryEventsForTrip(tripId, {});
+
+    if (!events || !events.length) {
+      res.status(404).json({
+        error: 'No valid itinerary events found for deletion in this trip',
+      });
+      return;
+    }
+    // Filter out events the user is not allowed to delete
+    const allowedEventIds = events
+      .filter(
+        (event) =>
+          eventIds.includes(event.id) &&
+          (isAdmin || isTripCreator || event.createdById === userId),
+      )
+      .map((event) => event.id);
+
+    if (allowedEventIds.length === 0) {
+      res.status(403).json({
+        error: 'You are not authorized to delete any of these events',
+      });
+      return;
+    }
+
+    const deletedCount = await deleteItineraryEventsByIds(
+      tripId,
+      allowedEventIds,
+    );
+
+    res.status(200).json({
+      message: 'Itinerary events deleted successfully',
+      deletedCount: deletedCount.count,
+      eventsDeletedIds: allowedEventIds,
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error deleting itinerary events:');
   }
 };

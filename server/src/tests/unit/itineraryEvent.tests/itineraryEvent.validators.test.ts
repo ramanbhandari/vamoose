@@ -2,6 +2,8 @@ import {
   validateCreateItineraryEventInput,
   validateGetAllItineraryEventsInput,
   validateGetSingleItineraryEventInput,
+  validateDeleteItineraryEventInput,
+  validateBatchDeleteItineraryEventsInput,
 } from '@/middleware/itineraryEvent.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
@@ -294,6 +296,119 @@ describe('ItineraryEvent Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ msg: 'Event ID must be a number' }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Deleting a Single Itinerary Event
+  describe('validateDeleteItineraryEventInput', () => {
+    it('should pass validation with valid trip and event IDs', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: '5' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId or eventId are not valid numbers', async () => {
+      mockReq = {
+        params: { tripId: 'abc', eventId: 'invalid' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+          expect.objectContaining({ msg: 'Event ID must be a number' }),
+        ]),
+      );
+    });
+  });
+
+  // Validate Batch Deleting Itinerary Events
+  describe('validateBatchDeleteItineraryEventsInput', () => {
+    it('should pass validation with valid trip ID and event IDs array', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { eventIds: [1, 2, 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchDeleteItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a valid number', async () => {
+      mockReq = {
+        params: { tripId: 'abc' },
+        body: { eventIds: [1, 2, 3] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchDeleteItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if eventIds is not a valid array of numbers', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { eventIds: ['invalid', 2, 'three'] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchDeleteItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Each Event ID must be a positive integer',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if eventIds array is empty', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+        body: { eventIds: [] },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateBatchDeleteItineraryEventsInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Event IDs must be a non-empty array of integers',
+          }),
         ]),
       );
     });
