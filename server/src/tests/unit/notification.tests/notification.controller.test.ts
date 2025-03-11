@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
-import { getNotificationsHandler } from '@/controllers/notification.controller.js';
-import { getNotificationsForUser } from '@/models/notification.model.js';
+import {
+  getNotificationsHandler,
+  markNotificationAsReadHandler,
+  batchMarkNotificationsAsReadHandler,
+  markNotificationAsUnreadHandler,
+} from '@/controllers/notification.controller.js';
+import {
+  getNotificationsForUser,
+  markNotificationsAsRead,
+  markNotificationsAsUnread,
+} from '@/models/notification.model.js';
 
 jest.mock('@/models/notification.model.js');
 
@@ -172,6 +181,231 @@ describe('Get Notifications Controller', () => {
       expect(jsonMock).toHaveBeenCalledWith({
         notifications: filteredNotifications,
       });
+    });
+  });
+});
+
+describe('Mark Notification As Read Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { notificationId: '1' },
+    ...overrides,
+  });
+
+  it('should mark a single notification as read successfully', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsRead as jest.Mock).mockResolvedValue({
+      updatedCount: 1,
+    });
+
+    await markNotificationAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Notification marked as read',
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await markNotificationAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 404 if notification is not found', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsRead as jest.Mock).mockResolvedValue(null);
+
+    await markNotificationAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Notification not found or not authorized',
+    });
+  });
+});
+
+// New tests for marking notifications as unread
+describe('Mark Notification As Unread Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { notificationId: '1' },
+    ...overrides,
+  });
+
+  it('should mark a single notification as unread successfully', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsUnread as jest.Mock).mockResolvedValue({
+      updatedCount: 1,
+    });
+
+    await markNotificationAsUnreadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Notification marked as unread',
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await markNotificationAsUnreadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 404 if notification is not found', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsUnread as jest.Mock).mockResolvedValue(null);
+
+    await markNotificationAsUnreadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Notification not found or not authorized',
+    });
+  });
+});
+
+describe('Batch Mark Notifications As Read Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    body: { notificationIds: [1, 2, 3] },
+    ...overrides,
+  });
+
+  it('should mark multiple notifications as read successfully', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsRead as jest.Mock).mockResolvedValue({
+      updatedCount: 3,
+    });
+
+    await batchMarkNotificationsAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Notifications marked as read',
+      readNotificationsCount: 3,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await batchMarkNotificationsAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if no notification IDs are provided', async () => {
+    mockReq = setupRequest({ body: { notificationIds: [] } });
+
+    await batchMarkNotificationsAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Invalid request: notificationIds must be a non-empty array',
+    });
+  });
+
+  it('should return 404 if no notifications were updated', async () => {
+    mockReq = setupRequest();
+
+    (markNotificationsAsRead as jest.Mock).mockResolvedValue({
+      updatedCount: 0,
+    });
+
+    await batchMarkNotificationsAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid notifications found or not authorized',
     });
   });
 });
