@@ -16,6 +16,8 @@ import {
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '@/utils/errors.js';
+import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 /**
  * Add an expense to a trip
@@ -120,6 +122,14 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
     res.status(201).json({
       message: 'Expense added successfully',
       expense,
+    });
+
+    await notifyTripMembersExceptCreator(tripId, userId, {
+      type: NotificationType.EXPENSE_CREATED,
+      relatedId: expense.id,
+      title: 'Expense Added',
+      message: `A new expense of $${amount} has been added to the trip.`,
+      channel: 'IN_APP',
     });
   } catch (error) {
     handleControllerError(error, res, 'Error adding expense:');

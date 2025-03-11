@@ -8,10 +8,11 @@ import {
   getAllPollsForTrip,
   markPollAsCompleted,
 } from '@/models/poll.model.js';
-import { PollStatus } from '@/interfaces/enums.js';
+import { NotificationType, PollStatus } from '@/interfaces/enums.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
+import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
 
 export const createPollHandler = async (req: Request, res: Response) => {
   try {
@@ -52,6 +53,15 @@ export const createPollHandler = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ message: 'Poll created successfully', poll });
+
+    // send notification to everyone except creator of the Poll
+    await notifyTripMembersExceptCreator(tripId, userId, {
+      type: NotificationType.POLL_CREATED,
+      relatedId: poll.id,
+      title: 'New Poll',
+      message: `A new poll was created by ${requestingMember.user.email}.`,
+      channel: 'IN_APP',
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error creating poll:');
   }
@@ -344,6 +354,17 @@ export const completePollHandler = async (req: Request, res: Response) => {
       status,
       winnerId,
       tiedOptions,
+    });
+
+    await notifyTripMembersExceptCreator(tripId, userId, {
+      type: NotificationType.POLL_COMPLETE,
+      relatedId: poll.id,
+      title: 'Poll Completed',
+      message:
+        status === PollStatus.TIE
+          ? `Poll "${poll.question}" ended in a tie among the top options: ${tiedOptions.map((opt) => opt.option).join(', ')}.`
+          : `Poll "${poll.question}" has been completed. The winning option is "${poll.options.find((option) => option.id === winnerId)?.option}".`,
+      channel: 'IN_APP',
     });
   } catch (error) {
     handleControllerError(error, res, 'Error marking polls as completed:');
