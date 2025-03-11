@@ -97,28 +97,9 @@ export const batchMarkNotificationsAsReadHandler = async (
       res.status(401).json({ error: 'Unauthorized Request' });
       return;
     }
-
-    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
-      res.status(400).json({
-        error: 'Invalid request: notificationIds must be a non-empty array',
-      });
-      return;
-    }
-
-    const validNotificationIds = notificationIds
-      .map((id) => Number(id))
-      .filter((id) => !isNaN(id));
-
-    if (validNotificationIds.length === 0) {
-      res.status(400).json({
-        error: 'Invalid request: all notificationIds must be valid numbers',
-      });
-      return;
-    }
-
     const updatedNotifications = await markNotificationsAsRead(
       userId,
-      validNotificationIds,
+      notificationIds,
     );
 
     if (!updatedNotifications || updatedNotifications.updatedCount === 0) {

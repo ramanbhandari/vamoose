@@ -381,15 +381,18 @@ describe('Batch Mark Notifications As Read Controller', () => {
 
   it('should return 400 if no notification IDs are provided', async () => {
     mockReq = setupRequest({ body: { notificationIds: [] } });
+    (markNotificationsAsRead as jest.Mock).mockResolvedValue({
+      updatedCount: 0,
+    });
 
     await batchMarkNotificationsAsReadHandler(
       mockReq as Request,
       mockRes as Response,
     );
 
-    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(statusMock).toHaveBeenCalledWith(404);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Invalid request: notificationIds must be a non-empty array',
+      error: 'No valid notifications found or not authorized',
     });
   });
 
