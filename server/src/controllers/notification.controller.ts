@@ -229,27 +229,9 @@ export const batchDeleteNotificationsHandler = async (
       return;
     }
 
-    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
-      res.status(400).json({
-        error: 'Invalid request: notificationIds must be a non-empty array',
-      });
-      return;
-    }
-
-    const validNotificationIds = notificationIds
-      .map((id) => Number(id))
-      .filter((id) => !isNaN(id));
-
-    if (validNotificationIds.length === 0) {
-      res.status(400).json({
-        error: 'Invalid request: all notificationIds must be valid numbers',
-      });
-      return;
-    }
-
     const deletedNotifications = await deleteNotifications(
       userId,
-      validNotificationIds,
+      notificationIds,
     );
 
     if (!deletedNotifications || deletedNotifications.deletedCount === 0) {
