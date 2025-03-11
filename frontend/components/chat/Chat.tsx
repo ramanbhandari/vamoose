@@ -266,14 +266,14 @@ export default function Chat() {
 
   const getUserFullName = (userId: string) => {
     if (userId === user?.id) return "You";
-    
+
     const memberNames = userTrips
-      .filter(trip => trip.id === selectedTrip?.id)
-      .flatMap(trip => trip.members || [])
-      .filter(member => member.userId === userId)
-      .map(member => member.user?.fullName)
+      .filter((trip) => trip.id === selectedTrip?.id)
+      .flatMap((trip) => trip.members || [])
+      .filter((member) => member.userId === userId)
+      .map((member) => member.user?.fullName)
       .filter(Boolean);
-      
+
     return memberNames[0] ?? "Unknown User";
   };
 
@@ -357,6 +357,12 @@ export default function Chat() {
                   borderRight: "1px solid var(--divider)",
                   position: "relative",
                   p: 1,
+                  // Hide scrollbar
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollbarWidth: "none", // Firefox
+                  msOverflowStyle: "none", // IE/Edge
                 }}
               >
                 <Typography
@@ -477,6 +483,12 @@ export default function Chat() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
+                  // Hide scrollbar
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollbarWidth: "none", // Firefox
+                  msOverflowStyle: "none", // IE/Edge
                 }}
               >
                 {loading ? (
@@ -544,8 +556,8 @@ export default function Chat() {
                               msg.userId === user.id ? "grey.500" : "grey.600",
                           }}
                         >
-                          {getUserFullName(msg.userId)}{" "}
-                          • {formatTimestamp(msg.createdAt)}
+                          {getUserFullName(msg.userId)} •{" "}
+                          {formatTimestamp(msg.createdAt)}
                         </Typography>
                         <Box
                           sx={{
@@ -581,6 +593,7 @@ export default function Chat() {
                                   msg.userId === user.id
                                     ? "flex-end"
                                     : "flex-start",
+                                transition: "all 0.2s ease-in-out",
                               }}
                             >
                               {Object.entries(msg.reactions).map(
@@ -608,7 +621,10 @@ export default function Chat() {
                                       "&:hover": {
                                         backgroundColor:
                                           "var(--secondary-hover)",
+                                        transform: "scale(1.05)",
                                       },
+
+                                      transition: "all 0.15s ease-in-out",
                                     }}
                                   >
                                     <span>{emoji}</span>
@@ -639,6 +655,12 @@ export default function Chat() {
                             zIndex: 2,
                             width: 24,
                             height: 24,
+                            transition:
+                              "transform 0.2s ease, background-color 0.2s ease",
+                            "&:hover": {
+                              transform: "scale(1.1)",
+                              backgroundColor: "var(--primary-hover)",
+                            },
                           }}
                         >
                           <EmojiEmotionsIcon fontSize="small" />
@@ -660,9 +682,20 @@ export default function Chat() {
                               gap: 0.5,
                               zIndex: 10,
                               boxShadow: 3,
+                              animation: "fadeIn 0.2s ease-in-out",
+                              "@keyframes fadeIn": {
+                                "0%": {
+                                  opacity: 0,
+                                  transform: "translateY(10px)",
+                                },
+                                "100%": {
+                                  opacity: 1,
+                                  transform: "translateY(0)",
+                                },
+                              },
                             }}
                           >
-                            {REACTION_EMOJIS.map((emoji) => (
+                            {REACTION_EMOJIS.map((emoji, index) => (
                               <IconButton
                                 key={emoji}
                                 onClick={() =>
@@ -686,6 +719,22 @@ export default function Chat() {
                                   )
                                     ? 0.5
                                     : 1,
+                                  animation: `popIn 0.3s ease-in-out ${index * 0.05}s both`,
+                                  "@keyframes popIn": {
+                                    "0%": {
+                                      transform: "scale(0)",
+                                    },
+                                    "70%": {
+                                      transform: "scale(1.2)",
+                                    },
+                                    "100%": {
+                                      transform: "scale(1)",
+                                    },
+                                  },
+                                  "&:hover": {
+                                    transform: "scale(1.2)",
+                                    transition: "transform 0.2s ease",
+                                  },
                                 }}
                               >
                                 {isReactionProcessing(msg.messageId, emoji) ? (
