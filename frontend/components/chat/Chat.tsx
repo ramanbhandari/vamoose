@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "@mui/material/styles";
+import { differenceInHours, startOfDay, parseISO } from "date-fns";
 
 import {
   Box,
@@ -33,6 +34,7 @@ import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
 import { format } from "date-fns";
 import socketClient from "@/utils/socketClient";
+import DateDivider from "./DateDivider";
 
 export default function Chat() {
   const theme = useTheme();
@@ -290,6 +292,23 @@ export default function Chat() {
       .filter(Boolean);
 
     return memberNames[0] ?? "Unknown User";
+  };
+
+  const shouldShowDateDivider = (
+    currentMsg: any,
+    previousMsg: any | null
+  ): boolean => {
+    if (!previousMsg) return true; // Always show for first message
+
+    const currentDate = new Date(currentMsg.createdAt);
+    const previousDate = new Date(previousMsg.createdAt);
+
+    // Check if the messages are from different days or more than 24 hours apart
+    return (
+      startOfDay(currentDate).getTime() !==
+        startOfDay(previousDate).getTime() ||
+      differenceInHours(currentDate, previousDate) >= 24
+    );
   };
 
   return (
@@ -582,225 +601,238 @@ export default function Chat() {
                     </Typography>
                   </Box>
                 ) : (
-                  messages.map((msg) => (
-                    <Grow
-                      in={true}
-                      style={{ transformOrigin: "0 0 0" }}
-                      timeout={500}
-                      key={msg.messageId}
-                    >
-                      <Box
-                        sx={{
-                          position: "relative",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignSelf:
-                            msg.userId === user.id ? "flex-end" : "flex-start",
-                          gap: 0.5,
-                          mb: 4,
-                        }}
+                  messages.map((msg, index) => (
+                    <React.Fragment key={msg.messageId}>
+                      {shouldShowDateDivider(
+                        msg,
+                        index > 0 ? messages[index - 1] : null
+                      ) && <DateDivider date={new Date(msg.createdAt)} />}
+
+                      <Grow
+                        in={true}
+                        style={{ transformOrigin: "0 0 0" }}
+                        timeout={500}
                       >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color:
-                              msg.userId === user.id ? "grey.500" : "grey.600",
-                          }}
-                        >
-                          {getUserFullName(msg.userId)} •{" "}
-                          {formatTimestamp(msg.createdAt)}
-                        </Typography>
                         <Box
                           sx={{
-                            width: "100%",
-                            backgroundColor:
+                            position: "relative",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignSelf:
                               msg.userId === user.id
-                                ? "var(--primary-hover)"
-                                : "var(--background-paper)",
-                            color:
-                              msg.userId === user.id
-                                ? "var(--chat)"
-                                : "var(--text)",
-                            padding: "10px 16px",
-                            borderRadius:
-                              msg.userId === user.id
-                                ? "16px 16px 0 16px"
-                                : "16px 16px 16px 0",
+                                ? "flex-end"
+                                : "flex-start",
+                            gap: 0.5,
+                            mb: 4,
                           }}
                         >
-                          <Typography variant="body1">{msg.text}</Typography>
-                        </Box>
-
-                        {/* Display reactions if any */}
-                        {msg.reactions &&
-                          Object.keys(msg.reactions).length > 0 && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 0.5,
-                                mt: 0.5,
-                                alignSelf:
-                                  msg.userId === user.id
-                                    ? "flex-end"
-                                    : "flex-start",
-                                transition: "all 0.2s ease-in-out",
-                              }}
-                            >
-                              {Object.entries(msg.reactions).map(
-                                ([emoji, users]) => (
-                                  <Box
-                                    key={emoji}
-                                    onClick={() =>
-                                      handleReaction(msg.messageId, emoji)
-                                    }
-                                    sx={{
-                                      backgroundColor: hasUserReacted(
-                                        msg.reactions,
-                                        emoji
-                                      )
-                                        ? "var(--primary-light)"
-                                        : "var(--background-paper)",
-                                      borderRadius: "12px",
-                                      padding: "2px 6px",
-                                      fontSize: "0.8rem",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 0.5,
-                                      border: "1px solid var(--divider)",
-                                      cursor: "pointer",
-                                      "&:hover": {
-                                        backgroundColor:
-                                          "var(--secondary-hover)",
-                                        transform: "scale(1.05)",
-                                      },
-
-                                      transition: "all 0.15s ease-in-out",
-                                    }}
-                                  >
-                                    <span>{emoji}</span>
-                                    <span>{users.length}</span>
-                                  </Box>
-                                )
-                              )}
-                            </Box>
-                          )}
-
-                        {/* Reaction button */}
-                        <IconButton
-                          onClick={() =>
-                            setOpenReactionPickerFor(
-                              openReactionPickerFor === msg.messageId
-                                ? null
-                                : msg.messageId
-                            )
-                          }
-                          size="small"
-                          sx={{
-                            position: "absolute",
-                            bottom: -12,
-                            right: msg.userId === user.id ? -12 : "auto",
-                            left: msg.userId === user.id ? "auto" : -12,
-                            backgroundColor: "var(--primary)",
-                            color: "white",
-                            zIndex: 2,
-                            width: 24,
-                            height: 24,
-                            transition:
-                              "transform 0.2s ease, background-color 0.2s ease",
-                            "&:hover": {
-                              transform: "scale(1.1)",
-                              backgroundColor: "var(--primary-hover)",
-                            },
-                          }}
-                        >
-                          <EmojiEmotionsIcon fontSize="small" />
-                        </IconButton>
-
-                        {/* Reaction picker for this message */}
-                        {openReactionPickerFor === msg.messageId && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color:
+                                msg.userId === user.id
+                                  ? "grey.500"
+                                  : "grey.600",
+                            }}
+                          >
+                            {getUserFullName(msg.userId)} •{" "}
+                            {formatTimestamp(msg.createdAt)}
+                          </Typography>
                           <Box
                             sx={{
+                              width: "100%",
+                              backgroundColor:
+                                msg.userId === user.id
+                                  ? "var(--primary-hover)"
+                                  : "var(--background-paper)",
+                              color:
+                                msg.userId === user.id
+                                  ? "var(--chat)"
+                                  : "var(--text)",
+                              padding: "10px 16px",
+                              borderRadius:
+                                msg.userId === user.id
+                                  ? "16px 16px 0 16px"
+                                  : "16px 16px 16px 0",
+                            }}
+                          >
+                            <Typography variant="body1">{msg.text}</Typography>
+                          </Box>
+
+                          {/* Display reactions if any */}
+                          {msg.reactions &&
+                            Object.keys(msg.reactions).length > 0 && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 0.5,
+                                  mt: 0.5,
+                                  alignSelf:
+                                    msg.userId === user.id
+                                      ? "flex-end"
+                                      : "flex-start",
+                                  transition: "all 0.2s ease-in-out",
+                                }}
+                              >
+                                {Object.entries(msg.reactions).map(
+                                  ([emoji, users]) => (
+                                    <Box
+                                      key={emoji}
+                                      onClick={() =>
+                                        handleReaction(msg.messageId, emoji)
+                                      }
+                                      sx={{
+                                        backgroundColor: hasUserReacted(
+                                          msg.reactions,
+                                          emoji
+                                        )
+                                          ? "var(--primary-light)"
+                                          : "var(--background-paper)",
+                                        borderRadius: "12px",
+                                        padding: "2px 6px",
+                                        fontSize: "0.8rem",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                        border: "1px solid var(--divider)",
+                                        cursor: "pointer",
+                                        "&:hover": {
+                                          backgroundColor:
+                                            "var(--secondary-hover)",
+                                          transform: "scale(1.05)",
+                                        },
+
+                                        transition: "all 0.15s ease-in-out",
+                                      }}
+                                    >
+                                      <span>{emoji}</span>
+                                      <span>{users.length}</span>
+                                    </Box>
+                                  )
+                                )}
+                              </Box>
+                            )}
+
+                          {/* Reaction button */}
+                          <IconButton
+                            onClick={() =>
+                              setOpenReactionPickerFor(
+                                openReactionPickerFor === msg.messageId
+                                  ? null
+                                  : msg.messageId
+                              )
+                            }
+                            size="small"
+                            sx={{
                               position: "absolute",
-                              bottom: "30px",
-                              right: msg.userId === user.id ? 0 : "auto",
-                              left: msg.userId === user.id ? "auto" : 0,
-                              backgroundColor: "var(--background-paper)",
-                              border: "1px solid var(--divider)",
-                              borderRadius: "8px",
-                              p: 0.5,
-                              display: "flex",
-                              gap: 0.5,
-                              zIndex: 10,
-                              boxShadow: 3,
-                              animation: "fadeIn 0.2s ease-in-out",
-                              "@keyframes fadeIn": {
-                                "0%": {
-                                  opacity: 0,
-                                  transform: "translateY(10px)",
-                                },
-                                "100%": {
-                                  opacity: 1,
-                                  transform: "translateY(0)",
-                                },
+                              bottom: -12,
+                              right: msg.userId === user.id ? -12 : "auto",
+                              left: msg.userId === user.id ? "auto" : -12,
+                              backgroundColor: "var(--primary)",
+                              color: "white",
+                              zIndex: 2,
+                              width: 24,
+                              height: 24,
+                              transition:
+                                "transform 0.2s ease, background-color 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.1)",
+                                backgroundColor: "var(--primary-hover)",
                               },
                             }}
                           >
-                            {REACTION_EMOJIS.map((emoji, index) => (
-                              <IconButton
-                                key={emoji}
-                                onClick={() =>
-                                  handleReaction(msg.messageId, emoji)
-                                }
-                                disabled={isReactionProcessing(
-                                  msg.messageId,
-                                  emoji
-                                )}
-                                sx={{
-                                  padding: "4px",
-                                  backgroundColor: hasUserReacted(
-                                    msg.reactions,
-                                    emoji
-                                  )
-                                    ? "var(--primary-light)"
-                                    : "transparent",
-                                  opacity: isReactionProcessing(
+                            <EmojiEmotionsIcon fontSize="small" />
+                          </IconButton>
+
+                          {/* Reaction picker for this message */}
+                          {openReactionPickerFor === msg.messageId && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                bottom: "30px",
+                                right: msg.userId === user.id ? 0 : "auto",
+                                left: msg.userId === user.id ? "auto" : 0,
+                                backgroundColor: "var(--background-paper)",
+                                border: "1px solid var(--divider)",
+                                borderRadius: "8px",
+                                p: 0.5,
+                                display: "flex",
+                                gap: 0.5,
+                                zIndex: 10,
+                                boxShadow: 3,
+                                animation: "fadeIn 0.2s ease-in-out",
+                                "@keyframes fadeIn": {
+                                  "0%": {
+                                    opacity: 0,
+                                    transform: "translateY(10px)",
+                                  },
+                                  "100%": {
+                                    opacity: 1,
+                                    transform: "translateY(0)",
+                                  },
+                                },
+                              }}
+                            >
+                              {REACTION_EMOJIS.map((emoji, index) => (
+                                <IconButton
+                                  key={emoji}
+                                  onClick={() =>
+                                    handleReaction(msg.messageId, emoji)
+                                  }
+                                  disabled={isReactionProcessing(
                                     msg.messageId,
                                     emoji
-                                  )
-                                    ? 0.5
-                                    : 1,
-                                  animation: `popIn 0.3s ease-in-out ${index * 0.05}s both`,
-                                  "@keyframes popIn": {
-                                    "0%": {
-                                      transform: "scale(0)",
+                                  )}
+                                  sx={{
+                                    padding: "4px",
+                                    backgroundColor: hasUserReacted(
+                                      msg.reactions,
+                                      emoji
+                                    )
+                                      ? "var(--primary-light)"
+                                      : "transparent",
+                                    opacity: isReactionProcessing(
+                                      msg.messageId,
+                                      emoji
+                                    )
+                                      ? 0.5
+                                      : 1,
+                                    animation: `popIn 0.3s ease-in-out ${index * 0.05}s both`,
+                                    "@keyframes popIn": {
+                                      "0%": {
+                                        transform: "scale(0)",
+                                      },
+                                      "70%": {
+                                        transform: "scale(1.2)",
+                                      },
+                                      "100%": {
+                                        transform: "scale(1)",
+                                      },
                                     },
-                                    "70%": {
+                                    "&:hover": {
                                       transform: "scale(1.2)",
+                                      transition: "transform 0.2s ease",
                                     },
-                                    "100%": {
-                                      transform: "scale(1)",
-                                    },
-                                  },
-                                  "&:hover": {
-                                    transform: "scale(1.2)",
-                                    transition: "transform 0.2s ease",
-                                  },
-                                }}
-                              >
-                                {isReactionProcessing(msg.messageId, emoji) ? (
-                                  <CircularProgress size={16} />
-                                ) : (
-                                  <Typography variant="body2">
-                                    {emoji}
-                                  </Typography>
-                                )}
-                              </IconButton>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
-                    </Grow>
+                                  }}
+                                >
+                                  {isReactionProcessing(
+                                    msg.messageId,
+                                    emoji
+                                  ) ? (
+                                    <CircularProgress size={16} />
+                                  ) : (
+                                    <Typography variant="body2">
+                                      {emoji}
+                                    </Typography>
+                                  )}
+                                </IconButton>
+                              ))}
+                            </Box>
+                          )}
+                        </Box>
+                      </Grow>
+                    </React.Fragment>
                   ))
                 )}
                 {/* Dummy element to scroll into view */}
