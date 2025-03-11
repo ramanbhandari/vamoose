@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { EventCategory } from './enums';
 
 export interface AuthenticatedRequest extends Request {
   userId: string;
@@ -69,3 +70,16 @@ export interface CastVoteInput {
 }
 
 export type DeleteVoteInput = Omit<CastVoteInput, 'pollOptionId'>;
+
+export interface CreateItineraryEventInput {
+  tripId: number;
+  title: string;
+  description?: string;
+  location?: string;
+  startTime?: Date;
+  endTime?: Date;
+  category: EventCategory;
+  createdById: string;
+  assignedUserIds: string[];
+  notes?: { content: string; createdBy: string }[];
+}
