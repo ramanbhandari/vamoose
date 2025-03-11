@@ -84,11 +84,9 @@ export interface CreateItineraryEventInput {
   notes?: { content: string; createdBy: string }[];
 }
 
-export interface UpdateItineraryEventInput {
-  title: string;
-  description?: string;
-  location?: string;
-  startTime?: Date;
-  endTime?: Date;
-  category: EventCategory;
-}
+export type UpdateItineraryEventInput = Partial<
+  Omit<
+    CreateItineraryEventInput,
+    'tripId' | 'createdById' | 'assignedUserIds' | 'notes'
+  >
+>;
