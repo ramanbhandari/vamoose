@@ -83,3 +83,9 @@ export interface CreateItineraryEventInput {
   assignedUserIds: string[];
   notes?: { content: string; createdBy: string }[];
 }
+
+export interface NotificationFilterOptions {
+  isRead?: boolean;
+  type?: string;
+  limit?: number;
+}
