@@ -19,24 +19,26 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  email        String         @unique
-  fullName     String?
-  avatarUrl    String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                    String                  @id @default(uuid())
+  email                 String                  @unique
+  fullName              String?
+  avatarUrl             String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
   // Relations
-  expenses     Expense[]
-  ExpenseShare ExpenseShare[]
-  messages     Message[]
-  packingItems PackingItem[]
-  polls        Poll[]
-  staysBooked  Stay[]
-  createdTrips Trip[]
-  tripInvites  TripInvitee[]  @relation("CreatorRelation")
-  invitedTrips TripInvitee[]  @relation("InvitedUserRelation")
-  tripMembers  TripMember[]
-  pollVotes    Vote[]
+  expenses              Expense[]
+  ExpenseShare          ExpenseShare[]
+  messages              Message[]
+  packingItems          PackingItem[]
+  polls                 Poll[]
+  staysBooked           Stay[]
+  createdTrips          Trip[]
+  tripInvites           TripInvitee[]           @relation("CreatorRelation")
+  invitedTrips          TripInvitee[]           @relation("InvitedUserRelation")
+  tripMembers           TripMember[]
+  pollVotes             Vote[]
+  Notification          Notification[]
+  ScheduledNotification ScheduledNotification[]
 }
 
 model Trip {
@@ -215,4 +217,44 @@ model PackingItem {
   userId     String?
   trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   User       User?    @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  tripId    Int?
+  type      String
+  relatedId Int?
+  channel   String?
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+model ScheduledNotification {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  tripId    Int?
+  type      String
+  relatedId Int?
+  channel   String?
+  title     String
+  message   String
+  data      Json?
+  sendAt    DateTime
+  isSent    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sendAt])
+  @@index([isSent])
 }
