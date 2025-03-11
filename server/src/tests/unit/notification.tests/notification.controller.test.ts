@@ -4,11 +4,14 @@ import {
   markNotificationAsReadHandler,
   batchMarkNotificationsAsReadHandler,
   markNotificationAsUnreadHandler,
+  deleteNotificationHandler,
+  batchDeleteNotificationsHandler,
 } from '@/controllers/notification.controller.js';
 import {
   getNotificationsForUser,
   markNotificationsAsRead,
   markNotificationsAsUnread,
+  deleteNotifications,
 } from '@/models/notification.model.js';
 
 jest.mock('@/models/notification.model.js');
@@ -399,6 +402,147 @@ describe('Batch Mark Notifications As Read Controller', () => {
     });
 
     await batchMarkNotificationsAsReadHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'No valid notifications found or not authorized',
+    });
+  });
+});
+
+describe('Delete Notification Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { notificationId: '1' },
+    ...overrides,
+  });
+
+  it('should delete a single notification successfully', async () => {
+    mockReq = setupRequest();
+
+    (deleteNotifications as jest.Mock).mockResolvedValue({ deletedCount: 1 });
+
+    await deleteNotificationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Notification deleted successfully',
+      deletedNotificationsCount: 1,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await deleteNotificationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 404 if notification is not found', async () => {
+    mockReq = setupRequest();
+
+    (deleteNotifications as jest.Mock).mockResolvedValue({ deletedCount: 0 });
+
+    await deleteNotificationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Notification not found or not authorized',
+    });
+  });
+});
+
+describe('Batch Delete Notifications Controller', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    body: { notificationIds: [1, 2, 3] },
+    ...overrides,
+  });
+
+  it('should delete multiple notifications successfully', async () => {
+    mockReq = setupRequest();
+
+    (deleteNotifications as jest.Mock).mockResolvedValue({ deletedCount: 3 });
+
+    await batchDeleteNotificationsHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Notifications deleted successfully',
+      deletedNotificationsCount: 3,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await batchDeleteNotificationsHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if no notification IDs are provided', async () => {
+    mockReq = setupRequest({ body: { notificationIds: [] } });
+
+    await batchDeleteNotificationsHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Invalid request: notificationIds must be a non-empty array',
+    });
+  });
+
+  it('should return 404 if no notifications were deleted', async () => {
+    mockReq = setupRequest();
+
+    (deleteNotifications as jest.Mock).mockResolvedValue({ deletedCount: 0 });
+
+    await batchDeleteNotificationsHandler(
       mockReq as Request,
       mockRes as Response,
     );

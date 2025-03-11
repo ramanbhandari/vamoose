@@ -25,7 +25,7 @@ export const getNotificationsForUser = async (
 
 export const markNotificationsAsRead = async (
   userId: string,
-  notificationIds: number | number[], // Accepts both a single ID and an array
+  notificationIds: number | number[],
 ) => {
   try {
     const idsArray = Array.isArray(notificationIds)
@@ -53,7 +53,7 @@ export const markNotificationsAsRead = async (
 
 export const markNotificationsAsUnread = async (
   userId: string,
-  notificationIds: number | number[], // Accepts both a single ID and an array
+  notificationIds: number | number[],
 ) => {
   try {
     const idsArray = Array.isArray(notificationIds)
@@ -75,6 +75,29 @@ export const markNotificationsAsUnread = async (
     return result.count > 0 ? { updatedCount: result.count } : null;
   } catch (error) {
     console.error('Error marking notification as unread:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+export const deleteNotifications = async (
+  userId: string,
+  notificationIds: number | number[],
+) => {
+  try {
+    const idsArray = Array.isArray(notificationIds)
+      ? notificationIds
+      : [notificationIds];
+
+    const result = await prisma.notification.deleteMany({
+      where: {
+        id: { in: idsArray },
+        userId,
+      },
+    });
+
+    return result.count > 0 ? { deletedCount: result.count } : null;
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
     throw handlePrismaError(error);
   }
 };

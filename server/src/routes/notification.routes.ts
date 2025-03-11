@@ -2,14 +2,16 @@ import express from 'express';
 import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateGetNotificationsInput,
-  validateToggleNotificationReadStatusInput,
-  validateBatchMarkNotificationsAsReadInput,
+  validateHandleSingleNotificationInput,
+  validateHandleBatchNotificationsInput,
 } from '@/middleware/notification.validators.js';
 import {
   getNotificationsHandler,
   markNotificationAsReadHandler,
   markNotificationAsUnreadHandler,
   batchMarkNotificationsAsReadHandler,
+  deleteNotificationHandler,
+  batchDeleteNotificationsHandler,
 } from '@/controllers/notification.controller.js';
 
 const router = express.Router({ mergeParams: true });
@@ -23,21 +25,33 @@ router
   )
   .patch(
     '/mark-as-read',
-    validateBatchMarkNotificationsAsReadInput,
+    validateHandleBatchNotificationsInput,
     validationErrorHandler,
     batchMarkNotificationsAsReadHandler,
   )
   .patch(
     '/:notificationId/mark-as-read',
-    validateToggleNotificationReadStatusInput,
+    validateHandleSingleNotificationInput,
     validationErrorHandler,
     markNotificationAsReadHandler,
   )
   .patch(
     '/:notificationId/mark-as-unread',
-    validateToggleNotificationReadStatusInput,
+    validateHandleSingleNotificationInput,
     validationErrorHandler,
     markNotificationAsUnreadHandler,
+  )
+  .delete(
+    '/clear',
+    validateHandleBatchNotificationsInput,
+    validationErrorHandler,
+    batchDeleteNotificationsHandler,
+  )
+  .delete(
+    '/:notificationId/clear',
+    validateHandleSingleNotificationInput,
+    validationErrorHandler,
+    deleteNotificationHandler,
   );
 
 export default router;

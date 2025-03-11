@@ -16,13 +16,13 @@ export const validateGetNotificationsInput = checkExact(
     ),
 );
 
-export const validateToggleNotificationReadStatusInput = checkExact([
+export const validateHandleSingleNotificationInput = checkExact([
   param('notificationId')
     .isInt({ min: 1 })
     .withMessage('Notification ID must be a valid integer greater than 0'),
 ]);
 
-export const validateBatchMarkNotificationsAsReadInput = checkExact([
+export const validateHandleBatchNotificationsInput = checkExact([
   body('notificationIds')
     .isArray({ min: 1 })
     .withMessage('Notification IDs must be a non-empty array'),
