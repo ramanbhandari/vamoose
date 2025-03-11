@@ -1,5 +1,6 @@
 import prisma from '@/config/prismaClient.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
+import { DateTime } from 'luxon';
 
 interface CreateNotificationOptions {
   userIds: string[];
@@ -35,7 +36,7 @@ export async function createNotification(
     } = options;
 
     // if sendAt is in future, we add it to the ScheduledNotification table instead
-    if (sendAt && sendAt.getTime() > Date.now()) {
+    if (sendAt && sendAt > DateTime.now().toUTC().toJSDate()) {
       try {
         await prisma.scheduledNotification.createMany({
           data: userIds.map((uid) => ({
