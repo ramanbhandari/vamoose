@@ -46,7 +46,7 @@ describe('Itinerary Event Note Handlers', () => {
   const setupRequest = (overrides = {}) => ({
     userId: 'test-user-id',
     params: { tripId: '1', eventId: '1', noteId: '1' },
-    body: { content: 'Updated note content' },
+    body: { content: 'Updated note content', noteIds: [1, 2, 3] },
     ...overrides,
   });
 
@@ -458,6 +458,57 @@ describe('Itinerary Event Note Handlers', () => {
       });
     });
 
+    it('should return 403 if no notes are deletable by the user', async () => {
+      mockReq = setupRequest();
+
+      (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+        userId: 'test-user-id',
+        role: 'member',
+      });
+      (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+        id: 1,
+        createdById: 'test-user-id',
+      });
+      (prisma.eventNote.findMany as jest.Mock).mockResolvedValue([
+        { id: 1, createdBy: 'another-user-id' },
+        { id: 2, createdBy: 'another-user-id' },
+      ]);
+
+      await batchDeleteItineraryEventNotesHandler(
+        mockReq as Request,
+        mockRes as Response,
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(403);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'You do not have permission to delete these notes',
+      });
+    });
+
+    it('should return 404 if no notes are found for the event', async () => {
+      mockReq = setupRequest();
+
+      (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+        userId: 'test-user-id',
+        role: 'member',
+      });
+      (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+        id: 1,
+        createdById: 'test-user-id',
+      });
+      (prisma.eventNote.findMany as jest.Mock).mockResolvedValue([]);
+
+      await batchDeleteItineraryEventNotesHandler(
+        mockReq as Request,
+        mockRes as Response,
+      );
+
+      expect(statusMock).toHaveBeenCalledWith(404);
+      expect(jsonMock).toHaveBeenCalledWith({
+        error: 'Event notes not found',
+      });
+    });
+
     it.each([
       {
         scenario: 'User is not authenticated',
@@ -498,22 +549,6 @@ describe('Itinerary Event Note Handlers', () => {
         },
         expectedStatus: 404,
         expectedMessage: 'Event not found',
-      },
-      {
-        scenario: 'No notes found for deletion',
-        setupMocks: () => {
-          (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
-            userId: 'test-user-id',
-            role: 'member',
-          });
-          (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
-            id: 1,
-            createdById: 'test-user-id',
-          });
-          (prisma.eventNote.findMany as jest.Mock).mockResolvedValue([]);
-        },
-        expectedStatus: 403,
-        expectedMessage: 'You do not have permission to delete these notes',
       },
     ])(
       '[$scenario] → should return $expectedStatus',
