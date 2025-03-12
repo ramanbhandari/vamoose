@@ -5,6 +5,7 @@ import prisma from './config/prismaClient.js';
 import cors from 'cors';
 import '@/cron/scheduler.js';
 import connectMongoDB from './db/mongo.js';
+import { initializeSocketServer } from './socketServer.js';
 
 dotenv.config();
 
@@ -28,9 +29,13 @@ app.use((_req: Request, res: Response, _next: NextFunction) => {
   res.status(404).send('Route not found');
 });
 
+// Initialize socket server and get http server instance from express app
+const server = initializeSocketServer(app);
+
 //Start server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`WebSocket server is running`);
 });
 
 // Handle Prisma Client shutdown gracefully

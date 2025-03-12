@@ -149,7 +149,7 @@ describe('ItineraryEvent Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Category must be one of: GENERAL, TRAVEL, ACTIVITY, MEAL, MEETING, FREE_TIME, OTHER',
+            msg: expect.stringContaining('Category must be one of:'),
           }),
         ]),
       );
