@@ -6,10 +6,10 @@ import CreateTripButton from "../../components/CreateTripButton";
 import { Box, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
 import GridMotion from "../../components/blocks/Backgrounds/GridMotion/GridMotion";
 import Image from "next/image";
-import apiClient from "@/utils/apiClient";
 import DashboardSkeleton from "./Skeleton";
 import { useNotificationStore } from "@/stores/notification-store";
 import { getMessages } from "./messages";
+import { useUserTripsStore } from "@/stores/user-trips-store";
 
 const items = [
   "/dashboard/dashboard_1.jpg",
@@ -35,53 +35,18 @@ const items = [
   "/dashboard/dashboard_21.jpg",
 ];
 
-interface Expense {
-  id: number;
-  amount: number;
-  category: string;
-  description: string;
-  tripId: number;
-  paidBy: {
-    email: string;
-    fullName: string | null;
-  };
-}
-
-interface TripData {
-  id: number;
-  name: string;
-  description: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  members: Array<{
-    tripId: number;
-    userId: string;
-    role: string;
-    user: { email: string; fullName: string | null };
-  }>;
-  expenses: Expense[];
-  stays: Array<[]>;
-  imageUrl: string;
-  expenseSummary: {
-    breakdown: Array<{
-      category: string;
-      total: number;
-    }>;
-    totalExpenses: number;
-  };
-}
-
 export default function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  // set loading true so we can first load everything before we show the whole page
-  const [loading, setLoading] = useState(true);
 
-  const [upcomingTrips, setUpcomingTrips] = useState<TripData[]>([]);
-  const [pastTrips, setPastTrips] = useState<TripData[]>([]);
-  const [currentTrips, setCurrentTrips] = useState<TripData[]>([]);
+  const {
+    currentTrips,
+    upcomingTrips,
+    pastTrips,
+    loading,
+    fetchUserTrips,
+    deleteTrip,
+  } = useUserTripsStore();
 
   const [preloaded, setPreloaded] = useState(false);
   const { setNotification } = useNotificationStore();
@@ -90,37 +55,21 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDataAndPreload = async () => {
       try {
-        // API call for current trips
-        const currentResponse = await apiClient.get(`/trips`, {
-          params: { status: "current" },
-        });
-        // API call for upcoming trips
-        const upcomingResponse = await apiClient.get(`/trips`, {
-          params: { status: "future" },
-        });
-
-        // API call for past trips
-        const pastResponse = await apiClient.get(`/trips`, {
-          params: { status: "past" },
-        });
-
-        setUpcomingTrips(upcomingResponse.data.trips || []);
-        setPastTrips(pastResponse.data.trips || []);
-        setCurrentTrips(currentResponse.data.trips || []);
-
+        await Promise.all([
+          fetchUserTrips("current"),
+          fetchUserTrips("upcoming"),
+          fetchUserTrips("past"),
+        ]);
         if (!preloaded) {
           await preloadImages(items);
           setPreloaded(true);
         }
-
-        setLoading(false);
       } catch (error) {
         setNotification(
           "Error fetching trips, please refresh or login again",
           "error"
         );
         console.error("Error fetching data", error);
-        setLoading(false);
       }
     };
 
@@ -143,9 +92,7 @@ export default function Dashboard() {
   };
 
   const handleTripDelete = (deletedTripId: number) => {
-    setCurrentTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
-    setUpcomingTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
-    setPastTrips((trips) => trips.filter((t) => t.id !== deletedTripId));
+    deleteTrip(deletedTripId);
   };
 
   // skeleton resembling our acutal page
