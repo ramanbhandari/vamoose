@@ -94,6 +94,26 @@ export default function TripSummaryPage() {
       // silently also pull Polls
       fetchPolls(tripId);
     }
+
+    // Read hash from URL to set the correct section on load and remove #
+    const hashSection = window.location.hash.replace("#", "");
+    if (hashSection) {
+      setActiveSection(hashSection);
+
+      // Remove the hash from the URL without triggering a page reload
+      history.replaceState(null, "", window.location.pathname);
+    }
+
+    // Also listen for hash changes if user manually updates the URL
+    const handleHashChange = () => {
+      setActiveSection(window.location.hash.replace("#", ""));
+
+      // Remove the hash after processing
+      history.replaceState(null, "", window.location.pathname);
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, [tripId, fetchTripData, fetchPolls]);
 
   //Just a loading screen
