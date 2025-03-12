@@ -122,12 +122,12 @@ describe('Create Itinerary Event Controller', () => {
     await createItineraryEventHandler(mockReq as Request, mockRes as Response);
 
     expect(jsonMock).toHaveBeenCalledWith({
-      error: `Start time must be within the trip's duration: 2025-04-16T09:00:00.000-05:00 to 2025-04-16T11:00:00.000-05:00`,
+      error: `Start time must be within the trip's duration: 2025-04-16T14:00:00.000Z to 2025-04-16T16:00:00.000Z`,
     });
     expect(statusMock).toHaveBeenCalledWith(400);
   });
 
-  it('should fail update itinerary event due to end time not within the trip dates', async () => {
+  it('should fail create itinerary event due to end time not within the trip dates', async () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
@@ -144,7 +144,7 @@ describe('Create Itinerary Event Controller', () => {
     await createItineraryEventHandler(mockReq as Request, mockRes as Response);
 
     expect(jsonMock).toHaveBeenCalledWith({
-      error: `End time must be within the trip's duration: 2025-04-15T09:00:00.000-05:00 to 2025-04-15T10:00:00.000-05:00`,
+      error: `End time must be within the trip's duration: 2025-04-15T14:00:00.000Z to 2025-04-15T15:00:00.000Z`,
     });
     expect(statusMock).toHaveBeenCalledWith(400);
   });
@@ -305,7 +305,7 @@ describe('Update Itinerary Event Controller', () => {
     await updateItineraryEventHandler(mockReq as Request, mockRes as Response);
 
     expect(jsonMock).toHaveBeenCalledWith({
-      error: `Start time must be within the trip's duration: 2025-04-16T09:00:00.000-05:00 to 2025-04-16T11:00:00.000-05:00`,
+      error: `Start time must be within the trip's duration: 2025-04-16T14:00:00.000Z to 2025-04-16T16:00:00.000Z`,
     });
     expect(statusMock).toHaveBeenCalledWith(400);
   });
@@ -327,7 +327,7 @@ describe('Update Itinerary Event Controller', () => {
     await updateItineraryEventHandler(mockReq as Request, mockRes as Response);
 
     expect(jsonMock).toHaveBeenCalledWith({
-      error: `End time must be within the trip's duration: 2025-04-15T09:00:00.000-05:00 to 2025-04-15T10:00:00.000-05:00`,
+      error: `End time must be within the trip's duration: 2025-04-15T14:00:00.000Z to 2025-04-15T15:00:00.000Z`,
     });
     expect(statusMock).toHaveBeenCalledWith(400);
   });
