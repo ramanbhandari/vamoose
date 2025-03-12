@@ -318,8 +318,8 @@ describe('Get All Polls For Trip Controller', () => {
         id: 1,
         question: 'Where to go?',
         status: PollStatus.TIE,
-        expiresAt: new Date(),
-        createdAt: new Date(),
+        expiresAt: expect.any(Date),
+        createdAt: expect.any(Date),
         completedAt: null,
         createdBy: {
           id: 'creator-id',

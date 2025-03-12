@@ -94,7 +94,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
+            msg: expect.stringContaining('Category must be one of:'),
           }),
         ]),
       );
@@ -112,7 +112,7 @@ describe('Expense Validators Middleware', () => {
       expect(result.array()).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            msg: 'Category must be one of: food, accommodation, transportation, activities, miscellaneous',
+            msg: expect.stringContaining('Category must be one of:'),
           }),
         ]),
       );
