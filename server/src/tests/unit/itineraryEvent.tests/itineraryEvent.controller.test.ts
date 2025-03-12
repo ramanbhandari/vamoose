@@ -68,8 +68,8 @@ describe('Create Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-14T14:00:00.000Z',
-      endDate: '2025-04-16T16:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-14T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-16T16:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
@@ -109,8 +109,8 @@ describe('Create Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-16T14:00:00.000Z',
-      endDate: '2025-04-16T16:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-16T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-16T16:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
@@ -131,8 +131,8 @@ describe('Create Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-15T14:00:00.000Z',
-      endDate: '2025-04-15T15:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-15T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
@@ -248,8 +248,8 @@ describe('Update Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-15T14:00:00.000Z',
-      endDate: '2025-04-15T16:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-15T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-15T16:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
@@ -292,8 +292,8 @@ describe('Update Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-16T14:00:00.000Z',
-      endDate: '2025-04-16T16:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-16T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-16T16:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
@@ -314,8 +314,8 @@ describe('Update Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-15T14:00:00.000Z',
-      endDate: '2025-04-15T15:00:00.000Z',
+      startDate: DateTime.fromISO('2025-04-15T14:00:00.000Z').toJSDate(),
+      endDate: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
       createdBy: 'test-user-id',
       members: [],
     });
