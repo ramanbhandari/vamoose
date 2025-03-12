@@ -1,7 +1,7 @@
 import {
   validateGetNotificationsInput,
-  validateToggleNotificationReadStatusInput,
-  validateBatchMarkNotificationsAsReadInput,
+  validateHandleSingleNotificationInput,
+  validateHandleBatchNotificationsInput,
 } from '@/middleware/notification.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
@@ -71,13 +71,13 @@ describe('Notification Validators Middleware', () => {
     });
   });
 
-  describe('validateToggleNotificationReadStatusInput', () => {
+  describe('validateHandleSingleNotificationInput ', () => {
     it('should pass validation for a valid notification ID', async () => {
       mockReq = { params: { notificationId: '5' } };
 
       const result = await runValidation(
         mockReq,
-        validateToggleNotificationReadStatusInput,
+        validateHandleSingleNotificationInput,
       );
 
       expect(result.isEmpty()).toBe(true);
@@ -88,7 +88,7 @@ describe('Notification Validators Middleware', () => {
 
       const result = await runValidation(
         mockReq,
-        validateToggleNotificationReadStatusInput,
+        validateHandleSingleNotificationInput,
       );
 
       expect(result.isEmpty()).toBe(false);
@@ -102,13 +102,13 @@ describe('Notification Validators Middleware', () => {
     });
   });
 
-  describe('validateBatchMarkNotificationsAsReadInput', () => {
+  describe('validateHandleBatchNotificationsInput ', () => {
     it('should pass validation for a valid array of notification IDs', async () => {
       mockReq = { body: { notificationIds: [1, 2, 3] } };
 
       const result = await runValidation(
         mockReq,
-        validateBatchMarkNotificationsAsReadInput,
+        validateHandleBatchNotificationsInput,
       );
 
       expect(result.isEmpty()).toBe(true);
@@ -119,7 +119,7 @@ describe('Notification Validators Middleware', () => {
 
       const result = await runValidation(
         mockReq,
-        validateBatchMarkNotificationsAsReadInput,
+        validateHandleBatchNotificationsInput,
       );
 
       expect(result.isEmpty()).toBe(false);
@@ -137,7 +137,7 @@ describe('Notification Validators Middleware', () => {
 
       const result = await runValidation(
         mockReq,
-        validateBatchMarkNotificationsAsReadInput,
+        validateHandleBatchNotificationsInput,
       );
 
       expect(result.isEmpty()).toBe(false);
