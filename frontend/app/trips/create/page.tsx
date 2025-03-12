@@ -45,6 +45,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Image from "next/image";
 import DestinationField from "./DestinationField";
 import { useRouter } from "next/navigation";
+import { useUserTripsStore } from "@/stores/user-trips-store";
 
 const steps = [
   { label: "Trip Details", icon: <FlightTakeoff fontSize="large" /> },
@@ -57,6 +58,7 @@ const backgroundImage = "/dashboard/dashboard_15.jpg";
 export default function CreateTrip() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { fetchUserTrips } = useUserTripsStore();
 
   const [activeStep, setActiveStep] = useState(0);
   const [tripDetails, setTripDetails] = useState<{
@@ -168,6 +170,8 @@ export default function CreateTrip() {
 
       if (response.data.trip.id) {
         setActiveStep(steps.length);
+        // create new success should pull user upcoming trips to replenish our user trips store for keeping our chat list updated
+        fetchUserTrips("upcoming");
         router.push(`/trips/${response.data.trip.id}`);
       }
     } catch (error) {

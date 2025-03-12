@@ -194,3 +194,95 @@ export const updateMessageHandler = async (
     handleControllerError(error, res, 'Error updating message:');
   }
 };
+
+/**
+ * Remove a reaction from a message
+ */
+export const removeReactionHandler = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const { messageId } = req.params;
+    const { emoji } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (!tripId) {
+      res.status(400).json({ error: 'Missing required field(s): tripId' });
+      return;
+    }
+
+    if (!messageId) {
+      res.status(400).json({ error: 'Missing required field(s): messageId' });
+      return;
+    }
+
+    if (!emoji) {
+      res.status(400).json({ error: 'Missing required field(s): emoji' });
+      return;
+    }
+
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({ error: 'You are not a member of this trip' });
+      return;
+    }
+
+    // First we get the message
+    const message = await Message.findOne({ messageId, tripId }).exec();
+
+    if (!message) {
+      res.status(404).json({ error: 'Message not found.' });
+      return;
+    }
+
+    // Get current reactions
+    const currentReactions = message.reactions || {};
+
+    // Check if the emoji reaction exists
+    if (!currentReactions[emoji]) {
+      res.status(400).json({ error: 'Reaction does not exist' });
+      return;
+    }
+
+    // Check if the user has reacted with this emoji
+    if (!currentReactions[emoji].includes(userId)) {
+      res.status(400).json({ error: 'User has not reacted with this emoji' });
+      return;
+    }
+
+    // Remove the user's reaction
+    currentReactions[emoji] = currentReactions[emoji].filter(
+      (id) => id !== userId,
+    );
+
+    // If no users left for this emoji, remove the emoji entry
+    if (currentReactions[emoji].length === 0) {
+      delete currentReactions[emoji];
+    }
+
+    // Update the message with the new reactions
+    const updatedMessage = await Message.findOneAndUpdate(
+      { messageId, tripId },
+      { $set: { reactions: currentReactions } },
+      { new: true },
+    ).exec();
+
+    if (!updatedMessage) {
+      res.status(404).json({ error: 'Message not found after update.' });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ message: 'Reaction removed successfully!', updatedMessage });
+  } catch (error) {
+    handleControllerError(error, res, 'Error removing reaction:');
+  }
+};

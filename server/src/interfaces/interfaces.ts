@@ -90,3 +90,9 @@ export type UpdateItineraryEventInput = Partial<
     'tripId' | 'createdById' | 'assignedUserIds' | 'notes'
   >
 >;
+
+export interface NotificationFilterOptions {
+  isRead?: boolean;
+  type?: string;
+  limit?: number;
+}

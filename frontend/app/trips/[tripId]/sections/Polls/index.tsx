@@ -114,10 +114,7 @@ export default function Polls({
 
   const handleDeletePoll = async (pollId: number) => {
     try {
-      const response = await apiClient.delete(
-        `/trips/${tripId}/polls/${pollId}`
-      );
-      console.log(response);
+      await apiClient.delete(`/trips/${tripId}/polls/${pollId}`);
 
       setNotification("Deleted Poll Successfully!!", "success");
       await fetchPolls(tripId);
