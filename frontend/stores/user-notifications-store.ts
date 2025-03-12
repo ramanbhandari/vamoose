@@ -3,12 +3,63 @@
 import { create } from "zustand";
 import apiClient from "@/utils/apiClient";
 
-export const notificationSectionMapping: Record<string, string> = {
-  POLL_CREATED: "polls",
-  POLL_COMPLETE: "polls",
-  EXPENSE_CREATED: "expenses",
-  EXPENSE_SHARE_SETTLED: "expenses",
-  MEMBER_JOINED: "members",
+import {
+  HowToVote,
+  AttachMoney,
+  Group,
+  Event,
+  Schedule,
+  Map,
+  Notifications,
+} from "@mui/icons-material";
+
+export const NOTIFICATION_CATEGORIES = {
+  polls: {
+    icon: HowToVote,
+    color: "primary.main",
+  },
+  expenses: {
+    icon: AttachMoney,
+    color: "success.main",
+  },
+  activities: {
+    icon: Event,
+    color: "warning.main",
+  },
+  itinerary: {
+    icon: Map,
+    color: "info.main",
+  },
+  members: {
+    icon: Group,
+    color: "secondary.main",
+  },
+  reminder: {
+    icon: Schedule,
+    color: "error.main",
+  },
+  default: {
+    icon: Notifications,
+    color: "text.primary",
+  },
+};
+
+export const notificationSectionMapping: Record<
+  string,
+  { section: string; category: keyof typeof NOTIFICATION_CATEGORIES }
+> = {
+  POLL_CREATED: { section: "polls", category: "polls" },
+  POLL_COMPLETED: { section: "polls", category: "polls" },
+  EXPENSE_CREATED: { section: "expenses", category: "expenses" },
+  EXPENSE_SHARE_SETTLED: { section: "expenses", category: "expenses" },
+  MEMBER_JOINED: { section: "members", category: "members" },
+};
+
+export const getNotificationCategory = (type: string) => {
+  const mapping = notificationSectionMapping[type] || { category: "default" };
+  return (
+    NOTIFICATION_CATEGORIES[mapping.category] || NOTIFICATION_CATEGORIES.default
+  );
 };
 
 export interface UserNotification {

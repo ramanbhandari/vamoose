@@ -7,31 +7,29 @@ import {
   Menu,
   Box,
   Typography,
-  Divider,
   List,
   ListItemButton,
   ListItemText,
   Tooltip,
   Stack,
   useTheme,
+  alpha,
+  Avatar,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
-import DoneAllIcon from "@mui/icons-material/DoneAll";
-import CloseIcon from "@mui/icons-material/Close";
 
 import {
   useUserNotificationsStore,
   UserNotification,
   notificationSectionMapping,
+  getNotificationCategory,
 } from "@/stores/user-notifications-store";
 import { useRouter } from "next/navigation";
 import { formatDateTime } from "@/utils/dateFormatter";
 import { useNotificationStore } from "@/stores/notification-store";
+import { Circle, Notifications, ClearAll, DoneAll } from "@mui/icons-material";
 
 export default function NotificationsBell() {
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === "dark";
   const router = useRouter();
   const { setNotification } = useNotificationStore();
   const {
@@ -80,12 +78,12 @@ export default function NotificationsBell() {
       clearError();
       return;
     }
-    const section = notificationSectionMapping[notif.type];
+    const notificationDetails = notificationSectionMapping[notif.type];
 
     if (notif.tripId) {
-      if (section) {
+      if (notificationDetails.section) {
         // Navigate to the trip page with the section
-        router.push(`/trips/${notif.tripId}#${section}`);
+        router.push(`/trips/${notif.tripId}#${notificationDetails.section}`);
       } else {
         // Else navigate to the trip root
         router.push(`/trips/${notif.tripId}`);
@@ -123,7 +121,7 @@ export default function NotificationsBell() {
     <>
       <IconButton color="inherit" onClick={handleBellClick}>
         <Badge badgeContent={unreadCount} color="secondary">
-          <NotificationsIcon />
+          <Notifications />
         </Badge>
       </IconButton>
       <Menu
@@ -133,35 +131,43 @@ export default function NotificationsBell() {
         slotProps={{
           paper: {
             sx: {
-              width: 350,
-              maxHeight: 400,
-              borderRadius: "8px",
-              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-              backgroundColor: isDarkMode ? "background.default" : "primary",
+              width: 380,
+              maxHeight: 500,
+              borderRadius: "12px",
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.shadows[24],
+              backgroundColor: theme.palette.background.paper,
             },
           },
+        }}
+        MenuListProps={{
+          sx: { py: 0 },
         }}
       >
         <Box
           sx={{
             px: 2,
-            py: 1,
+            py: 1.5,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            bgcolor: "background.default",
+            borderBottom: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Typography variant="h6">Notifications</Typography>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Notifications
+          </Typography>
           {notifications.length > 0 && (
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={0.5}>
               {unreadCount > 0 && (
                 <Tooltip title="Mark All as Read">
                   <IconButton
                     onClick={handleMarkAllAsRead}
                     size="small"
-                    color="success"
+                    sx={{ color: "text.secondary" }}
                   >
-                    <DoneAllIcon />
+                    <DoneAll fontSize="small" />
                   </IconButton>
                 </Tooltip>
               )}
@@ -169,87 +175,145 @@ export default function NotificationsBell() {
                 <IconButton
                   onClick={handleClearAll}
                   size="small"
-                  color="primary"
+                  sx={{ color: "text.secondary" }}
                 >
-                  <ClearAllIcon />
+                  <ClearAll fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Stack>
           )}
         </Box>
-        <Divider />
+
         {notifications.length === 0 ? (
-          <Box sx={{ p: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              No notifications yet..
+          <Box
+            sx={{
+              p: 3,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Notifications
+              sx={{ fontSize: 32, color: "text.disabled", mb: 1 }}
+            />
+            <Typography variant="body2" color="text.disabled">
+              No new notifications
             </Typography>
           </Box>
         ) : (
-          <List>
-            {notifications.map((notif) => (
-              <ListItemButton
-                key={notif.id}
-                onClick={() => handleNotificationClick(notif)}
-                sx={{
-                  backgroundColor: notif.isRead ? "inherit" : "action.selected",
-                  display: "flex",
-                  alignItems: "center",
-                  boxShadow: "0px 2px 6px rgba(0,0,0,0.05)",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  transition: "background 0.2s",
-                }}
-              >
-                <ListItemText
-                  primary={
-                    <Box
+          <List sx={{ py: 0 }}>
+            {notifications.map((notif) => {
+              const category = getNotificationCategory(notif.type);
+              const IconComponent = category.icon;
+              const iconColor = category.color;
+              return (
+                <ListItemButton
+                  key={notif.id}
+                  onClick={() => handleNotificationClick(notif)}
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    gap: 1.5,
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.primary.main, 0.05),
+                    },
+                    position: "relative",
+                    ...(!notif.isRead && {
+                      "&:before": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 3,
+                        bgcolor: "primary.main",
+                      },
+                    }),
+                  }}
+                >
+                  {!notif.isRead && (
+                    <Circle
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        width: "100%",
-                        justifyContent: "space-between",
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        fontSize: 8,
+                        color: "primary.main",
                       }}
-                    >
+                    />
+                  )}
+
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      bgcolor: "action.hover",
+                      color: iconColor,
+                    }}
+                  >
+                    <IconComponent fontSize="small" />
+                  </Avatar>
+
+                  <ListItemText
+                    primary={
                       <Typography
-                        variant="subtitle1"
-                        component="span"
-                        sx={{ fontWeight: notif.isRead ? 400 : 600 }}
+                        variant="body2"
+                        fontWeight={notif.isRead ? 400 : 600}
+                        color={notif.isRead ? "text.primary" : "primary.main"}
                       >
                         {notif.title}
                       </Typography>
-                      <Tooltip title={"Clear"}>
-                        <IconButton
-                          onClick={(e) => handleDeleteNotification(notif.id, e)}
-                          size="small"
-                          sx={{ ml: "auto" }}
-                          color="inherit"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  }
-                  secondary={
-                    <Typography
-                      variant="body2"
-                      component="span"
-                      color="text.secondary"
-                    >
-                      {notif.message}
-                      <br />{" "}
+                    }
+                    secondary={
                       <Typography
-                        variant="caption"
+                        variant="body2"
                         component="span"
                         color="text.secondary"
-                        sx={{ display: "block" }}
                       >
-                        {formatDateTime(notif.createdAt)}
+                        {notif.message}
+                        <br />{" "}
+                        <Typography
+                          variant="caption"
+                          component="span"
+                          color="text.secondary"
+                          sx={{ display: "block" }}
+                        >
+                          {formatDateTime(notif.createdAt)}
+                        </Typography>
                       </Typography>
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            ))}
+                    }
+                    sx={{ my: 0 }}
+                  />
+                  <Tooltip title="Clear">
+                    <IconButton
+                      onClick={(e) => handleDeleteNotification(notif.id, e)}
+                      size="small"
+                      sx={{
+                        color: "text.secondary",
+                        "&:hover": {
+                          color: "error.main",
+                          bgcolor: alpha(theme.palette.error.main, 0.1),
+                        },
+                      }}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M5.5 5.5a.5.5 0 0 1 .5.5V10a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM10 5a.5.5 0 0 1 .5.5V10a.5.5 0 0 1-1 0V5.5A.5.5 0 0 1 10 5z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M4.5 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1h2.5a.5.5 0 0 1 0 1H14v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3h-.5a.5.5 0 0 1 0-1H4.5V1zm1 1a.5.5 0 0 0-.5.5V3h6v-.5a.5.5 0 0 0-.5-.5h-5z"
+                        />
+                      </svg>
+                    </IconButton>
+                  </Tooltip>
+                </ListItemButton>
+              );
+            })}
           </List>
         )}
       </Menu>
