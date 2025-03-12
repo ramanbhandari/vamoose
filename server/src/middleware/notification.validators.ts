@@ -1,4 +1,4 @@
-import { checkExact, query } from 'express-validator';
+import { body, checkExact, param, query } from 'express-validator';
 import { NotificationType } from '@/interfaces/enums.js';
 
 export const validateGetNotificationsInput = checkExact(
@@ -15,3 +15,18 @@ export const validateGetNotificationsInput = checkExact(
       `Notification type must be one of: ${Object.values(NotificationType).join(', ')}`,
     ),
 );
+
+export const validateToggleNotificationReadStatusInput = checkExact([
+  param('notificationId')
+    .isInt({ min: 1 })
+    .withMessage('Notification ID must be a valid integer greater than 0'),
+]);
+
+export const validateBatchMarkNotificationsAsReadInput = checkExact([
+  body('notificationIds')
+    .isArray({ min: 1 })
+    .withMessage('Notification IDs must be a non-empty array'),
+  body('notificationIds.*')
+    .isInt({ min: 1 })
+    .withMessage('Each Notification ID must be a valid integer greater than 0'),
+]);

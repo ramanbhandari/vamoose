@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
-import { getNotificationsForUser } from '@/models/notification.model.js';
+import {
+  getNotificationsForUser,
+  markNotificationsAsRead,
+  markNotificationsAsUnread,
+} from '@/models/notification.model.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 
@@ -37,5 +41,116 @@ export const getNotificationsHandler = async (req: Request, res: Response) => {
     res.status(200).json({ notifications });
   } catch (error) {
     handleControllerError(error, res, 'Error fetching notifications:');
+  }
+};
+
+// Handler to mark a single notification as read
+export const markNotificationAsReadHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const { notificationId } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (!notificationId || isNaN(Number(notificationId))) {
+      res.status(400).json({ error: 'Invalid notification ID' });
+      return;
+    }
+
+    const updatedNotifications = await markNotificationsAsRead(
+      userId,
+      Number(notificationId),
+    );
+
+    if (!updatedNotifications || updatedNotifications.updatedCount === 0) {
+      res
+        .status(404)
+        .json({ error: 'Notification not found or not authorized' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Notification marked as read',
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error marking notification as read:');
+  }
+};
+
+// Handler to mark multiple notifications as read
+export const batchMarkNotificationsAsReadHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const { notificationIds } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+    const updatedNotifications = await markNotificationsAsRead(
+      userId,
+      notificationIds,
+    );
+
+    if (!updatedNotifications || updatedNotifications.updatedCount === 0) {
+      res
+        .status(404)
+        .json({ error: 'No valid notifications found or not authorized' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Notifications marked as read',
+      readNotificationsCount: updatedNotifications.updatedCount,
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error marking notifications as read:');
+  }
+};
+// Handler to mark a single notification as unread
+export const markNotificationAsUnreadHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const { notificationId } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (!notificationId || isNaN(Number(notificationId))) {
+      res.status(400).json({ error: 'Invalid notification ID' });
+      return;
+    }
+
+    const updatedNotifications = await markNotificationsAsUnread(
+      userId,
+      Number(notificationId),
+    );
+
+    if (!updatedNotifications || updatedNotifications.updatedCount === 0) {
+      res
+        .status(404)
+        .json({ error: 'Notification not found or not authorized' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Notification marked as unread',
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error marking notification as unread:');
   }
 };
