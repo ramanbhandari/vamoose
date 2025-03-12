@@ -58,8 +58,8 @@ export const createItineraryEventHandler = async (
     const tripDetails = await fetchSingleTrip(userId, tripId);
     const { startDate, endDate } = tripDetails;
 
-    const tripStartDate = DateTime.fromJSDate(new Date(startDate));
-    const tripEndDate = DateTime.fromJSDate(new Date(endDate));
+    const tripStartDate = DateTime.fromJSDate(new Date(startDate)).toUTC();
+    const tripEndDate = DateTime.fromJSDate(new Date(endDate)).toUTC();
 
     // Ensure event's dates are within trip's dates
     if (startTime) {
@@ -199,8 +199,8 @@ export const updateItineraryEventHandler = async (
     const tripDetails = await fetchSingleTrip(userId, tripId);
     const { startDate, endDate } = tripDetails;
 
-    const tripStartDate = DateTime.fromJSDate(new Date(startDate));
-    const tripEndDate = DateTime.fromJSDate(new Date(endDate));
+    const tripStartDate = DateTime.fromJSDate(new Date(startDate)).toUTC();
+    const tripEndDate = DateTime.fromJSDate(new Date(endDate)).toUTC();
 
     // Ensure event's dates are within trip's dates
     if (startTime) {
