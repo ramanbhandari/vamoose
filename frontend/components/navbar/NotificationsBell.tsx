@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import {
   IconButton,
@@ -11,81 +12,41 @@ import {
   ListItemButton,
   ListItemText,
   Tooltip,
+  Stack,
+  useTheme,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
 import CloseIcon from "@mui/icons-material/Close";
+
+import {
+  useUserNotificationsStore,
+  UserNotification,
+} from "@/stores/user-notifications-store";
+import { useRouter } from "next/navigation";
 import { formatDateTime } from "@/utils/dateFormatter";
-
-interface UserNotification {
-  id: number;
-  userId: string;
-  tripId: number | null;
-  type: string;
-  relatedId: number | null;
-  channel: string | null;
-  title: string;
-  message: string;
-  data: JSON | null;
-  isRead: boolean;
-  createdAt: string;
-  readAt: string | null;
-}
-
-const initialFakeNotifications: UserNotification[] = [
-  {
-    id: 1,
-    userId: "fakeUser",
-    tripId: 123,
-    type: "TEST",
-    relatedId: null,
-    channel: null,
-    title: "Test Notification 1",
-    message: "This is a test notification message.",
-    data: null,
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    readAt: null,
-  },
-  {
-    id: 2,
-    userId: "fakeUser",
-    tripId: 456,
-    type: "TEST",
-    relatedId: null,
-    channel: null,
-    title: "Test Notification 2",
-    message: "This is a second test notification.",
-    data: null,
-    isRead: true,
-    createdAt: new Date().toISOString(),
-    readAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    userId: "fakeUser",
-    tripId: null,
-    type: "TEST",
-    relatedId: null,
-    channel: null,
-    title: "Test Notification 3",
-    message: "This is a third, unread notification.",
-    data: null,
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    readAt: null,
-  },
-];
+import { useNotificationStore } from "@/stores/notification-store";
 
 export default function NotificationsBell() {
-  const [notifications, setNotifications] = useState<UserNotification[]>(
-    initialFakeNotifications
-  );
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+  const router = useRouter();
+  const { setNotification } = useNotificationStore();
+  const {
+    notifications,
+    markAsRead,
+    markManyAsRead,
+    deleteOne,
+    deleteMany,
+    clearError,
+    error,
+  } = useUserNotificationsStore();
 
   // Count unread notifications
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Manage Menu open/close state
+  // Manage the Menu open/close state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -97,41 +58,62 @@ export default function NotificationsBell() {
     setAnchorEl(null);
   };
 
-  const handleNotificationClick = async (notif: UserNotification) => {
-    console.log("Notification clicked: ", notif);
-    if (!notif.isRead) {
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notif.id
-            ? { ...n, isRead: true, readAt: new Date().toISOString() }
-            : n
-        )
-      );
-      console.log("Marked as read: ", notif.id);
-    }
+  // Mark all notifications as read
+  const handleMarkAllAsRead = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    await markManyAsRead(unreadIds);
     handleMenuClose();
   };
 
+  // When a notification is clicked, mark it as read and navigate if tripId is not null
+  const handleNotificationClick = async (notif: UserNotification) => {
+    if (!notif.isRead) {
+      await markAsRead(notif.id);
+    }
+    handleMenuClose();
+
+    if (error) {
+      setNotification(error, "error");
+      clearError();
+      return;
+    }
+    if (notif.tripId) {
+      router.push(`/trips/${notif.tripId}`);
+    }
+  };
+
+  // Handle individual notification deletion
   const handleDeleteNotification = async (
     notifId: number,
     event: React.MouseEvent
   ) => {
     event.stopPropagation();
-    console.log("Deleting notification:", notifId);
-    setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+    await deleteOne(notifId);
+
+    if (error) {
+      setNotification(error, "error");
+      clearError();
+    }
   };
 
+  // Handle clearing all notifications
   const handleClearAll = async (event: React.MouseEvent) => {
     event.stopPropagation();
-    console.log("Clearing all notifications");
-    setNotifications([]);
+    const notificationIds = notifications.map((notif) => notif.id);
+    await deleteMany(notificationIds);
+    if (error) {
+      setNotification(error, "error");
+      clearError();
+    }
     handleMenuClose();
   };
 
   return (
     <>
       <IconButton color="inherit" onClick={handleBellClick}>
-        <Badge badgeContent={unreadCount} color="error">
+        <Badge badgeContent={unreadCount} color="secondary">
           <NotificationsIcon />
         </Badge>
       </IconButton>
@@ -139,7 +121,17 @@ export default function NotificationsBell() {
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
-        slotProps={{ paper: { sx: { width: 350, maxHeight: 400 } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 350,
+              maxHeight: 400,
+              borderRadius: "8px",
+              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+              backgroundColor: isDarkMode ? "background.default" : "primary",
+            },
+          },
+        }}
       >
         <Box
           sx={{
@@ -152,11 +144,28 @@ export default function NotificationsBell() {
         >
           <Typography variant="h6">Notifications</Typography>
           {notifications.length > 0 && (
-            <Tooltip title={"Clear All"}>
-              <IconButton onClick={handleClearAll} size="small" color="primary">
-                <ClearAllIcon />
-              </IconButton>
-            </Tooltip>
+            <Stack direction="row" spacing={1}>
+              {unreadCount > 0 && (
+                <Tooltip title="Mark All as Read">
+                  <IconButton
+                    onClick={handleMarkAllAsRead}
+                    size="small"
+                    color="success"
+                  >
+                    <DoneAllIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title="Clear All">
+                <IconButton
+                  onClick={handleClearAll}
+                  size="small"
+                  color="primary"
+                >
+                  <ClearAllIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           )}
         </Box>
         <Divider />
@@ -173,11 +182,13 @@ export default function NotificationsBell() {
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
                 sx={{
-                  mb: 0.5,
-                  borderRadius: 1,
                   backgroundColor: notif.isRead ? "inherit" : "action.selected",
                   display: "flex",
                   alignItems: "center",
+                  boxShadow: "0px 2px 6px rgba(0,0,0,0.05)",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  transition: "background 0.2s",
                 }}
               >
                 <ListItemText
