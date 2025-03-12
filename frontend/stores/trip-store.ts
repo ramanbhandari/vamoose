@@ -54,11 +54,9 @@ export interface TripData {
 }
 interface TripState {
   tripData: TripData | null;
-  userTrips: TripData[];
   loading: boolean;
   error: string | null;
   fetchTripData: (tripId: number) => Promise<void>;
-  fetchUserTrips: (userId: string) => Promise<void>;
   addExpense: (expense: Expense) => void;
   deleteExpense: (expenseIds: number | number[]) => void;
   deleteMember: (memberIds: string | string[]) => void;
@@ -102,28 +100,6 @@ export const useTripStore = create<TripState>((set) => ({
           errorMessage = "Trip not found :)";
         } else if (error.response?.status === 403) {
           errorMessage = "You do not have access to this trip :/";
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      set({ error: errorMessage, loading: false });
-    }
-  },
-
-  fetchUserTrips: async () => {
-    set({ loading: true, error: null });
-    try {
-      const response = await apiClient.get(`/trips`);
-      set({ userTrips: response.data.trips, loading: false });
-    } catch (error) {
-      let errorMessage = "Failed to load trips";
-
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 404) {
-          errorMessage = "No trips found.";
-        } else if (error.response?.status === 403) {
-          errorMessage = "You do not have permission to view trips.";
         }
       } else if (error instanceof Error) {
         errorMessage = error.message;
@@ -199,5 +175,3 @@ export const useTripStore = create<TripState>((set) => ({
 
   resetError: () => set({ error: null }),
 }));
-
-// export type { TripData };

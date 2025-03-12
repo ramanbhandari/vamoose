@@ -280,12 +280,7 @@ describe('Expense API - Fetch Single Expense', () => {
 
     mockReq = setupRequest(1, 9);
 
-    console.log('Mock request:', mockReq);
-
     await fetchSingleExpenseHandler(mockReq as Request, mockRes as Response);
-
-    // Log response for debugging
-    console.log('Mock response:', mockRes);
 
     expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({

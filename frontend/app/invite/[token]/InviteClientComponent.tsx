@@ -26,6 +26,7 @@ import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import { useNotificationStore } from "@/stores/notification-store";
 import axios from "axios";
 import { useUserStore } from "@/stores/user-store";
+import { useUserTripsStore } from "@/stores/user-trips-store";
 
 interface InviteDetails {
   inviter: string;
@@ -59,6 +60,7 @@ export default function InviteClientComponent({
   inviteToken,
 }: InviteClientComponentProps) {
   const router = useRouter();
+  const { fetchUserTrips } = useUserTripsStore();
   const [user, setUser] = useState<User | null>(null);
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,6 +124,8 @@ export default function InviteClientComponent({
     try {
       await apiClient.post(`/trips/1/invites/accept/${inviteToken}`);
       setNotification("Invite accepted successfully!", "success");
+      // accepting an invite should pull user upcoming trips to replenish our user trips store for keeping our chat list updated
+      fetchUserTrips("upcoming");
       router.replace(`/trips/${tripData?.id}`);
     } catch (err) {
       console.error("Failed to accept invite:", err);

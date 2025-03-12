@@ -8,9 +8,11 @@
   --foreground: #171717;
   --background-paper: #ffffff;
   --text: #3a4f6c;
+  --divider: rgba(0, 0, 0, 0.12);
 
   --primary: #ff5a5f;
   --primary-hover: #ff7377;
+  --primary-light: #ffcfd0;
   --secondary: #3a4f6c;
   --secondary-hover: #ff5a5f;
 
@@ -28,9 +30,11 @@
     --foreground: #ededed;
     --background-paper: #1a1a1a;
     --text: #ededed;
+    --divider: rgba(255, 255, 255, 0.12);
 
     --primary: #ff5a5f;
     --primary-hover: #ff7377;
+    --primary-light: #662a2c;
     --secondary: #a8dadc;
     --secondary-hover: #7edce0;
 
@@ -45,10 +49,11 @@
   --background-paper: #ffffff;
   --text: #3a4f6c;
   --chat: #fff;
-
+  --divider: rgba(0, 0, 0, 0.12);
 
   --primary: #ff5a5f;
   --primary-hover: #ff7377;
+  --primary-light: #ffcfd0;
   --secondary: #3a4f6c;
   --secondary-hover: #2b3d56;
 
@@ -66,10 +71,11 @@
   --background-paper: #1a1a1a;
   --text: #ededed;
   --chat: #fff;
-
+  --divider: rgba(255, 255, 255, 0.12);
 
   --primary: #ff5a5f;
   --primary-hover: #ff7377;
+  --primary-light: #662a2c;
   --secondary: #a8dadc;
   --secondary-hover: #73aaab;
 
@@ -85,7 +91,5 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-general);
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
