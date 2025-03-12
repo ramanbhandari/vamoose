@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import {
   createItineraryEvent,
+  updateItineraryEvent,
   getAllItineraryEventsForTrip,
   getItineraryEventById,
   deleteItineraryEvent,
@@ -57,8 +58,8 @@ export const createItineraryEventHandler = async (
     const tripDetails = await fetchSingleTrip(userId, tripId);
     const { startDate, endDate } = tripDetails;
 
-    const tripStartDate = DateTime.fromJSDate(startDate);
-    const tripEndDate = DateTime.fromJSDate(endDate);
+    const tripStartDate = DateTime.fromJSDate(startDate).toUTC();
+    const tripEndDate = DateTime.fromJSDate(endDate).toUTC();
 
     // Ensure event's dates are within trip's dates
     if (startTime) {
@@ -136,6 +137,123 @@ export const createItineraryEventHandler = async (
     });
   } catch (error) {
     handleControllerError(error, res, 'Error creating itinerary event:');
+  }
+};
+
+export const updateItineraryEventHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const tripId = Number(req.params.tripId);
+    const eventId = Number(req.params.eventId);
+    const { title, description, location, startTime, endTime, category } =
+      req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized Request' });
+      return;
+    }
+
+    if (isNaN(tripId)) {
+      res.status(400).json({ error: 'Invalid trip ID' });
+      return;
+    }
+
+    if (isNaN(eventId)) {
+      res.status(400).json({ error: 'Invalid event ID' });
+      return;
+    }
+
+    // Check if the user is a member of the trip
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    //check if the event exists
+    const event = await getItineraryEventById(tripId, eventId);
+
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    if (
+      event.createdById !== userId &&
+      requestingMember.role !== 'creator' &&
+      requestingMember.role !== 'admin'
+    ) {
+      res.status(403).json({
+        error:
+          'Only the trip creator, event creator or an admin can update the event details.',
+      });
+      return;
+    }
+
+    // Fetch trip details
+    const tripDetails = await fetchSingleTrip(userId, tripId);
+    const { startDate, endDate } = tripDetails;
+
+    const tripStartDate = DateTime.fromJSDate(startDate).toUTC();
+    const tripEndDate = DateTime.fromJSDate(endDate).toUTC();
+
+    // Ensure event's dates are within trip's dates
+    if (startTime) {
+      const startTimeUtc = DateTime.fromISO(startTime).toUTC();
+      if (startTimeUtc < tripStartDate || startTimeUtc > tripEndDate) {
+        res.status(400).json({
+          error: `Start time must be within the trip's duration: ${tripStartDate.toISO()} to ${tripEndDate.toISO()}`,
+        });
+        return;
+      }
+    }
+
+    if (endTime) {
+      const endTimeUtc = DateTime.fromISO(endTime).toUTC();
+      if (endTimeUtc < tripStartDate || endTimeUtc > tripEndDate) {
+        res.status(400).json({
+          error: `End time must be within the trip's duration: ${tripStartDate.toISO()} to ${tripEndDate.toISO()}`,
+        });
+        return;
+      }
+    }
+
+    // Convert times to UTC if provided
+    const startTimeUtc = startTime
+      ? DateTime.fromISO(startTime).toUTC().toJSDate()
+      : undefined;
+    const endTimeUtc = endTime
+      ? DateTime.fromISO(endTime).toUTC().toJSDate()
+      : undefined;
+
+    // Map category to EventCategory enum
+    const categoryEnum = Object.values(EventCategory).includes(
+      category?.toUpperCase(),
+    )
+      ? (category.toUpperCase() as EventCategory)
+      : EventCategory.GENERAL;
+
+    // Update the itinerary event
+    const itineraryEvent = await updateItineraryEvent(eventId, {
+      title,
+      description,
+      location,
+      startTime: startTimeUtc,
+      endTime: endTimeUtc,
+      category: categoryEnum,
+    });
+
+    res.status(201).json({
+      message: 'Itinerary event updated successfully',
+      itineraryEvent,
+    });
+  } catch (error) {
+    handleControllerError(error, res, 'Error updating itinerary event:');
   }
 };
 
