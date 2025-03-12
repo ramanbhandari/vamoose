@@ -1,6 +1,5 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { DateTime } from 'luxon';
 
 // Add a note to an event
 export const addNoteToItineraryEvent = async (
@@ -43,7 +42,7 @@ export const updateItineraryEventNote = async (
   try {
     return await prisma.eventNote.update({
       where: { id: noteId },
-      data: { content, updatedAt: DateTime.now().toUTC().toJSDate() },
+      data: { content },
     });
   } catch (error) {
     console.error('Error updating event note:', error);
