@@ -11,3 +11,16 @@ export const validateAddEventNoteInput = checkExact([
     .notEmpty()
     .withMessage('Note content must be a non-empty string'),
 ]);
+
+export const validateUpdateEventNoteInput = checkExact([
+  param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),
+  param('eventId').isInt({ min: 1 }).withMessage('Event ID must be a number'),
+  param('noteId').isInt({ min: 1 }).withMessage('Note ID must be a number'),
+
+  body('content')
+    .isString()
+    .withMessage('Note content must be a string')
+    .trim()
+    .notEmpty()
+    .withMessage('Note content must be a non-empty string'),
+]);
