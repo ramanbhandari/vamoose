@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import {
   AppBar,
@@ -21,16 +20,17 @@ import { useUserStore } from "@/stores/user-store";
 import { usePathname, useRouter } from "next/navigation";
 import AnimatedMenuIcon from "./hamAnimIcon";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useUserNotificationsStore } from "@/stores/user-notifications-store";
 import NotificationsBell from "./NotificationsBell";
 
 export default function Navbar() {
   const { user, loading, logoutUser, setUser } = useUserStore();
   const { setNotification } = useNotificationStore();
+  const { fetchNotifications } = useUserNotificationsStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
 
-  // Check if it's the login page
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
 
@@ -56,10 +56,16 @@ export default function Navbar() {
     };
   }, []);
 
+  // if we have a user, fetch notifications
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
@@ -153,14 +159,17 @@ export default function Navbar() {
                     </Typography>
                   </Box>
                 </MenuItem>
-
-                <MenuItem onClick={handleMenuClose}>
+                <MenuItem
+                  onClick={() => {
+                    router.push("/dashboard");
+                    handleMenuClose();
+                  }}
+                >
                   <ListItemIcon>
                     <DashboardTwoTone />
                   </ListItemIcon>
-                  <Link href="/dashboard">Dashboard</Link>
+                  Dashboard
                 </MenuItem>
-
                 <MenuItem onClick={handleLogout} disabled={loading}>
                   <ListItemIcon>
                     {loading ? (
