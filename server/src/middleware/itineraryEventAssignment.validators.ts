@@ -10,6 +10,7 @@ export const validateItineraryEventAssignmentInput = checkExact([
 
   body('userIds.*')
     .isString()
+    .withMessage('Each user ID must be a string')
     .trim()
     .notEmpty()
     .withMessage('Each user ID must be a non-empty string'),

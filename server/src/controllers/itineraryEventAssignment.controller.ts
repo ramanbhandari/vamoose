@@ -10,7 +10,7 @@ import {
 } from '@/models/member.model.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { getItineraryEventById } from '@/models/itineraryEvent.model';
+import { getItineraryEventById } from '@/models/itineraryEvent.model.js';
 
 export const assignUsersToItineraryEventHandler = async (
   req: Request,
