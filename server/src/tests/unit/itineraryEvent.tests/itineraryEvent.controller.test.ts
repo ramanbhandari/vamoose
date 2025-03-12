@@ -55,8 +55,8 @@ describe('Create Itinerary Event Controller', () => {
       title: 'Test Event',
       description: 'An event description',
       location: 'Event Location',
-      startTime: '2025-03-15T14:00:00.000Z',
-      endTime: '2025-03-15T16:00:00.000Z',
+      startTime: '2025-04-15T15:00:00.000Z',
+      endTime: '2025-04-15T16:00:00.000Z',
       category: 'ACTIVITY',
       assignedUserIds: ['user-1', 'user-2'],
       notes: [{ content: 'Remember to bring snacks' }],
@@ -68,8 +68,8 @@ describe('Create Itinerary Event Controller', () => {
     mockReq = setupRequest();
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-15T14:00:00.000Z',
-      endDate: '2025-04-15T16:00:00.000Z',
+      startDate: '2025-04-14T14:00:00.000Z',
+      endDate: '2025-04-16T16:00:00.000Z',
       createdBy: 'test-user-id',
       members: [],
     });
@@ -83,8 +83,8 @@ describe('Create Itinerary Event Controller', () => {
       title: 'Test Event',
       description: 'An event description',
       location: 'Event Location',
-      startTime: DateTime.fromISO('2025-03-15T14:00:00.000Z').toJSDate(),
-      endTime: DateTime.fromISO('2025-03-15T16:00:00.000Z').toJSDate(),
+      startTime: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
+      endTime: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
       category: EventCategory.ACTIVITY,
       createdById: 'test-user-id',
       tripId: 1,
@@ -103,6 +103,50 @@ describe('Create Itinerary Event Controller', () => {
         category: 'ACTIVITY',
       }),
     });
+  });
+
+  it('should fail create itinerary event due to start time not within the trip dates', async () => {
+    mockReq = setupRequest();
+
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-16T14:00:00.000Z',
+      endDate: '2025-04-16T16:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+      createdById: 'test-user-id',
+    });
+
+    await createItineraryEventHandler(mockReq as Request, mockRes as Response);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: `Start time must be within the trip's duration: 2025-04-16T09:00:00.000-05:00 to 2025-04-16T11:00:00.000-05:00`,
+    });
+    expect(statusMock).toHaveBeenCalledWith(400);
+  });
+
+  it('should fail update itinerary event due to end time not within the trip dates', async () => {
+    mockReq = setupRequest();
+
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-15T14:00:00.000Z',
+      endDate: '2025-04-15T15:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+      createdById: 'test-user-id',
+    });
+
+    await createItineraryEventHandler(mockReq as Request, mockRes as Response);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: `End time must be within the trip's duration: 2025-04-15T09:00:00.000-05:00 to 2025-04-15T10:00:00.000-05:00`,
+    });
+    expect(statusMock).toHaveBeenCalledWith(400);
   });
 
   it.each([
@@ -152,8 +196,8 @@ describe('Create Itinerary Event Controller', () => {
     });
 
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
-      startDate: '2025-04-15T14:00:00.000Z',
-      endDate: '2025-04-15T16:00:00.000Z',
+      startDate: '2025-04-14T14:00:00.000Z',
+      endDate: '2025-04-16T16:00:00.000Z',
       createdBy: 'test-user-id',
       members: [],
     });
@@ -193,8 +237,8 @@ describe('Update Itinerary Event Controller', () => {
       title: 'Test Event',
       description: 'An event description',
       location: 'Event Location',
-      startTime: '2025-03-15T14:00:00.000Z',
-      endTime: '2025-03-15T16:00:00.000Z',
+      startTime: '2025-04-15T15:00:00.000Z',
+      endTime: '2025-04-15T16:00:00.000Z',
       category: 'ACTIVITY',
     },
     ...overrides,
@@ -203,6 +247,12 @@ describe('Update Itinerary Event Controller', () => {
   it('should update an itinerary event successfully', async () => {
     mockReq = setupRequest();
 
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-15T14:00:00.000Z',
+      endDate: '2025-04-15T16:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
     (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
     (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
       createdById: 'test-user-id',
@@ -212,8 +262,8 @@ describe('Update Itinerary Event Controller', () => {
       title: 'Test Update Event',
       description: 'An event description',
       location: 'Event Location',
-      startTime: DateTime.fromISO('2025-03-15T14:00:00.000Z').toJSDate(),
-      endTime: DateTime.fromISO('2025-03-15T16:00:00.000Z').toJSDate(),
+      startTime: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
+      endTime: DateTime.fromISO('2025-04-15T16:00:00.000Z').toJSDate(),
       category: EventCategory.ACTIVITY,
       createdById: 'test-user-id',
       tripId: 1,
@@ -228,14 +278,58 @@ describe('Update Itinerary Event Controller', () => {
         title: 'Test Update Event',
         description: 'An event description',
         location: 'Event Location',
-        startTime: DateTime.fromISO('2025-03-15T14:00:00.000Z').toJSDate(),
-        endTime: DateTime.fromISO('2025-03-15T16:00:00.000Z').toJSDate(),
+        startTime: DateTime.fromISO('2025-04-15T15:00:00.000Z').toJSDate(),
+        endTime: DateTime.fromISO('2025-04-15T16:00:00.000Z').toJSDate(),
         category: EventCategory.ACTIVITY,
         createdById: 'test-user-id',
         tripId: 1,
       }),
     });
     expect(statusMock).toHaveBeenCalledWith(201);
+  });
+
+  it('should fail update itinerary event due to start time not within the trip dates', async () => {
+    mockReq = setupRequest();
+
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-16T14:00:00.000Z',
+      endDate: '2025-04-16T16:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+      createdById: 'test-user-id',
+    });
+
+    await updateItineraryEventHandler(mockReq as Request, mockRes as Response);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: `Start time must be within the trip's duration: 2025-04-16T09:00:00.000-05:00 to 2025-04-16T11:00:00.000-05:00`,
+    });
+    expect(statusMock).toHaveBeenCalledWith(400);
+  });
+
+  it('should fail update itinerary event due to end time not within the trip dates', async () => {
+    mockReq = setupRequest();
+
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      startDate: '2025-04-15T14:00:00.000Z',
+      endDate: '2025-04-15T15:00:00.000Z',
+      createdBy: 'test-user-id',
+      members: [],
+    });
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(true);
+    (prisma.itineraryEvent.findUnique as jest.Mock).mockResolvedValue({
+      createdById: 'test-user-id',
+    });
+
+    await updateItineraryEventHandler(mockReq as Request, mockRes as Response);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: `End time must be within the trip's duration: 2025-04-15T09:00:00.000-05:00 to 2025-04-15T10:00:00.000-05:00`,
+    });
+    expect(statusMock).toHaveBeenCalledWith(400);
   });
 
   it.each([
