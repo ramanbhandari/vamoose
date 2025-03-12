@@ -3,6 +3,7 @@ import {
   addMessageHandler,
   getMessagesHandler,
   updateMessageHandler,
+  removeReactionHandler,
 } from '@/controllers/message.controller.js';
 import {
   validateCreateMessageInput,
@@ -36,6 +37,14 @@ router
     validateUpdateMessageInput,
     validationErrorHandler,
     updateMessageHandler,
+  )
+
+  // Remove a reaction from a message
+  .patch(
+    '/:messageId/removeReaction',
+    validateUpdateMessageInput,
+    validationErrorHandler,
+    removeReactionHandler,
   );
 
 export default router;
