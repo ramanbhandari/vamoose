@@ -23,6 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import {
   useUserNotificationsStore,
   UserNotification,
+  notificationSectionMapping,
 } from "@/stores/user-notifications-store";
 import { useRouter } from "next/navigation";
 import { formatDateTime } from "@/utils/dateFormatter";
@@ -79,8 +80,16 @@ export default function NotificationsBell() {
       clearError();
       return;
     }
+    const section = notificationSectionMapping[notif.type];
+
     if (notif.tripId) {
-      router.push(`/trips/${notif.tripId}`);
+      if (section) {
+        // Navigate to the trip page with the section
+        router.push(`/trips/${notif.tripId}#${section}`);
+      } else {
+        // Else navigate to the trip root
+        router.push(`/trips/${notif.tripId}`);
+      }
     }
   };
 

@@ -3,6 +3,14 @@
 import { create } from "zustand";
 import apiClient from "@/utils/apiClient";
 
+export const notificationSectionMapping: Record<string, string> = {
+  POLL_CREATED: "polls",
+  POLL_COMPLETE: "polls",
+  EXPENSE_CREATED: "expenses",
+  EXPENSE_SHARE_SETTLED: "expenses",
+  MEMBER_JOINED: "members",
+};
+
 export interface UserNotification {
   id: number;
   userId: string;
