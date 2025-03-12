@@ -6,16 +6,17 @@ import {
   Menu,
   Box,
   Typography,
-  Divider,
   List,
   ListItemButton,
   ListItemText,
   Tooltip,
+  alpha,
+  Avatar,
+  useTheme,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
-import CloseIcon from "@mui/icons-material/Close";
+
 import { formatDateTime } from "@/utils/dateFormatter";
+import { Circle, ClearAll, Notifications } from "@mui/icons-material";
 
 interface UserNotification {
   id: number;
@@ -78,6 +79,7 @@ const initialFakeNotifications: UserNotification[] = [
 ];
 
 export default function NotificationsBell() {
+  const theme = useTheme();
   const [notifications, setNotifications] = useState<UserNotification[]>(
     initialFakeNotifications
   );
@@ -131,83 +133,133 @@ export default function NotificationsBell() {
   return (
     <>
       <IconButton color="inherit" onClick={handleBellClick}>
-        <Badge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
+        <Badge badgeContent={unreadCount} color="secondary">
+          <Notifications />
         </Badge>
       </IconButton>
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
-        slotProps={{ paper: { sx: { width: 350, maxHeight: 400 } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 380,
+              maxHeight: 500,
+              borderRadius: "12px",
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.shadows[24],
+              backgroundColor: theme.palette.background.paper,
+            },
+          },
+        }}
+        MenuListProps={{
+          sx: { py: 0 },
+        }}
       >
         <Box
           sx={{
             px: 2,
-            py: 1,
+            py: 1.5,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            bgcolor: "background.default",
+            borderBottom: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Typography variant="h6">Notifications</Typography>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Notifications
+          </Typography>
           {notifications.length > 0 && (
-            <Tooltip title={"Clear All"}>
-              <IconButton onClick={handleClearAll} size="small" color="primary">
-                <ClearAllIcon />
+            <Tooltip title="Clear All">
+              <IconButton
+                onClick={handleClearAll}
+                size="small"
+                sx={{ color: "text.secondary" }}
+              >
+                <ClearAll fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
         </Box>
-        <Divider />
+
         {notifications.length === 0 ? (
-          <Box sx={{ p: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              No notifications yet..
+          <Box
+            sx={{
+              p: 3,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Notifications
+              sx={{ fontSize: 32, color: "text.disabled", mb: 1 }}
+            />
+            <Typography variant="body2" color="text.disabled">
+              No new notifications
             </Typography>
           </Box>
         ) : (
-          <List>
+          <List sx={{ py: 0 }}>
             {notifications.map((notif) => (
               <ListItemButton
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
                 sx={{
-                  mb: 0.5,
-                  borderRadius: 1,
-                  backgroundColor: notif.isRead ? "inherit" : "action.selected",
-                  display: "flex",
-                  alignItems: "center",
+                  px: 2,
+                  py: 1.5,
+                  gap: 1.5,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                  },
+                  position: "relative",
+                  ...(!notif.isRead && {
+                    "&:before": {
+                      content: '""',
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 3,
+                      bgcolor: "primary.main",
+                    },
+                  }),
                 }}
               >
+                {!notif.isRead && (
+                  <Circle
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      fontSize: 8,
+                      color: "primary.main",
+                    }}
+                  />
+                )}
+
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: "action.hover",
+                    color: "primary.main",
+                  }}
+                >
+                  <Notifications fontSize="small" />
+                </Avatar>
+
                 <ListItemText
                   primary={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        width: "100%",
-                        justifyContent: "space-between",
-                      }}
+                    <Typography
+                      variant="body2"
+                      fontWeight={notif.isRead ? 400 : 600}
+                      color={notif.isRead ? "text.primary" : "primary.main"}
                     >
-                      <Typography
-                        variant="subtitle1"
-                        component="span"
-                        sx={{ fontWeight: notif.isRead ? 400 : 600 }}
-                      >
-                        {notif.title}
-                      </Typography>
-                      <Tooltip title={"Clear"}>
-                        <IconButton
-                          onClick={(e) => handleDeleteNotification(notif.id, e)}
-                          size="small"
-                          sx={{ ml: "auto" }}
-                          color="inherit"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
+                      {notif.title}
+                    </Typography>
                   }
                   secondary={
                     <Typography
@@ -227,7 +279,34 @@ export default function NotificationsBell() {
                       </Typography>
                     </Typography>
                   }
+                  sx={{ my: 0 }}
                 />
+                <Tooltip title="Clear">
+                  <IconButton
+                    onClick={(e) => handleDeleteNotification(notif.id, e)}
+                    size="small"
+                    sx={{
+                      color: "text.secondary",
+                      "&:hover": {
+                        color: "error.main",
+                        bgcolor: alpha(theme.palette.error.main, 0.1),
+                      },
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M5.5 5.5a.5.5 0 0 1 .5.5V10a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zM10 5a.5.5 0 0 1 .5.5V10a.5.5 0 0 1-1 0V5.5A.5.5 0 0 1 10 5z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M4.5 1a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1h2.5a.5.5 0 0 1 0 1H14v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3h-.5a.5.5 0 0 1 0-1H4.5V1zm1 1a.5.5 0 0 0-.5.5V3h6v-.5a.5.5 0 0 0-.5-.5h-5z"
+                      />
+                    </svg>
+                  </IconButton>
+                </Tooltip>
               </ListItemButton>
             ))}
           </List>
