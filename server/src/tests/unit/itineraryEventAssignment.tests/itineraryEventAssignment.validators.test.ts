@@ -127,9 +127,6 @@ describe('Itinerary Event Assignment Validators Middleware', () => {
         mockReq,
         validateItineraryEventAssignmentInput,
       );
-
-    console.log(result);
-    
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
