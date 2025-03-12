@@ -84,6 +84,13 @@ export interface CreateItineraryEventInput {
   notes?: { content: string; createdBy: string }[];
 }
 
+export type UpdateItineraryEventInput = Partial<
+  Omit<
+    CreateItineraryEventInput,
+    'tripId' | 'createdById' | 'assignedUserIds' | 'notes'
+  >
+>;
+
 export interface NotificationFilterOptions {
   isRead?: boolean;
   type?: string;

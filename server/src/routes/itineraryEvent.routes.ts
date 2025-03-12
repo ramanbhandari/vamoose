@@ -2,6 +2,7 @@ import express from 'express';
 import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateCreateItineraryEventInput,
+  validateUpdateItineraryEventInput,
   validateGetAllItineraryEventsInput,
   validateGetSingleItineraryEventInput,
   validateDeleteItineraryEventInput,
@@ -9,6 +10,7 @@ import {
 } from '@/middleware/itineraryEvent.validators.js';
 import {
   createItineraryEventHandler,
+  updateItineraryEventHandler,
   getItineraryEventByIdHandler,
   getAllItineraryEventsForTripHandler,
   deleteItineraryEventHandler,
@@ -48,5 +50,12 @@ router
     validationErrorHandler,
     batchDeleteItineraryEventsHandler,
   );
+
+router.patch(
+  '/:eventId',
+  validateUpdateItineraryEventInput,
+  validationErrorHandler,
+  updateItineraryEventHandler,
+);
 
 export default router;

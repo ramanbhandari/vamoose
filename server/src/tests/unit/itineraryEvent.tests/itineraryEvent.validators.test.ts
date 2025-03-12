@@ -1,5 +1,6 @@
 import {
   validateCreateItineraryEventInput,
+  validateUpdateItineraryEventInput,
   validateGetAllItineraryEventsInput,
   validateGetSingleItineraryEventInput,
   validateDeleteItineraryEventInput,
@@ -197,6 +198,139 @@ describe('ItineraryEvent Validators Middleware', () => {
         expect.arrayContaining([
           expect.objectContaining({
             msg: 'Each Note content must be a non-empty string',
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe('validateUpdateItineraryEventInput', () => {
+    it('should pass validation for a valid request', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: '1' },
+        body: {
+          title: 'Event Title',
+          description: 'Event Description',
+          location: 'Event Location',
+          startTime: '2025-04-10T10:00:00Z',
+          endTime: '2025-04-10T12:00:00Z',
+          category: 'MEETING',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: { tripId: 'abc', eventId: '1' },
+        body: { title: 'Event Title' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if eventId is not a number', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: 'abc' },
+        body: { title: 'Event Title' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Event ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail if title is missing or not a string', async () => {
+      mockReq = { params: { tripId: '1', eventId: '1' }, body: {} };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Title is required and must be a string',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if startTime or endTime are invalid dates', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: '1' },
+        body: {
+          title: 'Event Title',
+          startTime: 'invalid-date',
+          endTime: 'invalid-date',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      console.log(result);
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Start time must be a valid ISO8601 date',
+          }),
+          expect.objectContaining({
+            msg: 'End time must be a valid ISO8601 date',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail if category is invalid', async () => {
+      mockReq = {
+        params: { tripId: '1', eventId: '1' },
+        body: {
+          title: 'Event Title',
+          category: 'INVALID_CATEGORY',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateItineraryEventInput,
+      );
+
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Category must be one of: GENERAL, TRAVEL, ACTIVITY, MEAL, MEETING, FREE_TIME, OTHER',
           }),
         ]),
       );
