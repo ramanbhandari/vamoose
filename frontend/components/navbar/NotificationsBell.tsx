@@ -91,7 +91,6 @@ export default function NotificationsBell() {
     }
   };
 
-  // Handle individual notification deletion
   const handleDeleteNotification = async (
     notifId: number,
     event: React.MouseEvent
@@ -114,6 +113,7 @@ export default function NotificationsBell() {
       setNotification(error, "error");
       clearError();
     }
+
     handleMenuClose();
   };
 
