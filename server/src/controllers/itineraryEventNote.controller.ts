@@ -219,11 +219,13 @@ export const batchDeleteItineraryEventNotesHandler = async (
       return;
     }
 
-    const notesToDelete = await getItineraryEventNotesByIds(
-      noteIds,
-      eventId,
-      userId,
-    );
+    const notes = await getItineraryEventNotesByIds(noteIds, eventId);
+    if (notes.length === 0) {
+      res.status(404).json({ error: 'Event notes not found' });
+      return;
+    }
+
+    const notesToDelete = notes.filter((note) => note.createdBy === userId);
     const deletableNoteIds = notesToDelete.map((note) => note.id);
 
     if (deletableNoteIds.length === 0) {
@@ -233,7 +235,7 @@ export const batchDeleteItineraryEventNotesHandler = async (
       return;
     }
 
-    await batchDeleteItineraryEventNotes(deletableNoteIds, userId);
+    await batchDeleteItineraryEventNotes(deletableNoteIds);
     res.status(200).json({
       message: 'Event notes deleted successfully',
       deletedNoteIds: deletableNoteIds,

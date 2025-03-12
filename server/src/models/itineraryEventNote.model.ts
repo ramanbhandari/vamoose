@@ -40,11 +40,10 @@ export const getItineraryEventNoteById = async (
 export const getItineraryEventNotesByIds = async (
   noteIds: number[],
   eventId: number,
-  userId: string,
 ) => {
   try {
     return await prisma.eventNote.findMany({
-      where: { id: { in: noteIds }, eventId, createdBy: userId },
+      where: { id: { in: noteIds }, eventId },
     });
   } catch (error) {
     console.error('Error getting event note:', error);
@@ -82,13 +81,10 @@ export const deleteItineraryEventNote = async (noteId: number) => {
 };
 
 // Batch delete multiple notes
-export const batchDeleteItineraryEventNotes = async (
-  noteIds: number[],
-  userId: string,
-) => {
+export const batchDeleteItineraryEventNotes = async (noteIds: number[]) => {
   try {
     return await prisma.eventNote.deleteMany({
-      where: { id: { in: noteIds }, createdBy: userId },
+      where: { id: { in: noteIds } },
     });
   } catch (error) {
     console.error('Error batch deleting event notes:', error);
