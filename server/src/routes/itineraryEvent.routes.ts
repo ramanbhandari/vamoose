@@ -21,6 +21,7 @@ import {
   unassignUserFromItineraryEventHandler,
 } from '@/controllers/itineraryEventAssignment.controller';
 import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators';
+import eventNoteRouter from '@/routes/itineraryEventNote.routes.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -75,5 +76,7 @@ router.delete(
   validationErrorHandler,
   unassignUserFromItineraryEventHandler,
 );
+
+router.use('/:eventId/notes', eventNoteRouter);
 
 export default router;
