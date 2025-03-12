@@ -21,6 +21,8 @@ import { useUserStore } from "@/stores/user-store";
 import { usePathname, useRouter } from "next/navigation";
 import AnimatedMenuIcon from "./hamAnimIcon";
 import { useNotificationStore } from "@/stores/notification-store";
+import NotificationsBell from "./NotificationsBell";
+
 export default function Navbar() {
   const { user, loading, logoutUser, setUser } = useUserStore();
   const { setNotification } = useNotificationStore();
@@ -94,6 +96,7 @@ export default function Navbar() {
 
         <Box className="flex items-center gap-2">
           <ThemeToggle />
+          {user && <NotificationsBell />}
           {user && (
             <div>
               <IconButton
