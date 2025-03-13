@@ -36,7 +36,14 @@ export const getNotificationsHandler = async (req: Request, res: Response) => {
         limit: remainingCount,
       });
 
-      notifications = [...unreadNotifications, ...readNotifications];
+      // filter out duplicates incase a notification was recently set to true (race condition?)
+      const unreadIds = new Set(unreadNotifications.map((n) => n.id));
+
+      const filteredReadNotifications = readNotifications.filter(
+        (n) => !unreadIds.has(n.id),
+      );
+
+      notifications = [...unreadNotifications, ...filteredReadNotifications];
     }
 
     res.status(200).json({ notifications });
