@@ -8,19 +8,24 @@ import {
   Checkbox,
   IconButton,
   Slide,
+  MenuItem,
+  Menu,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { Member } from "@/types";
-import { DeleteOutline } from "@mui/icons-material";
+import { DeleteOutline, Edit } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import { useState } from "react";
 
 interface MemberCardProps {
   member: Member;
   checked?: boolean;
   onSelect?: (userId: string) => void;
   onDelete?: (userId: string) => void;
+  onRoleChange?: (member: Member, newRole: "admin" | "member") => void;
   showDelete?: boolean;
   showCheckbox?: boolean;
+  currentUserRole: "creator" | "admin" | "member";
 }
 
 export default function MemberCard({
@@ -28,10 +33,13 @@ export default function MemberCard({
   checked = false,
   onSelect,
   onDelete,
+  onRoleChange,
   showDelete = false,
   showCheckbox = false,
+  currentUserRole,
 }: MemberCardProps) {
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const getInitials = (name: string | null) => {
     if (!name)
@@ -44,6 +52,23 @@ export default function MemberCard({
       .join("")
       .toUpperCase();
   };
+
+  const handleEditClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRoleChange = (newRole: "admin" | "member") => {
+    onRoleChange?.(member, newRole);
+    setAnchorEl(null);
+  };
+
+  const canEdit =
+    (currentUserRole === "creator" && member.role !== "creator") || // Creator can edit others but not themselves
+    (currentUserRole === "admin" && member.role === "member"); // Admins can only edit members (only promote no demote)
 
   return (
     <Slide direction="up" in={true} mountOnEnter unmountOnExit>
@@ -74,19 +99,31 @@ export default function MemberCard({
           />
         )}
 
-        {showDelete && (
-          <IconButton
-            onClick={() => onDelete?.(member.userId)}
+        {(showDelete || canEdit) && (
+          <Box
             sx={{
               position: "absolute",
               right: 8,
               top: 8,
-              zIndex: 1,
-              color: "error.main",
+              display: "flex",
+              gap: 1,
             }}
           >
-            <DeleteOutline />
-          </IconButton>
+            {canEdit && (
+              <IconButton size="small" onClick={handleEditClick}>
+                <Edit />
+              </IconButton>
+            )}
+            {showDelete && (
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => onDelete?.(member.userId)}
+              >
+                <DeleteOutline />
+              </IconButton>
+            )}
+          </Box>
         )}
 
         <Avatar
@@ -145,6 +182,34 @@ export default function MemberCard({
             size="small"
           />
         </Box>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          {/* admins can promote members to admins */}
+          {currentUserRole === "admin" && member.role === "member" && (
+            <MenuItem onClick={() => handleRoleChange("admin")}>
+              Promote to Admin
+            </MenuItem>
+          )}
+
+          {/* creator can promote or demote both admins and members */}
+          {currentUserRole === "creator" && member.role === "member" && (
+            <MenuItem onClick={() => handleRoleChange("admin")}>
+              Promote to Admin
+            </MenuItem>
+          )}
+
+          {currentUserRole === "creator" && member.role === "admin" && (
+            <MenuItem onClick={() => handleRoleChange("member")}>
+              Demote to Member
+            </MenuItem>
+          )}
+        </Menu>
       </Paper>
     </Slide>
   );
