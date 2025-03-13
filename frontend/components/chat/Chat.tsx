@@ -54,6 +54,8 @@ export default function Chat() {
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [inputAreaHeight, setInputAreaHeight] = useState(80);
+  const inputAreaRef = useRef<HTMLDivElement>(null);
 
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
@@ -188,6 +190,16 @@ export default function Chat() {
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
+
+  // to update input area height when it changes
+  useEffect(() => {
+    if (inputAreaRef.current) {
+      const newHeight = inputAreaRef.current.clientHeight;
+      if (newHeight !== inputAreaHeight) {
+        setInputAreaHeight(newHeight);
+      }
+    }
+  }, [messageText, inputAreaHeight]);
 
   if (!user) return null;
 
@@ -570,7 +582,7 @@ export default function Chat() {
                   top: 0,
                   left: 0,
                   right: 0,
-                  bottom: 80, // reserve space for input area
+                  bottom: inputAreaHeight,
                   overflowY: "auto",
                   overscrollBehavior: "contain",
                   p: 2,
@@ -865,31 +877,29 @@ export default function Chat() {
 
               {/* Input Area */}
               <Box
+                ref={inputAreaRef}
                 sx={{
                   position: "absolute",
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  height: 80,
-                  backgroundImage: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? "url('dark-mode.jpg')"
-                      : "url('light-mode.jpg')",
+                  minHeight: 80,
                   backgroundRepeat: "repeat",
                   backgroundSize: "auto",
                   backgroundPosition: "center",
                   p: 2,
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-end",
                   justifyContent: isMaximized ? "center" : "flex-start",
+                  transition: "height 0.2s ease",
                 }}
               >
                 <Box
                   sx={{
                     display: "flex",
-                    alignItems: "center",
+                    alignItems: "flex-end",
                     backgroundColor: "var(--background-paper)",
-                    borderRadius: 50,
+                    borderRadius: 5,
                     p: 1.5,
                     pr: 4,
                     mb: 2,
@@ -898,36 +908,91 @@ export default function Chat() {
                     position: "relative",
                   }}
                 >
-                  <TextField
-                    variant="outlined"
-                    placeholder={
-                      selectedTrip
-                        ? "Type your message..."
-                        : "Select a trip to start chatting"
-                    }
-                    fullWidth
-                    size="small"
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    disabled={!selectedTrip}
-                    sx={{
-                      flex: 1,
-                      backgroundColor: "transparent",
-                      border: "none",
-                      outline: "none",
-                      borderRadius: 50,
-                      padding: "10px 12px",
-                      fontSize: "1rem",
-                      "& .MuiInputBase-root": { padding: 0 },
-                      "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                    }}
-                  />
+                  <Box sx={{ position: "relative", flex: 1 }}>
+                    {!messageText && (
+                      <Typography
+                        sx={{
+                          position: "absolute",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          left: 12,
+                          color: "text.disabled",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          pointerEvents: "none",
+                          fontSize: "1rem",
+                          width: "calc(100% - 24px)",
+                        }}
+                      >
+                        {selectedTrip
+                          ? "Type your message..."
+                          : "Select a trip to start chatting"}
+                      </Typography>
+                    )}
+                    <TextField
+                      variant="outlined"
+                      placeholder=""
+                      fullWidth
+                      multiline
+                      maxRows={4}
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      disabled={!selectedTrip}
+                      sx={{
+                        flex: 1,
+                        backgroundColor: "transparent",
+                        border: "none",
+                        outline: "none",
+                        borderRadius: 20,
+                        padding: "10px 12px",
+                        fontSize: "1rem",
+                        "& .MuiInputBase-root": {
+                          padding: 0,
+                          alignItems: "flex-end",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "& .MuiInputBase-inputMultiline": {
+                          overflow: "auto",
+                          resize: "none",
+                          lineHeight: 1.5,
+                          wordBreak: "break-word",
+                          "&::-webkit-scrollbar": {
+                            width: "4px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "transparent",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.3)"
+                                : "rgba(0, 0, 0, 0.2)",
+                            borderRadius: "10px",
+                          },
+                          "&::-webkit-scrollbar-thumb:hover": {
+                            background: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.5)"
+                                : "rgba(0, 0, 0, 0.4)",
+                          },
+                          scrollbarWidth: "thin",
+                          scrollbarColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? "rgba(255, 255, 255, 0.3) transparent"
+                              : "rgba(0, 0, 0, 0.2) transparent",
+                        },
+                      }}
+                    />
+                  </Box>
 
                   {/* Emoji Button */}
                   <IconButton
