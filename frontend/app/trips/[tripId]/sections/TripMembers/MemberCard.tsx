@@ -8,6 +8,7 @@ import {
   Checkbox,
   IconButton,
   Slide,
+  Button,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { Member } from "@/types";
@@ -19,8 +20,10 @@ interface MemberCardProps {
   checked?: boolean;
   onSelect?: (userId: string) => void;
   onDelete?: (userId: string) => void;
+  onRoleChange?: (member: Member, newRole: "admin" | "member") => void;
   showDelete?: boolean;
   showCheckbox?: boolean;
+  currentUserRole: "creator" | "admin" | "member";
 }
 
 export default function MemberCard({
@@ -28,8 +31,10 @@ export default function MemberCard({
   checked = false,
   onSelect,
   onDelete,
+  onRoleChange,
   showDelete = false,
   showCheckbox = false,
+  currentUserRole,
 }: MemberCardProps) {
   const theme = useTheme();
 
@@ -145,6 +150,39 @@ export default function MemberCard({
             size="small"
           />
         </Box>
+
+        {(currentUserRole === "creator" || currentUserRole === "admin") &&
+          member.role !== "creator" && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                mt: 2,
+              }}
+            >
+              {member.role === "member" && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => onRoleChange?.(member, "admin")}
+                >
+                  Make Admin
+                </Button>
+              )}
+
+              {member.role === "admin" && currentUserRole === "creator" && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  onClick={() => onRoleChange?.(member, "member")}
+                >
+                  Change role to Member
+                </Button>
+              )}
+            </Box>
+          )}
       </Paper>
     </Slide>
   );
