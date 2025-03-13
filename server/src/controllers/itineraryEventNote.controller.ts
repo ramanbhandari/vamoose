@@ -110,7 +110,7 @@ export const updateItineraryEventNoteHandler = async (
       return;
     }
 
-    const updatedNote = await updateItineraryEventNote(noteId, userId, content);
+    const updatedNote = await updateItineraryEventNote(noteId, content);
 
     res.status(200).json({ message: 'Note updated successfully', updatedNote });
   } catch (error) {

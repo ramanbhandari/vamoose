@@ -36,7 +36,6 @@ export const getItineraryEventNoteById = async (noteId: number) => {
 // Update a note
 export const updateItineraryEventNote = async (
   noteId: number,
-  userId: string,
   content: string,
 ) => {
   try {
