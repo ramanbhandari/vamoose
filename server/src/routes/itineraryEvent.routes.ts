@@ -16,6 +16,12 @@ import {
   deleteItineraryEventHandler,
   batchDeleteItineraryEventsHandler,
 } from '@/controllers/itineraryEvent.controller.js';
+import {
+  assignUsersToItineraryEventHandler,
+  unassignUserFromItineraryEventHandler,
+} from '@/controllers/itineraryEventAssignment.controller';
+import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators';
+import eventNoteRouter from '@/routes/itineraryEventNote.routes.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -57,5 +63,20 @@ router.patch(
   validationErrorHandler,
   updateItineraryEventHandler,
 );
+
+router.post(
+  '/:eventId/assign',
+  validateItineraryEventAssignmentInput,
+  validationErrorHandler,
+  assignUsersToItineraryEventHandler,
+);
+router.delete(
+  '/:eventId/unassign',
+  validateItineraryEventAssignmentInput,
+  validationErrorHandler,
+  unassignUserFromItineraryEventHandler,
+);
+
+router.use('/:eventId/notes', eventNoteRouter);
 
 export default router;

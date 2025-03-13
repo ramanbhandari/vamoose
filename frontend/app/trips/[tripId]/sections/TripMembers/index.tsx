@@ -2,7 +2,7 @@
 
 import InviteModal from "@/components/InviteModal";
 import { useUserStore } from "@/stores/user-store";
-import { TripData } from "@/types";
+import { Member, TripData } from "@/types";
 import { getUserInfo } from "@/utils/userHelper";
 import { DeleteOutline, GroupAdd } from "@mui/icons-material";
 import {
@@ -62,6 +62,9 @@ export default function TripMembers({
 
   const [selected, setSelected] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [roleChangeConfirmOpen, setRoleChangeConfirmOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [newRole, setNewRole] = useState<"admin" | "member" | null>(null);
 
   // pendingDelete can be either a single user id or an array of string ids
   const [pendingDelete, setPendingDelete] = useState<string | string[] | null>(
@@ -223,6 +226,57 @@ export default function TripMembers({
     }
   };
 
+  const handleRequestRoleChange = (
+    member: Member,
+    role: "admin" | "member"
+  ) => {
+    setSelectedMember(member);
+    setNewRole(role);
+    setRoleChangeConfirmOpen(true);
+  };
+
+  const handleCancelRoleChange = () => {
+    setRoleChangeConfirmOpen(false);
+  };
+
+  const handleRoleChange = async () => {
+    if (!tripData || selectedMember === null || newRole === null) return;
+    setIsLoading(true);
+
+    try {
+      const payload = { role: newRole };
+      const response = await apiClient.patch(
+        `/trips/${tripData.id}/members/${selectedMember.userId}`,
+        payload
+      );
+
+      if (response.status === 200) {
+        setNotification(
+          `${selectedMember.user.fullName || selectedMember.user.email}'s role has been updated to ${newRole.toUpperCase()}.`,
+          "success"
+        );
+
+        await fetchTripData(tripData.id);
+      } else {
+        setNotification(
+          `Failed to update role for ${selectedMember.user.fullName || selectedMember.user.email}.`,
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      setNotification(
+        `Error updating role for ${selectedMember.user.fullName || selectedMember.user.email}.`,
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+      setRoleChangeConfirmOpen(false);
+      setSelectedMember(null);
+      setNewRole(null);
+    }
+  };
+
   const deletableMembers =
     processedMembers?.filter((member) => member.deletable) || [];
   const deletableMembersCount = deletableMembers.length;
@@ -240,6 +294,21 @@ export default function TripMembers({
             : `Are you sure you want to remove this member?`
         }
       />
+
+      <ConfirmationDialog
+        open={roleChangeConfirmOpen}
+        onClose={handleCancelRoleChange}
+        onConfirm={handleRoleChange}
+        title="Confirm Role Change"
+        message={
+          selectedMember && newRole
+            ? `Are you sure you want to change the role of ${
+                selectedMember.user.fullName || selectedMember.user.email
+              } (${selectedMember.user.email}) from ${selectedMember.role.toUpperCase()} to ${newRole.toUpperCase()}?`
+            : "Are you sure you want to change this member's role?"
+        }
+      />
+
       <GradientHeader
         theme={theme}
         sx={{
@@ -360,8 +429,14 @@ export default function TripMembers({
                     checked={selected.includes(member.userId)}
                     onSelect={handleSelect}
                     onDelete={handleRequestSingleDelete}
+                    onRoleChange={(member, newRole) =>
+                      handleRequestRoleChange(member, newRole)
+                    }
                     showDelete={member.deletable}
                     showCheckbox={member.showCheckbox}
+                    currentUserRole={
+                      isCreator ? "creator" : isAdmin ? "admin" : "member"
+                    }
                   />
                 </Grid>
               ))}
