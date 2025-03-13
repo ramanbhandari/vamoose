@@ -22,10 +22,28 @@ export const addNoteToItineraryEvent = async (
 };
 
 // Get a note by id
-export const getItineraryEventNoteById = async (noteId: number) => {
+export const getItineraryEventNoteById = async (
+  noteId: number,
+  eventId: number,
+) => {
   try {
     return await prisma.eventNote.findUnique({
-      where: { id: noteId },
+      where: { id: noteId, eventId },
+    });
+  } catch (error) {
+    console.error('Error getting event note:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Get notes by ids and creator
+export const getItineraryEventNotesByIds = async (
+  noteIds: number[],
+  eventId: number,
+) => {
+  try {
+    return await prisma.eventNote.findMany({
+      where: { id: { in: noteIds }, eventId },
     });
   } catch (error) {
     console.error('Error getting event note:', error);
@@ -45,6 +63,30 @@ export const updateItineraryEventNote = async (
     });
   } catch (error) {
     console.error('Error updating event note:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Delete a single note
+export const deleteItineraryEventNote = async (noteId: number) => {
+  try {
+    return await prisma.eventNote.delete({
+      where: { id: noteId },
+    });
+  } catch (error) {
+    console.error('Error deleting event note:', error);
+    throw handlePrismaError(error);
+  }
+};
+
+// Batch delete multiple notes
+export const batchDeleteItineraryEventNotes = async (noteIds: number[]) => {
+  try {
+    return await prisma.eventNote.deleteMany({
+      where: { id: { in: noteIds } },
+    });
+  } catch (error) {
+    console.error('Error batch deleting event notes:', error);
     throw handlePrismaError(error);
   }
 };
