@@ -138,7 +138,7 @@ describe('Create Invite Handler', () => {
     });
   });
 
-  it('should return 400 if invite already exists', async () => {
+  it('should return 200 if invite already exists', async () => {
     mockReq = setupRequest();
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
       id: 1,
@@ -152,9 +152,8 @@ describe('Create Invite Handler', () => {
 
     await createInvite(mockReq as Request, mockRes as Response);
 
-    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(statusMock).toHaveBeenCalledWith(200);
     expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Invite already exists.',
       inviteUrl: `${process.env.FRONTEND_URL}/invite/existing-token`,
     });
   });
@@ -177,31 +176,30 @@ describe('Create Invite Handler', () => {
 
     await createInvite(mockReq as Request, mockRes as Response);
 
-    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({
       inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
     });
   });
 
-  it('should create an invite successfully when reinviting a member that left', async () => {
+  it('should return an invite successfully when reinviting a member that left', async () => {
     mockReq = setupRequest();
     const invite = {
       inviteToken: 'valid-token',
       email: 'test@example.com',
       tripId: 1,
-      status: 'pending',
-    };
-    (prisma.tripInvitee.create as jest.Mock).mockResolvedValue(invite);
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({
-      inviteToken: 'existing-token',
       status: 'accepted',
-    });
+    };
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
       id: 1,
       members: [{ userId: '1', role: 'creator' }],
     });
-    (prisma.tripInvitee.delete as jest.Mock).mockResolvedValue({});
+    (prisma.tripInvitee.update as jest.Mock).mockResolvedValue({
+      ...invite,
+      status: 'pending',
+    });
 
     await createInvite(mockReq as Request, mockRes as Response);
 
