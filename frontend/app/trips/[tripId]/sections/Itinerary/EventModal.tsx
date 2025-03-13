@@ -20,10 +20,11 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Close, EditNote, Schedule } from "@mui/icons-material";
+import { Close, EditNote, Schedule, Add, Remove } from "@mui/icons-material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { FloatingDialog } from "../Polls/styled";
+import { styled } from "@mui/material/styles";
+import { Dialog } from "@mui/material";
 
 import { CreateItineraryEvent, eventCategories } from "./types";
 import {
@@ -33,6 +34,21 @@ import {
 
 import { useNotificationStore } from "@/stores/notification-store";
 import LocationAutocomplete from "./LocationAutocomplete";
+
+export const FloatingDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialog-paper": {
+    borderRadius: 16,
+    width: "100%",
+    maxWidth: "600px",
+    maxHeight: "95vh",
+    boxShadow: theme.shadows[10],
+    overflow: "hidden",
+  },
+  "& .MuiBackdrop-root": {
+    backdropFilter: "blur(8px)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+  },
+}));
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -58,6 +74,7 @@ export default function CreateEventDialog({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [category, setCategory] = useState("GENERAL");
+  const [notes, setNotes] = useState<string[]>([]);
 
   const [error, setError] = useState("");
 
@@ -100,6 +117,9 @@ export default function CreateEventDialog({
       startTime,
       endTime,
       category: category as CreateItineraryEvent["category"],
+      notes: notes
+        .filter((note) => note.trim())
+        .map((note) => ({ content: note.trim() })),
     });
     // Reset form state
     setTitle("");
@@ -108,6 +128,7 @@ export default function CreateEventDialog({
     setStartTime("");
     setEndTime("");
     setCategory("GENERAL");
+    setNotes([]);
     onClose();
   };
 
@@ -118,6 +139,7 @@ export default function CreateEventDialog({
     setStartTime("");
     setEndTime("");
     setCategory("GENERAL");
+    setNotes([]);
     onClose();
   };
 
@@ -241,7 +263,6 @@ export default function CreateEventDialog({
                   value={startTime ? parseLocalDateWithTime(startTime) : null}
                   disablePast
                   onChange={handleStartTimeChange}
-                  // Set min and max based on trip start and end dates
                   minDateTime={parseLocalDateWithTime(tripStart) ?? new Date()}
                   maxDateTime={parseLocalDateWithTime(tripEnd) ?? new Date()}
                   slotProps={{
@@ -329,6 +350,55 @@ export default function CreateEventDialog({
                   ))}
                 </Select>
               </FormControl>
+            </Box>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Notes
+              </Typography>
+              <Stack gap={2}>
+                {notes.map((note, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      alignItems: "center",
+                      "&:not(:last-child)": { mb: 1 },
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      label={`Note ${index + 1}`}
+                      value={note}
+                      onChange={(e) => {
+                        const newNotes = [...notes];
+                        newNotes[index] = e.target.value;
+                        setNotes(newNotes);
+                      }}
+                    />
+                    <IconButton
+                      onClick={() =>
+                        setNotes(notes.filter((_, i) => i !== index))
+                      }
+                      size="small"
+                      sx={{ ml: -0.5 }}
+                    >
+                      <Remove fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+                <Button
+                  startIcon={<Add />}
+                  onClick={() => setNotes([...notes, ""])}
+                  size="small"
+                  sx={{ alignSelf: "flex-start", mt: 1 }}
+                >
+                  Add note
+                </Button>
+              </Stack>
             </Box>
 
             {error && (
