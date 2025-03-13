@@ -67,11 +67,13 @@ export async function createNotification(
         await prisma.notification.createMany({
           data: userIds.map((uid) => ({
             userId: uid,
+            tripId,
             type,
             relatedId,
             title,
             message,
             data,
+            channel,
           })),
         });
       } catch (immediateError) {
