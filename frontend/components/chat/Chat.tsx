@@ -54,7 +54,7 @@ export default function Chat() {
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [inputAreaHeight, setInputAreaHeight] = useState(80);
+  const [inputAreaHeight, setInputAreaHeight] = useState(115);
   const inputAreaRef = useRef<HTMLDivElement>(null);
 
   const MINIMIZED_TAB_WIDTH = 150;
@@ -144,6 +144,13 @@ export default function Chat() {
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages]);
+
+  // Show latest messages when chat is re-opened
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView();
+    }
+  }, [isOpen]);
 
   // Handle trip selection
   useEffect(() => {
