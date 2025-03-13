@@ -7,13 +7,17 @@ interface DateDividerProps {
 }
 
 const DateDivider: React.FC<DateDividerProps> = ({ date }) => {
+  const year = date.getFullYear();
+  const isYear = year === new Date().getFullYear();
   const formatDateLabel = (date: Date): string => {
     if (isToday(date)) {
       return `Today, ${format(date, "MMM d")}`;
     } else if (isYesterday(date)) {
       return `Yesterday, ${format(date, "MMM d")}`;
-    } else {
+    } else if (isYear) {
       return format(date, "EEEE, MMM d");
+    } else {
+      return format(date, "EEEE, MMM d, yyyy");
     }
   };
 
