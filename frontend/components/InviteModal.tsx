@@ -8,13 +8,12 @@ import {
   TextField,
   Button,
   IconButton,
-  Snackbar,
-  Alert,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useParams } from "next/navigation";
 import apiClient from "@/utils/apiClient";
+import { useNotificationStore } from "@/stores/notification-store"; 
 
 interface InviteModalProps {
   open: boolean;
@@ -33,16 +32,12 @@ interface ApiError {
 export default function InviteModal({ open, onClose }: InviteModalProps) {
   const params = useParams();
   const tripId = params.tripId as string;
+  const { setNotification, clearNotification } = useNotificationStore();
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info" as "success" | "error" | "info",
-  });
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,31 +61,14 @@ export default function InviteModal({ open, onClose }: InviteModalProps) {
       });
 
       setInviteUrl(response.data.inviteUrl);
-      setSnackbar({
-        open: true,
-        message:
-          "Invite created successfully! Share this link with the explorer.",
-        severity: "success",
-      });
+      setNotification("Share this invite link with the explorer.", "success");
     } catch (error) {
       const apiError = error as ApiError;
-      if (apiError.response?.data?.error === "Invite already exists.") {
-        setInviteUrl(apiError.response?.data?.inviteUrl || "");
-        setSnackbar({
-          open: true,
-          message:
-            "An invite already exists for this email. Here's the link to share.",
-          severity: "info",
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message:
-            apiError.response?.data?.error ||
-            "Something went wrong. Please try again.",
-          severity: "error",
-        });
-      }
+      setNotification(
+        apiError.response?.data?.error ||
+          "Something went wrong. Please try again.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -98,11 +76,8 @@ export default function InviteModal({ open, onClose }: InviteModalProps) {
 
   const handleCopyInviteUrl = () => {
     navigator.clipboard.writeText(inviteUrl);
-    setSnackbar({
-      open: true,
-      message: "Link copied to clipboard!",
-      severity: "info",
-    });
+    clearNotification();
+    setNotification("Link copied to clipboard!", "info");
   };
 
   const handleClose = () => {
@@ -114,10 +89,6 @@ export default function InviteModal({ open, onClose }: InviteModalProps) {
     setError("");
     setInviteUrl("");
     onClose();
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -213,21 +184,6 @@ export default function InviteModal({ open, onClose }: InviteModalProps) {
           )}
         </Box>
       </Modal>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
