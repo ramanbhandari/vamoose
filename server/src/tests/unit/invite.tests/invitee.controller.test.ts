@@ -147,6 +147,7 @@ describe('Create Invite Handler', () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({
       inviteToken: 'existing-token',
+      status: 'pending',
     });
 
     await createInvite(mockReq as Request, mockRes as Response);
