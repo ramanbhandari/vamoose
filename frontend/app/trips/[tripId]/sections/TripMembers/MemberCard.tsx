@@ -8,12 +8,14 @@ import {
   Checkbox,
   IconButton,
   Slide,
-  Button,
+  MenuItem,
+  Menu,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { Member } from "@/types";
-import { DeleteOutline } from "@mui/icons-material";
+import { DeleteOutline, Edit } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import { useState } from "react";
 
 interface MemberCardProps {
   member: Member;
@@ -37,6 +39,7 @@ export default function MemberCard({
   currentUserRole,
 }: MemberCardProps) {
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const getInitials = (name: string | null) => {
     if (!name)
@@ -48,6 +51,19 @@ export default function MemberCard({
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+  };
+
+  const handleEditClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRoleChange = (newRole: "admin" | "member") => {
+    onRoleChange?.(member, newRole);
+    setAnchorEl(null);
   };
 
   return (
@@ -79,19 +95,32 @@ export default function MemberCard({
           />
         )}
 
-        {showDelete && (
-          <IconButton
-            onClick={() => onDelete?.(member.userId)}
+        {(showDelete ||
+          (currentUserRole !== "member" && member.role !== "creator")) && (
+          <Box
             sx={{
               position: "absolute",
               right: 8,
               top: 8,
-              zIndex: 1,
-              color: "error.main",
+              display: "flex",
+              gap: 1,
             }}
           >
-            <DeleteOutline />
-          </IconButton>
+            {currentUserRole !== "member" && member.role !== "creator" && (
+              <IconButton size="small" onClick={handleEditClick}>
+                <Edit />
+              </IconButton>
+            )}
+            {showDelete && (
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => onDelete?.(member.userId)}
+              >
+                <DeleteOutline />
+              </IconButton>
+            )}
+          </Box>
         )}
 
         <Avatar
@@ -151,38 +180,24 @@ export default function MemberCard({
           />
         </Box>
 
-        {(currentUserRole === "creator" || currentUserRole === "admin") &&
-          member.role !== "creator" && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mt: 2,
-              }}
-            >
-              {member.role === "member" && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  onClick={() => onRoleChange?.(member, "admin")}
-                >
-                  Make Admin
-                </Button>
-              )}
-
-              {member.role === "admin" && currentUserRole === "creator" && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={() => onRoleChange?.(member, "member")}
-                >
-                  Change role to Member
-                </Button>
-              )}
-            </Box>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          {member.role === "member" && (
+            <MenuItem onClick={() => handleRoleChange("admin")}>
+              Promote to Admin
+            </MenuItem>
           )}
+          {member.role === "admin" && currentUserRole === "creator" && (
+            <MenuItem onClick={() => handleRoleChange("member")}>
+              Demote to Member
+            </MenuItem>
+          )}
+        </Menu>
       </Paper>
     </Slide>
   );
