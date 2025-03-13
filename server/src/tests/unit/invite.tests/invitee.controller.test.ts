@@ -182,6 +182,34 @@ describe('Create Invite Handler', () => {
       inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
     });
   });
+
+  it('should create an invite successfully when reinviting a member that left', async () => {
+    mockReq = setupRequest();
+    const invite = {
+      inviteToken: 'valid-token',
+      email: 'test@example.com',
+      tripId: 1,
+      status: 'pending',
+    };
+    (prisma.tripInvitee.create as jest.Mock).mockResolvedValue(invite);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue({
+      inviteToken: 'existing-token',
+      status: 'accepted',
+    });
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      id: 1,
+      members: [{ userId: '1', role: 'creator' }],
+    });
+    (prisma.tripInvitee.delete as jest.Mock).mockResolvedValue({});
+
+    await createInvite(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
+    });
+  });
 });
 
 describe('Validate Invite Handler', () => {
