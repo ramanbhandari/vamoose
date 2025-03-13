@@ -52,11 +52,13 @@ describe('createNotification', () => {
     expect(prisma.notification.createMany).toHaveBeenCalledWith({
       data: baseOptions.userIds.map((uid) => ({
         userId: uid,
+        tripId: baseOptions.tripId,
         type: baseOptions.type,
         relatedId: undefined,
         title: baseOptions.title,
         message: baseOptions.message,
         data: undefined,
+        channel: 'IN_APP',
       })),
     });
   });
