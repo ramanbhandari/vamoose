@@ -66,6 +66,10 @@ export default function MemberCard({
     setAnchorEl(null);
   };
 
+  const canEdit =
+    (currentUserRole === "creator" && member.role !== "creator") || // Creator can edit others but not themselves
+    (currentUserRole === "admin" && member.role === "member"); // Admins can only edit members (only promote no demote)
+
   return (
     <Slide direction="up" in={true} mountOnEnter unmountOnExit>
       <Paper
@@ -95,8 +99,7 @@ export default function MemberCard({
           />
         )}
 
-        {(showDelete ||
-          (currentUserRole !== "member" && member.role !== "creator")) && (
+        {(showDelete || canEdit) && (
           <Box
             sx={{
               position: "absolute",
@@ -106,7 +109,7 @@ export default function MemberCard({
               gap: 1,
             }}
           >
-            {currentUserRole !== "member" && member.role !== "creator" && (
+            {canEdit && (
               <IconButton size="small" onClick={handleEditClick}>
                 <Edit />
               </IconButton>
@@ -187,12 +190,21 @@ export default function MemberCard({
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
-          {member.role === "member" && (
+          {/* admins can promote members to admins */}
+          {currentUserRole === "admin" && member.role === "member" && (
             <MenuItem onClick={() => handleRoleChange("admin")}>
               Promote to Admin
             </MenuItem>
           )}
-          {member.role === "admin" && currentUserRole === "creator" && (
+
+          {/* creator can promote or demote both admins and members */}
+          {currentUserRole === "creator" && member.role === "member" && (
+            <MenuItem onClick={() => handleRoleChange("admin")}>
+              Promote to Admin
+            </MenuItem>
+          )}
+
+          {currentUserRole === "creator" && member.role === "admin" && (
             <MenuItem onClick={() => handleRoleChange("member")}>
               Demote to Member
             </MenuItem>
