@@ -297,8 +297,6 @@ describe('ItineraryEvent Validators Middleware', () => {
         validateUpdateItineraryEventInput,
       );
 
-      console.log(result);
-
       expect(result.isEmpty()).toBe(false);
       expect(result.array()).toEqual(
         expect.arrayContaining([
