@@ -1,6 +1,9 @@
-import { Box, Typography, useTheme, Container } from "@mui/material";
+import { Box, Typography, useTheme, Container, Button } from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
-
+import { useState } from "react";
+import { CreateItineraryEvent } from "./types";
+import CreateEventModal from "./EventModal";
+import { useTripStore } from "@/stores/trip-store";
 interface ItineraryProps {
   tripId: number;
   tripName: string;
@@ -13,6 +16,22 @@ export default function Itinerary({
   imageUrl,
 }: ItineraryProps) {
   const theme = useTheme();
+  const { tripData } = useTripStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSaveEvent = (eventData: CreateItineraryEvent) => {
+    console.log("New event data: ", eventData);
+  };
+
+  if (!tripData) return;
   return (
     <Box key={tripId}>
       <GradientHeader
@@ -54,6 +73,13 @@ export default function Itinerary({
             <Typography variant="h4" fontWeight="bold">
               {tripName}
             </Typography>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleOpenModal}
+            >
+              Create Event
+            </Button>
           </Box>
         </Container>
       </GradientHeader>
@@ -61,6 +87,14 @@ export default function Itinerary({
         ByteMates haven&apos;t gotten to implement this feature yet, please
         check back again!
       </Container>
+
+      <CreateEventModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        onCreate={handleSaveEvent}
+        tripStart={tripData?.startDate}
+        tripEnd={tripData?.endDate}
+      />
     </Box>
   );
 }
