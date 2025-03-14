@@ -469,6 +469,13 @@ export default function Chat() {
                 onClick={toggleTripBarOnMobile}
                 sx={{
                   color: "#fff",
+                  width: 40,
+                  height: 40,
+                  padding: 0,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <MenuIcon />
@@ -479,7 +486,16 @@ export default function Chat() {
             {!isMobile && !isMaximized && (
               <IconButton
                 onClick={toggleTripTab}
-                sx={{ color: "#fff", display: { xs: "none", sm: "block" } }} // Only show on non-mobile
+                sx={{
+                  color: "#fff",
+                  display: { xs: "none", sm: "block" },
+                  width: 40,
+                  height: 40,
+                  padding: 0,
+                  borderRadius: "50%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
                 <MenuIcon />
               </IconButton>
@@ -1196,7 +1212,7 @@ export default function Chat() {
                     sx={{
                       ml: 2,
                       backgroundColor: "var(--primary)",
-                      borderRadius: 50,
+                      borderRadius: "1em",
                       padding: "8px 20px",
                       "@media (max-width: 600px)": {
                         padding: "6px 16px", // Smaller padding on mobile
