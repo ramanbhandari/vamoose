@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import {
   Box,
   IconButton,
@@ -26,6 +27,7 @@ export default function MapComponent({
   const [map, setMap] = useState<MapType | null>(null);
   const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [userMarker, setUserMarker] = useState<maplibre.Marker | null>(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -57,7 +59,7 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
-  // Auto-locate on mount, if fails tell the user that theres an error (mostly browser block)
+  // Auto-locate on mount
   useEffect(() => {
     if (!map) return;
 
@@ -70,6 +72,13 @@ export default function MapComponent({
               center: [longitude, latitude],
               zoom: 14,
             });
+            // Add a red marker at the user's location
+            const newMarker = new maplibre.Marker({ color: "var(--primary)" })
+              .setLngLat([longitude, latitude])
+              .addTo(map);
+
+            setUserMarker(newMarker);
+            setIsLocating(false);
           },
           (error) => {
             setNotification("Automatic location detection failed", "error");
@@ -93,10 +102,25 @@ export default function MapComponent({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { longitude, latitude } = position.coords;
-        map?.flyTo({
+
+        // Ensure the map is loaded before adding the marker
+        if (!map || !map.loaded()) {
+          console.error("Map not loaded yet.");
+          setIsLocating(false);
+          return;
+        }
+
+        map.flyTo({
           center: [longitude, latitude],
           zoom: 14,
         });
+
+        // Add a red marker at the user's location
+        const newMarker = new maplibre.Marker({ color: "var(--primary)" })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+
+        setUserMarker(newMarker);
         setIsLocating(false);
       },
       (error) => {
@@ -110,7 +134,7 @@ export default function MapComponent({
         maximumAge: 0,
       }
     );
-  }, [map, setNotification]);
+  }, [map, setNotification, userMarker]);
 
   const handleSearch = (query: string) => {
     console.log("Searching for:", query);
