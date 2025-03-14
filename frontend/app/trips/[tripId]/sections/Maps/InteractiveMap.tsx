@@ -116,7 +116,7 @@ export default function MapComponent({
   };
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} sx={{ transition: "all 0.3s ease-in-out" }}>
       {/* Map Search and Filter Component */}
       <MapSearchFilter onSearch={handleSearch} onTagFilter={handleTagFilter} />
 
@@ -129,6 +129,7 @@ export default function MapComponent({
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
           cursor: "pointer",
+          transition: "all 0.3s ease-in-out",
         }}
       >
         <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
@@ -143,6 +144,7 @@ export default function MapComponent({
             display: "flex",
             gap: 1,
             zIndex: 1,
+            transition: "all 0.3s ease-in-out",
           }}
         >
           <IconButton
@@ -151,6 +153,7 @@ export default function MapComponent({
             aria-label="Locate me"
             sx={{
               backgroundColor: theme.palette.background.paper,
+              transition: "all 0.2s ease-in-out",
               "&:hover": {
                 backgroundColor: theme.palette.primary.main,
               },
@@ -168,7 +171,13 @@ export default function MapComponent({
         </Box>
 
         <footer
-          style={{ position: "absolute", bottom: 0, right: 6, zIndex: 1000 }}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            right: 6,
+            zIndex: 1000,
+            transition: "all 0.3s ease-in-out",
+          }}
         >
           <Typography variant="caption" color="primary">
             Map data © CARTO, OpenStreetMap contributors

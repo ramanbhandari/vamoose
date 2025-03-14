@@ -9,6 +9,7 @@ import {
   IconButton,
   Typography,
   useMediaQuery,
+  Collapse,
 } from "@mui/material";
 import { Search, Clear, FilterList } from "@mui/icons-material";
 
@@ -71,6 +72,7 @@ export default function MapSearchFilter({
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.paper,
         opacity: 0.95,
+        transition: "all 0.3s ease-in-out",
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -106,14 +108,18 @@ export default function MapSearchFilter({
             <IconButton
               onClick={handleToggleFilters}
               color={showFilters ? "primary" : "default"}
-              sx={{ ml: 1 }}
+              sx={{
+                ml: 1,
+                transition: "all 0.2s ease-in-out",
+                transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
+              }}
             >
               <FilterList />
             </IconButton>
           )}
         </Box>
 
-        {showFilters && (
+        <Collapse in={showFilters} timeout={300}>
           <Box
             sx={{
               display: "flex",
@@ -122,16 +128,18 @@ export default function MapSearchFilter({
               gap: 1,
             }}
           >
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                whiteSpace: "nowrap",
-                mr: 1,
-              }}
-            >
-              Filter by:
-            </Typography>
+            {!isMobile && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  whiteSpace: "nowrap",
+                  mr: 1,
+                }}
+              >
+                Filter by:
+              </Typography>
+            )}
 
             <Box
               sx={{
@@ -149,11 +157,14 @@ export default function MapSearchFilter({
                   onClick={() => handleTagToggle(tag)}
                   clickable
                   size="small"
+                  sx={{
+                    transition: "all 0.2s ease-in-out",
+                  }}
                 />
               ))}
             </Box>
 
-            {selectedTags.length > 0 && (
+            {(isMobile || selectedTags.length > 0) && (
               <Chip
                 label="Clear all"
                 size="small"
@@ -162,11 +173,15 @@ export default function MapSearchFilter({
                   setSelectedTags([]);
                   onTagFilter?.([]);
                 }}
-                sx={{ ml: "auto" }}
+                sx={{
+                  ml: "auto",
+                  transition: "all 0.2s ease-in-out",
+                  opacity: selectedTags.length > 0 ? 1 : 0.6,
+                }}
               />
             )}
           </Box>
-        )}
+        </Collapse>
       </Box>
     </Paper>
   );
