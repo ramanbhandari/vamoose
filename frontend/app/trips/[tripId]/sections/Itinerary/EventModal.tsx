@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   DialogTitle,
   DialogContent,
@@ -20,7 +20,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Close, EditNote, Schedule, Add, Remove } from "@mui/icons-material";
+import { Close, EditNote, Schedule, Add } from "@mui/icons-material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { styled } from "@mui/material/styles";
@@ -40,7 +40,7 @@ export const FloatingDialog = styled(Dialog)(({ theme }) => ({
     borderRadius: 16,
     width: "100%",
     maxWidth: "600px",
-    maxHeight: "95vh",
+    maxHeight: "85vh",
     boxShadow: theme.shadows[10],
     overflow: "hidden",
   },
@@ -67,6 +67,8 @@ export default function CreateEventDialog({
 }: CreateEventDialogProps) {
   const theme = useTheme();
   const { setNotification } = useNotificationStore();
+  const notesContainerRef = useRef<HTMLDivElement>(null);
+  const prevNotesLength = useRef(0);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -75,8 +77,22 @@ export default function CreateEventDialog({
   const [endTime, setEndTime] = useState("");
   const [category, setCategory] = useState("GENERAL");
   const [notes, setNotes] = useState<string[]>([]);
-
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (notes.length > prevNotesLength.current) {
+      const container = notesContainerRef.current;
+      if (container) {
+        setTimeout(() => {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 100);
+      }
+    }
+    prevNotesLength.current = notes.length;
+  }, [notes.length]);
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -121,7 +137,6 @@ export default function CreateEventDialog({
         .filter((note) => note.trim())
         .map((note) => ({ content: note.trim() })),
     });
-    // Reset form state
     setTitle("");
     setDescription("");
     setLocation("");
@@ -155,6 +170,15 @@ export default function CreateEventDialog({
       const formatted = formatDateTimeForAPI(newValue);
       setEndTime(formatted);
     }
+  };
+
+  const handleAddNote = () => {
+    if (notes.length >= 10) return;
+    if (notes[notes.length - 1]?.trim() === "") {
+      setNotification("Please fill current note before adding new", "warning");
+      return;
+    }
+    setNotes([...notes, ""]);
   };
 
   return (
@@ -232,6 +256,7 @@ export default function CreateEventDialog({
                 variant="outlined"
                 multiline
                 rows={3}
+                placeholder="Add event details..."
               />
             </Box>
 
@@ -356,49 +381,80 @@ export default function CreateEventDialog({
 
             <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Notes
+                Notes ({notes.length}/10)
               </Typography>
-              <Stack gap={2}>
-                {notes.map((note, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      alignItems: "center",
-                      "&:not(:last-child)": { mb: 1 },
-                    }}
-                  >
-                    <TextField
-                      fullWidth
-                      label={`Note ${index + 1}`}
-                      value={note}
-                      onChange={(e) => {
-                        const newNotes = [...notes];
-                        newNotes[index] = e.target.value;
-                        setNotes(newNotes);
+              <Box
+                ref={notesContainerRef}
+                sx={{
+                  maxHeight: 200,
+                  overflow: "auto",
+                  mb: 1,
+                  pr: 1,
+                  "&::-webkit-scrollbar": {
+                    width: "6px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: theme.palette.action.hover,
+                    borderRadius: 3,
+                  },
+                }}
+              >
+                <Stack gap={2}>
+                  {notes.map((note, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        mt: 1,
+                        alignItems: "center",
+                        transition: "opacity 0.2s",
+                        "&:hover": { opacity: 0.9 },
                       }}
-                    />
-                    <IconButton
-                      onClick={() =>
-                        setNotes(notes.filter((_, i) => i !== index))
-                      }
-                      size="small"
-                      sx={{ ml: -0.5 }}
                     >
-                      <Remove fontSize="small" />
-                    </IconButton>
-                  </Box>
-                ))}
-                <Button
-                  startIcon={<Add />}
-                  onClick={() => setNotes([...notes, ""])}
-                  size="small"
-                  sx={{ alignSelf: "flex-start", mt: 1 }}
-                >
-                  Add note
-                </Button>
-              </Stack>
+                      <TextField
+                        fullWidth
+                        label={`Note ${index + 1}`}
+                        value={note}
+                        multiline
+                        onChange={(e) => {
+                          const newNotes = [...notes];
+                          newNotes[index] = e.target.value;
+                          setNotes(newNotes);
+                        }}
+                        autoFocus={index === notes.length - 1}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() =>
+                                  setNotes(notes.filter((_, i) => i !== index))
+                                }
+                                size="small"
+                                edge="end"
+                              >
+                                <Close fontSize="small" />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+              <Button
+                startIcon={<Add />}
+                onClick={handleAddNote}
+                size="small"
+                disabled={notes.length >= 10}
+                sx={{
+                  alignSelf: "flex-start",
+                  "&.Mui-disabled": { opacity: 0.6 },
+                }}
+              >
+                Add note {notes.length > 0 && `(${notes.length}/10)`}
+              </Button>
             </Box>
 
             {error && (
