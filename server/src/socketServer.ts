@@ -6,7 +6,7 @@ export const initializeSocketServer = (app: Express): http.Server => {
   const server = http.createServer(app);
   const socketServer = new SocketServer(server, {
     cors: {
-      origin: '*', //allow all origins (TODO: change it to frontend URL when deployed.)
+      origin: process.env.FRONTEND_URL || 'http://localhost:3000', //(TODO: add frontend URL when deployed.)
       methods: ['GET', 'POST', 'PATCH'],
       credentials: true,
     },
