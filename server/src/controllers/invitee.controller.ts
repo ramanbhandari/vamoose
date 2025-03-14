@@ -100,8 +100,13 @@ export const createInvite = async (req: Request, res: Response) => {
     const existingInvite = await TripInvite.getExistingInvite(tripId, email);
 
     if (existingInvite) {
-      res.status(400).json({
-        error: 'Invite already exists.',
+      if (existingInvite.status !== 'pending') {
+        await TripInvite.updateInviteStatus(
+          existingInvite.inviteToken,
+          'pending',
+        );
+      }
+      res.status(200).json({
         inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.inviteToken}`,
       });
       return;
@@ -117,7 +122,7 @@ export const createInvite = async (req: Request, res: Response) => {
     const invite = await TripInvite.createTripInvite(inviteData);
 
     // Return invite URL
-    res.status(200).json({
+    res.status(201).json({
       inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
     });
     return;
