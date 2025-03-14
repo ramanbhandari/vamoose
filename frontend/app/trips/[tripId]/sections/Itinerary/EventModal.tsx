@@ -74,6 +74,9 @@ export default function CreateEventDialog({
   const notesContainerRef = useRef<HTMLDivElement>(null);
   const prevNotesLength = useRef(0);
 
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -98,6 +101,26 @@ export default function CreateEventDialog({
     }
     prevNotesLength.current = notes.length;
   }, [notes.length]);
+
+  useEffect(() => {
+    if (open && contentRef.current) {
+      const { scrollHeight, clientHeight } = contentRef.current;
+      if (scrollHeight <= clientHeight) {
+        setHasScrolledToBottom(true);
+      } else {
+        setHasScrolledToBottom(false);
+      }
+    }
+  }, [open]);
+
+  const handleScroll = () => {
+    if (!contentRef.current) return;
+    const { scrollTop, clientHeight, scrollHeight } = contentRef.current;
+    // Using a small tolerance of 5px
+    if (scrollTop + clientHeight >= scrollHeight - 5) {
+      setHasScrolledToBottom(true);
+    }
+  };
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -152,6 +175,7 @@ export default function CreateEventDialog({
     setNotes([]);
     onClose();
     setSelectedUserIds([]);
+    setHasScrolledToBottom(false);
   };
 
   const handleClose = () => {
@@ -164,6 +188,7 @@ export default function CreateEventDialog({
     setNotes([]);
     onClose();
     setSelectedUserIds([]);
+    setHasScrolledToBottom(false);
   };
 
   const handleStartTimeChange = (newValue: Date | null) => {
@@ -217,11 +242,14 @@ export default function CreateEventDialog({
         </DialogTitle>
 
         <DialogContent
+          ref={contentRef}
+          onScroll={handleScroll}
           sx={{
             px: 3,
             py: 0,
             pt: 2,
             backgroundColor: theme.palette.background.default,
+            overflowY: "auto",
           }}
         >
           <Stack gap={3}>
@@ -527,6 +555,7 @@ export default function CreateEventDialog({
               borderRadius: "8px",
               fontWeight: 600,
             }}
+            disabled={!hasScrolledToBottom}
           >
             Create Event
           </Button>
