@@ -36,6 +36,7 @@ export default function NotificationSnackbar() {
     if (reason === 'clickaway') {
       return;
     }
+    clearNotification();
     setOpen(false);
   };
 
