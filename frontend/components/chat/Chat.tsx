@@ -51,9 +51,13 @@ export default function Chat() {
   // Add a state to track whether the trips bar is open on mobile
   const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
 
-  // Function to toggle the trips bar on mobile
-  const toggleTripBarOnMobile = () => {
-    setIsTripBarOpenOnMobile((prev) => !prev);
+  // Consolidated menu toggle function that works for both mobile and desktop
+  const toggleMenu = () => {
+    if (isMobile) {
+      setIsTripBarOpenOnMobile((prev) => !prev);
+    } else {
+      setTripTabOpen((prev) => !prev);
+    }
   };
 
   // Add this state to track which trip's members are being shown on hover
@@ -284,7 +288,6 @@ export default function Chat() {
     }
   };
   const toggleMaximize = () => setIsMaximized((prev) => !prev);
-  const toggleTripTab = () => setTripTabOpen((prev) => !prev);
   const selectTrip = (trip: { id: number; name?: string }) => {
     setSelectedTrip(trip);
   };
@@ -494,43 +497,22 @@ export default function Chat() {
               justifyContent: "space-between",
             }}
           >
-            {/* Hamburger menu button for mobile */}
-            {isMobile && (
-              <IconButton
-                onClick={toggleTripBarOnMobile}
-                sx={{
-                  color: "#fff",
-                  width: 40,
-                  height: 40,
-                  padding: 0,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-
-            {/* Original trip bar toggle button for non-mobile */}
-            {!isMobile && !isMaximized && (
-              <IconButton
-                onClick={toggleTripTab}
-                sx={{
-                  color: "#fff",
-                  display: { xs: "none", sm: "block" },
-                  width: 40,
-                  height: 40,
-                  padding: 0,
-                  borderRadius: "50%",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
+            <IconButton
+              onClick={toggleMenu}
+              sx={{
+                color: "#fff",
+                width: 40,
+                height: 40,
+                padding: 0,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                ...(!isMobile && isMaximized && { display: "none" }),
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
 
             <Typography
               variant="h6"
