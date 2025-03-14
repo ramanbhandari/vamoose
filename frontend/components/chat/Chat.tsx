@@ -1088,8 +1088,7 @@ export default function Chat() {
                 <Box
                   sx={{
                     display: "flex",
-                    alignItems: "flex-end",
-
+                    alignItems: "center",
                     borderRadius: 5,
                     p: 1.5,
                     pr: 4,
@@ -1105,7 +1104,14 @@ export default function Chat() {
                     },
                   }}
                 >
-                  <Box sx={{ position: "relative", flex: 1 }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
                     {!messageText && (
                       <Typography
                         sx={{
@@ -1155,7 +1161,7 @@ export default function Chat() {
                         },
                         "& .MuiInputBase-root": {
                           padding: 0,
-                          alignItems: "flex-end",
+                          alignItems: "center",
                         },
                         "& .MuiOutlinedInput-notchedOutline": {
                           border: "none",
@@ -1200,6 +1206,9 @@ export default function Chat() {
                     sx={{
                       borderRadius: 3.5,
                       padding: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <EmojiEmotionsIcon />
@@ -1215,6 +1224,8 @@ export default function Chat() {
                       backgroundColor: "var(--primary)",
                       borderRadius: "1em",
                       padding: "8px 20px",
+                      display: "flex",
+                      alignItems: "center",
                       "@media (max-width: 600px)": {
                         padding: "6px 16px", // Smaller padding on mobile
                       },
