@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Box, TextField, Button, IconButton, Typography } from "@mui/material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import SendIcon from "@mui/icons-material/Send";
 import EmojiPicker, {
   EmojiClickData,
   Theme as EmojiTheme,
@@ -269,12 +270,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
             display: "flex",
             alignItems: "center",
             "@media (max-width: 600px)": {
-              padding: "6px 16px",
+              width: "36px",
+              height: "36px",
+              padding: "6px",
             },
             "&:hover": { backgroundColor: "var(--primary-hover)" },
           }}
         >
-          Send
+          <SendIcon fontSize="medium" />
         </Button>
 
         {/* Emoji Picker Pop-up */}
