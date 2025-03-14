@@ -19,6 +19,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
 } from "@mui/material";
 import { Close, EditNote, Schedule, Add } from "@mui/icons-material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -34,6 +35,7 @@ import {
 
 import { useNotificationStore } from "@/stores/notification-store";
 import LocationAutocomplete from "./LocationAutocomplete";
+import { Member } from "@/types";
 
 export const FloatingDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
@@ -54,6 +56,7 @@ interface CreateEventDialogProps {
   open: boolean;
   onClose: () => void;
   onCreate: (eventData: CreateItineraryEvent) => void;
+  members: Member[];
   tripStart: string;
   tripEnd: string;
 }
@@ -62,6 +65,7 @@ export default function CreateEventDialog({
   open,
   onClose,
   onCreate,
+  members,
   tripStart,
   tripEnd,
 }: CreateEventDialogProps) {
@@ -77,6 +81,7 @@ export default function CreateEventDialog({
   const [endTime, setEndTime] = useState("");
   const [category, setCategory] = useState("GENERAL");
   const [notes, setNotes] = useState<string[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -136,6 +141,7 @@ export default function CreateEventDialog({
       notes: notes
         .filter((note) => note.trim())
         .map((note) => ({ content: note.trim() })),
+      assignedUserIds: selectedUserIds,
     });
     setTitle("");
     setDescription("");
@@ -145,6 +151,7 @@ export default function CreateEventDialog({
     setCategory("GENERAL");
     setNotes([]);
     onClose();
+    setSelectedUserIds([]);
   };
 
   const handleClose = () => {
@@ -156,6 +163,7 @@ export default function CreateEventDialog({
     setCategory("GENERAL");
     setNotes([]);
     onClose();
+    setSelectedUserIds([]);
   };
 
   const handleStartTimeChange = (newValue: Date | null) => {
@@ -371,6 +379,42 @@ export default function CreateEventDialog({
                   {eventCategories.map((cat: string) => (
                     <MenuItem key={cat} value={cat}>
                       {cat}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Box>
+              <FormControl fullWidth>
+                <InputLabel>Assign to Members</InputLabel>
+                <Select
+                  multiple
+                  value={selectedUserIds}
+                  onChange={(e) =>
+                    setSelectedUserIds(e.target.value as string[])
+                  }
+                  label="Assign to Members"
+                  renderValue={(selected) => (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                      {selected.map((userId) => {
+                        const member = members.find((m) => m.userId === userId);
+                        return (
+                          <Chip
+                            key={userId}
+                            label={member?.user.fullName || member?.user.email}
+                            size="small"
+                          />
+                        );
+                      })}
+                    </Box>
+                  )}
+                >
+                  {members.map((member) => (
+                    <MenuItem key={member.userId} value={member.userId}>
+                      {member.user.fullName || member.user.email}
                     </MenuItem>
                   ))}
                 </Select>
