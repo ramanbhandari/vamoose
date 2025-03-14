@@ -38,6 +38,7 @@ export default function MapSearchFilter({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(!isMobile);
+  const isDarkMode = theme.palette.mode === "dark";
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -70,9 +71,14 @@ export default function MapSearchFilter({
         p: 2,
         width: "100%",
         borderRadius: theme.shape.borderRadius,
-        backgroundColor: theme.palette.background.paper,
         opacity: 0.95,
         transition: "all 0.3s ease-in-out",
+        position: "relative",
+        backdropFilter: "blur(10px)",
+        backgroundColor: "rgba(255, 255, 255, 0)",
+        border: `1px solid ${
+          isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
+        }`,
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
