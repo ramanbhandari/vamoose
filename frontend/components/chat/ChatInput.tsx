@@ -27,6 +27,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [messageText, setMessageText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputAreaRef = useRef<HTMLDivElement>(null);
+  const lastHeightRef = useRef(0);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
   // Handle sending messages
   const handleSend = () => {
@@ -42,12 +45,36 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setShowEmojiPicker(false);
   };
 
+  // Handle click outside to close emoji picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showEmojiPicker &&
+        emojiPickerRef.current &&
+        emojiButtonRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !emojiButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
   // Update parent component with height changes
   useEffect(() => {
     const updateHeight = () => {
       if (inputAreaRef.current) {
         const newHeight = inputAreaRef.current.clientHeight;
-        onHeightChange(newHeight);
+        // Only notify parent if height actually changed
+        if (Math.abs(newHeight - lastHeightRef.current) > 1) {
+          lastHeightRef.current = newHeight;
+          onHeightChange(newHeight);
+        }
       }
     };
 
@@ -213,6 +240,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
         {/* Emoji Button */}
         <IconButton
+          ref={emojiButtonRef}
           onClick={() => setShowEmojiPicker((prev) => !prev)}
           disabled={!selectedTrip}
           sx={{
@@ -252,6 +280,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         {/* Emoji Picker Pop-up */}
         {showEmojiPicker && (
           <Box
+            ref={emojiPickerRef}
             sx={{
               position: "absolute",
               bottom: "80px",

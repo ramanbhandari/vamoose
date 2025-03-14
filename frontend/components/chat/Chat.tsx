@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useTheme } from "@mui/material/styles";
 import { differenceInHours, startOfDay } from "date-fns";
 
 import {
@@ -96,6 +95,8 @@ export default function Chat() {
   const [openReactionPickerFor, setOpenReactionPickerFor] = useState<
     string | null
   >(null);
+  const reactionPickerRef = useRef<HTMLDivElement>(null);
+  const reactionButtonRef = useRef<HTMLButtonElement>(null);
   const {
     messages,
     loading,
@@ -116,6 +117,26 @@ export default function Chat() {
   const [processingReactions, setProcessingReactions] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Handle click outside to close reaction picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openReactionPickerFor &&
+        reactionPickerRef.current &&
+        reactionButtonRef.current &&
+        !reactionPickerRef.current.contains(event.target as Node) &&
+        !reactionButtonRef.current.contains(event.target as Node)
+      ) {
+        setOpenReactionPickerFor(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openReactionPickerFor]);
 
   // Initialize socket connection when component mounts
   useEffect(() => {
@@ -215,6 +236,24 @@ export default function Chat() {
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
+  // Add effect to handle scrolling when input height changes
+  useEffect(() => {
+    // Scroll to bottom when input height changes
+    const messageContainer = document.querySelector(".message-container");
+    if (messageContainer) {
+      const isNearBottom =
+        messageContainer.scrollHeight -
+          messageContainer.scrollTop -
+          messageContainer.clientHeight <
+        100;
+
+      // If user was already near the bottom, scroll to bottom
+      if (isNearBottom) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [inputAreaHeight]);
+
   if (!user) return null;
 
   //with delay to play chat open/close animation
@@ -252,6 +291,13 @@ export default function Chat() {
 
   // Handle input area height changes
   const handleInputHeightChange = (height: number) => {
+    // Only scroll if height is increasing
+    if (height > inputAreaHeight) {
+      // Use a small timeout to ensure the DOM has updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
     setInputAreaHeight(height);
   };
 
@@ -684,6 +730,7 @@ export default function Chat() {
             >
               {/* Message Container */}
               <Box
+                className="message-container"
                 sx={{
                   position: "absolute",
                   top: 0,
@@ -696,6 +743,11 @@ export default function Chat() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
+                  transition: "all 0.3s ease",
+                  opacity: selectedTrip ? 1 : 0.7,
+                  transform: selectedTrip
+                    ? "translateY(0)"
+                    : "translateY(10px)",
                   //Thin scrollbar styling
                   "&::-webkit-scrollbar": {
                     width: "4px",
@@ -939,6 +991,11 @@ export default function Chat() {
 
                           {/* Reaction button */}
                           <IconButton
+                            ref={
+                              msg.messageId === openReactionPickerFor
+                                ? reactionButtonRef
+                                : undefined
+                            }
                             onClick={() =>
                               setOpenReactionPickerFor(
                                 openReactionPickerFor === msg.messageId
@@ -971,6 +1028,7 @@ export default function Chat() {
                           {/* Reaction picker for this message */}
                           {openReactionPickerFor === msg.messageId && (
                             <Box
+                              ref={reactionPickerRef}
                               sx={{
                                 position: "absolute",
                                 bottom: "30px",
