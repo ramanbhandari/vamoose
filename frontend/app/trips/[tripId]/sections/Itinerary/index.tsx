@@ -20,6 +20,7 @@ export default function Itinerary({
 }: ItineraryProps) {
   const theme = useTheme();
   const { tripData } = useTripStore();
+
   const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -48,7 +49,6 @@ export default function Itinerary({
       );
       console.error("Error creating Itinerary Event:", error);
     }
-    console.log("New event data: ", eventData);
   };
 
   if (!tripData) return;
