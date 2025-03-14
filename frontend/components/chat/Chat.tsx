@@ -676,6 +676,10 @@ export default function Chat() {
                 backgroundRepeat: "repeat",
                 backgroundSize: "auto",
                 backgroundPosition: "center",
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.2)"
+                    : "rgba(255, 255, 255, 0.1)",
               }}
             >
               {/* Message Container */}

@@ -81,8 +81,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
         left: 0,
         right: 0,
         minHeight: 80,
-        backdropFilter: "blur(5px)",
-        backgroundColor: "rgba(0, 0, 0, 0.1)",
+        backdropFilter: "blur(4px)",
+        backgroundColor: (theme) =>
+          theme.palette.mode === "dark"
+            ? "rgba(0, 0, 0, 0.1)"
+            : "rgba(255, 255, 255, 0.1)",
         p: 2,
         display: "flex",
         alignItems: "flex-end",
@@ -211,12 +214,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
         {/* Emoji Button */}
         <IconButton
           onClick={() => setShowEmojiPicker((prev) => !prev)}
+          disabled={!selectedTrip}
           sx={{
             borderRadius: 3.5,
             padding: "8px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            opacity: !selectedTrip ? 0.5 : 1,
+            transition: "opacity 0.2s ease",
           }}
         >
           <EmojiEmotionsIcon />
@@ -235,7 +241,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             display: "flex",
             alignItems: "center",
             "@media (max-width: 600px)": {
-              padding: "6px 16px", // Smaller padding on mobile
+              padding: "6px 16px",
             },
             "&:hover": { backgroundColor: "var(--primary-hover)" },
           }}
