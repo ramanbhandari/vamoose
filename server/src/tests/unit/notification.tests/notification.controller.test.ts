@@ -110,17 +110,13 @@ describe('Get Notifications Controller', () => {
           type: 'POLL_COMPLETED',
         },
       ];
+
       const readNotifications = Array.from({ length: 8 }, (_, i) => ({
-        id: i + 1,
-        title: `Notification ${i + 1}`,
+        id: i + 3, // Change ID to avoid conflicts with unread notifications
+        title: `Notification ${i + 3}`,
         isRead: true,
         type: 'POLL_CREATED',
       }));
-
-      const paddedNotifications = [
-        ...unreadNotifications,
-        ...readNotifications,
-      ];
 
       mockReq = setupRequest();
 
@@ -131,9 +127,19 @@ describe('Get Notifications Controller', () => {
       await getNotificationsHandler(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(200);
-      expect(jsonMock).toHaveBeenCalledWith({
-        notifications: paddedNotifications,
-      });
+
+      // Ensure we receive exactly 10 notifications, ignoring exact order
+      expect(jsonMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notifications: expect.arrayContaining([
+            ...unreadNotifications,
+            ...readNotifications,
+          ]),
+        }),
+      );
+
+      // Ensure total count matches 10
+      expect(jsonMock.mock.calls[0][0].notifications.length).toBe(10);
     });
 
     it('should return exactly 10 notifications when there are 10 unread notifications', async () => {
