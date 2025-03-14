@@ -824,40 +824,101 @@ export default function Chat() {
                                 }}
                               >
                                 {Object.entries(msg.reactions).map(
-                                  ([emoji, users]) => (
-                                    <Box
-                                      key={emoji}
-                                      onClick={() =>
-                                        handleReaction(msg.messageId, emoji)
-                                      }
-                                      sx={{
-                                        backgroundColor: hasUserReacted(
-                                          msg.reactions,
-                                          emoji
-                                        )
-                                          ? "var(--primary-light)"
-                                          : "var(--background-paper)",
-                                        borderRadius: "12px",
-                                        padding: "2px 6px",
-                                        fontSize: "0.8rem",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 0.5,
-                                        border: "1px solid var(--divider)",
-                                        cursor: "pointer",
-                                        "&:hover": {
-                                          backgroundColor:
-                                            "var(--secondary-hover)",
-                                          transform: "scale(1.05)",
-                                        },
-
-                                        transition: "all 0.15s ease-in-out",
-                                      }}
-                                    >
-                                      <span>{emoji}</span>
-                                      <span>{users.length}</span>
-                                    </Box>
-                                  )
+                                  ([emoji, users]) => {
+                                    return (
+                                      <Box
+                                        key={emoji}
+                                        onClick={() =>
+                                          handleReaction(msg.messageId, emoji)
+                                        }
+                                        sx={{
+                                          backgroundColor: hasUserReacted(
+                                            msg.reactions,
+                                            emoji
+                                          )
+                                            ? "var(--primary-light)"
+                                            : "var(--background-paper)",
+                                          borderRadius: "12px",
+                                          padding: "2px 6px",
+                                          fontSize: "0.8rem",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 0.5,
+                                          border: "1px solid var(--divider)",
+                                          cursor: "pointer",
+                                          position: "relative",
+                                          "&:hover": {
+                                            backgroundColor:
+                                              "var(--secondary-hover)",
+                                            transform: "scale(1.05)",
+                                            "& .reaction-tooltip": {
+                                              opacity: 1,
+                                              visibility: "visible",
+                                            },
+                                          },
+                                          transition: "all 0.15s ease-in-out",
+                                        }}
+                                      >
+                                        <span>{emoji}</span>
+                                        <span>{users.length}</span>
+                                        <Box
+                                          className="reaction-tooltip"
+                                          sx={{
+                                            position: "absolute",
+                                            bottom: "calc(100% + 10px)",
+                                            [msg.userId === user.id
+                                              ? "right"
+                                              : "left"]: 0,
+                                            backgroundColor:
+                                              "var(--background-paper)",
+                                            color: "var(--text)",
+                                            padding: "6px 10px",
+                                            borderRadius: "6px",
+                                            boxShadow:
+                                              "0 3px 12px rgba(0,0,0,0.15)",
+                                            border: "1px solid var(--divider)",
+                                            minWidth: "120px",
+                                            maxWidth: "220px",
+                                            opacity: 0,
+                                            visibility: "hidden",
+                                            transition: "all 0.2s ease",
+                                            transform: "translateY(5px)",
+                                            zIndex: 9999,
+                                            "&::after": {
+                                              content: '""',
+                                              position: "absolute",
+                                              top: "100%",
+                                              [msg.userId === user.id
+                                                ? "right"
+                                                : "left"]: "10px",
+                                              border: "8px solid transparent",
+                                              borderTopColor:
+                                                "var(--background-paper)",
+                                            },
+                                            "&:hover": {
+                                              transform: "translateY(0)",
+                                            },
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            sx={{
+                                              fontStyle: "italic",
+                                              whiteSpace: "normal",
+                                              textAlign: "center",
+                                              color: "var(--text-secondary)",
+                                            }}
+                                          >
+                                            {users
+                                              .map((userId) =>
+                                                getUserFullName(userId)
+                                              )
+                                              .join(", ")}
+                                          </Typography>
+                                        </Box>
+                                      </Box>
+                                    );
+                                  }
                                 )}
                               </Box>
                             )}
@@ -1073,8 +1134,8 @@ export default function Chat() {
                         padding: "10px 12px",
                         fontSize: "1rem",
                         "@media (max-width: 600px)": {
-                        fontSize: "0.875rem", // Smaller font size on mobile
-                      },
+                          fontSize: "0.875rem", // Smaller font size on mobile
+                        },
                         "& .MuiInputBase-root": {
                           padding: 0,
                           alignItems: "flex-end",
