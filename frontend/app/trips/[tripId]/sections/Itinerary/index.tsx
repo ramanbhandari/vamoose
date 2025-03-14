@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CreateItineraryEvent } from "./types";
 import CreateEventModal from "./EventModal";
 import { useTripStore } from "@/stores/trip-store";
+import apiClient from "@/utils/apiClient";
+import { useNotificationStore } from "@/stores/notification-store";
 
 interface ItineraryProps {
   tripId: number;
@@ -18,6 +20,8 @@ export default function Itinerary({
 }: ItineraryProps) {
   const theme = useTheme();
   const { tripData } = useTripStore();
+
+  const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => {
@@ -28,8 +32,23 @@ export default function Itinerary({
     setIsModalOpen(false);
   };
 
-  const handleSaveEvent = (eventData: CreateItineraryEvent) => {
-    console.log("New event data: ", eventData);
+  const handleSaveEvent = async (eventData: CreateItineraryEvent) => {
+    try {
+      const response = await apiClient.post(
+        `/trips/${tripId}/itinerary-events`,
+        eventData
+      );
+      console.log(response); // just log the response for now to confirm its working
+
+      setNotification("Successfully created new Itinerary Event!", "success");
+      // TODO: add fetch itinerary for this trip when itinerary store is implemented
+    } catch (error) {
+      setNotification(
+        "Failed to create new Itinerary Event. Please refresh and try again!",
+        "error"
+      );
+      console.error("Error creating Itinerary Event:", error);
+    }
   };
 
   if (!tripData) return;
