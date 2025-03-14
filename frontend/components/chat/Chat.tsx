@@ -41,10 +41,10 @@ import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 600px)");
+  const [isMaximized, setIsMaximized] = useState(isMobile);
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [inputAreaHeight, setInputAreaHeight] = useState(115);
-  const isMobile = useMediaQuery("(max-width: 600px)");
 
   // Add a state to track whether the trips bar is open on mobile
   const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
@@ -60,9 +60,11 @@ export default function Chat() {
 
   // Function to handle mouse enter
   const handleMouseEnter = (tripId: number) => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredTrip(tripId);
-    }, 500);
+    if (!isMobile) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredTrip(tripId);
+      }, 500);
+    }
   };
 
   // Function to handle mouse leave (clear the timer and hide members)
@@ -254,6 +256,13 @@ export default function Chat() {
     }
   }, [inputAreaHeight]);
 
+  // Update isMaximized when isMobile changes
+  useEffect(() => {
+    if (isMobile) {
+      setIsMaximized(true);
+    }
+  }, [isMobile]);
+
   if (!user) return null;
 
   //with delay to play chat open/close animation
@@ -307,19 +316,18 @@ export default function Chat() {
     return format(date, "h:mm a");
   };
 
-  // When maximized, position from the right (instead of from left)
-  const chatContainerStyle = isMaximized
-    ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
-    : {
-        bottom: 80,
-        width: { xs: "90%", sm: "80%", md: "60%" },
-        maxWidth: 550,
-        height: 650,
-      };
+  const chatContainerStyle =
+    isMobile || isMaximized
+      ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
+      : {
+          bottom: 80,
+          width: { xs: "90%", sm: "80%", md: "60%" },
+          maxWidth: 550,
+          height: 650,
+        };
 
-  const tripTabWidth = isMaximized
-    ? maximizedTripTabWidth
-    : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth =
+    isMobile || isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   // Handle adding a reaction to a message
   const handleReaction = async (messageId: string, emoji: string) => {
@@ -538,9 +546,11 @@ export default function Chat() {
               {selectedTrip?.name || "Select a Trip"}
             </Typography>
 
-            <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
-              {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            </IconButton>
+            {!isMobile && (
+              <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
+                {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            )}
             <IconButton onClick={toggleChat} sx={{ color: "#fff" }}>
               <CloseIcon />
             </IconButton>
@@ -614,8 +624,10 @@ export default function Chat() {
                           position: "relative",
                         }}
                         onClick={() => selectTrip(trip)}
-                        onMouseEnter={() => handleMouseEnter(trip.id)}
-                        onMouseLeave={handleMouseLeave}
+                        {...(!isMobile && {
+                          onMouseEnter: () => handleMouseEnter(trip.id),
+                          onMouseLeave: handleMouseLeave,
+                        })}
                       >
                         <ListItemText
                           primary={
@@ -634,8 +646,7 @@ export default function Chat() {
                             </Typography>
                           }
                         />
-                        {/* Conditionally render the members on hover */}
-                        {hoveredTrip === trip.id && (
+                        {!isMobile && hoveredTrip === trip.id && (
                           <Box
                             sx={{
                               position: "absolute",

@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, TextField, Button, IconButton, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  IconButton,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import SendIcon from "@mui/icons-material/Send";
 import EmojiPicker, {
@@ -22,6 +29,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isMaximized,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery("(max-width: 600px)");
+  const effectiveMaximized = isMobile || isMaximized;
   const currentEmojiTheme =
     theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
 
@@ -117,7 +126,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         p: 2,
         display: "flex",
         alignItems: "flex-end",
-        justifyContent: isMaximized ? "center" : "flex-start",
+        justifyContent: effectiveMaximized ? "center" : "flex-start",
         transition: "all 0.3s ease",
         "@media (max-width: 600px)": {
           p: 1,
@@ -132,7 +141,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           p: 1.5,
           pr: 4,
           mb: 2,
-          width: isMaximized ? "60%" : "100%",
+          width: effectiveMaximized ? "60%" : "100%",
           boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
           position: "relative",
           border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -288,7 +297,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               position: "absolute",
               bottom: "80px",
               zIndex: 1000,
-              ...(isMaximized
+              ...(effectiveMaximized
                 ? {
                     left: "65%",
                     transform: "translateX(-50%) scale(0.8)",
@@ -304,7 +313,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               "@media (max-width: 600px)": {
                 transform: "scale(0.6)", // Smaller emoji picker on mobile
                 bottom: "80px",
-                ...(isMaximized
+                ...(effectiveMaximized
                   ? {
                       left: "5%",
                       transformOrigin: "bottom center",
