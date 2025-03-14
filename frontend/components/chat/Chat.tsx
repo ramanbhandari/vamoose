@@ -10,8 +10,6 @@ import {
   ListItemText,
   Typography,
   Paper,
-  TextField,
-  Button,
   IconButton,
   Collapse,
   Grow,
@@ -24,10 +22,6 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import EmojiPicker, {
-  EmojiClickData,
-  Theme as EmojiTheme,
-} from "emoji-picker-react";
 import { useMediaQuery } from "@mui/material";
 
 import { useUserStore } from "@/stores/user-store";
@@ -35,6 +29,7 @@ import { useMessageStore } from "@/stores/message-store";
 import { format } from "date-fns";
 import socketClient from "@/utils/socketClient";
 import DateDivider from "./DateDivider";
+import ChatInput from "./ChatInput";
 
 interface ChatMessage {
   messageId: string;
@@ -46,17 +41,10 @@ interface ChatMessage {
 import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
-  const theme = useTheme();
-  // Automatically set emoji picker theme based on MUI theme mode
-  const currentEmojiTheme =
-    theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
-
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [inputAreaHeight, setInputAreaHeight] = useState(115);
-  const inputAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 600px)");
 
   // Add a state to track whether the trips bar is open on mobile
@@ -71,11 +59,11 @@ export default function Chat() {
   const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to handle mouse enter (start the 3-second timer)
+  // Function to handle mouse enter
   const handleMouseEnter = (tripId: number) => {
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredTrip(tripId);
-    }, 500); // 3 seconds
+    }, 500);
   };
 
   // Function to handle mouse leave (clear the timer and hide members)
@@ -121,7 +109,6 @@ export default function Chat() {
     cleanupSocketListeners,
   } = useMessageStore();
 
-  const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
 
@@ -228,16 +215,6 @@ export default function Chat() {
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
-  // to update input area height when it changes
-  useEffect(() => {
-    if (inputAreaRef.current) {
-      const newHeight = inputAreaRef.current.clientHeight;
-      if (newHeight !== inputAreaHeight) {
-        setInputAreaHeight(newHeight);
-      }
-    }
-  }, [messageText, inputAreaHeight]);
-
   if (!user) return null;
 
   //with delay to play chat open/close animation
@@ -263,27 +240,25 @@ export default function Chat() {
   };
 
   // Message sending handler
-  const handleSend = async () => {
+  const handleSend = async (messageText: string) => {
     if (messageText.trim() && selectedTrip && user?.id) {
       try {
         await sendMessage(selectedTrip.id.toString(), user.id, messageText);
-        setMessageText("");
       } catch (error) {
         console.error("Failed to send message:", error);
       }
     }
   };
 
+  // Handle input area height changes
+  const handleInputHeightChange = (height: number) => {
+    setInputAreaHeight(height);
+  };
+
   // Format timestamp
   const formatTimestamp = (timestamp: Date | string) => {
     const date = new Date(timestamp);
     return format(date, "h:mm a");
-  };
-
-  // Handler for emoji selection in the input area.
-  const onEmojiClick = (emojiData: EmojiClickData) => {
-    setMessageText((prev) => prev + emojiData.emoji);
-    setShowEmojiPicker(false);
   };
 
   // When maximized, position from the right (instead of from left)
@@ -717,12 +692,31 @@ export default function Chat() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
-                  // Hide scrollbar
+                  //Thin scrollbar styling
                   "&::-webkit-scrollbar": {
-                    display: "none",
+                    width: "4px",
                   },
-                  scrollbarWidth: "none", // Firefox
-                  msOverflowStyle: "none", // IE/Edge
+                  "&::-webkit-scrollbar-track": {
+                    background: "transparent",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.3)"
+                        : "rgba(0, 0, 0, 0.2)",
+                    borderRadius: "10px",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    background: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.5)"
+                        : "rgba(0, 0, 0, 0.4)",
+                  },
+                  scrollbarWidth: "thin",
+                  scrollbarColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? "rgba(255, 255, 255, 0.3) transparent"
+                      : "rgba(0, 0, 0, 0.2) transparent",
                 }}
               >
                 {loading ? (
@@ -1064,222 +1058,13 @@ export default function Chat() {
                 <Box ref={messagesEndRef} />
               </Box>
 
-              {/* Input Area */}
-              <Box
-                ref={inputAreaRef}
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  minHeight: 80,
-                  backdropFilter: "blur(5px)",
-                  backgroundColor: "rgba(0, 0, 0, 0.1)",
-                  p: 2,
-                  display: "flex",
-                  alignItems: "flex-end",
-                  justifyContent: isMaximized ? "center" : "flex-start",
-                  transition: "all 0.3s ease",
-                  "@media (max-width: 600px)": {
-                    p: 1,
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    borderRadius: 5,
-                    p: 1.5,
-                    pr: 4,
-                    mb: 2,
-                    width: isMaximized ? "60%" : "100%",
-                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
-                    position: "relative",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    transition: "all 0.3s ease",
-                    "@media (max-width: 600px)": {
-                      width: "100%",
-                      p: 1,
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "relative",
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {!messageText && (
-                      <Typography
-                        sx={{
-                          position: "absolute",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          left: 12,
-                          color: "text.disabled",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          pointerEvents: "none",
-                          fontSize: "1rem",
-                          width: "calc(100% - 24px)",
-                        }}
-                      >
-                        {selectedTrip
-                          ? "Type your message..."
-                          : "Select a trip to start chatting"}
-                      </Typography>
-                    )}
-                    <TextField
-                      variant="outlined"
-                      placeholder=""
-                      fullWidth
-                      multiline
-                      maxRows={4}
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      disabled={!selectedTrip}
-                      sx={{
-                        flex: 1,
-                        backgroundColor: "transparent",
-                        border: "none",
-                        outline: "none",
-                        borderRadius: 20,
-                        padding: "10px 12px",
-                        fontSize: "1rem",
-                        "@media (max-width: 600px)": {
-                          fontSize: "0.875rem", // Smaller font size on mobile
-                        },
-                        "& .MuiInputBase-root": {
-                          padding: 0,
-                          alignItems: "center",
-                        },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          border: "none",
-                        },
-                        "& .MuiInputBase-inputMultiline": {
-                          overflow: "auto",
-                          resize: "none",
-                          lineHeight: 1.5,
-                          wordBreak: "break-word",
-                          "&::-webkit-scrollbar": {
-                            width: "4px",
-                          },
-                          "&::-webkit-scrollbar-track": {
-                            background: "transparent",
-                          },
-                          "&::-webkit-scrollbar-thumb": {
-                            background: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.3)"
-                                : "rgba(0, 0, 0, 0.2)",
-                            borderRadius: "10px",
-                          },
-                          "&::-webkit-scrollbar-thumb:hover": {
-                            background: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(255, 255, 255, 0.5)"
-                                : "rgba(0, 0, 0, 0.4)",
-                          },
-                          scrollbarWidth: "thin",
-                          scrollbarColor: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? "rgba(255, 255, 255, 0.3) transparent"
-                              : "rgba(0, 0, 0, 0.2) transparent",
-                        },
-                      }}
-                    />
-                  </Box>
-
-                  {/* Emoji Button */}
-                  <IconButton
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
-                    sx={{
-                      borderRadius: 3.5,
-                      padding: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <EmojiEmotionsIcon />
-                  </IconButton>
-
-                  {/* Send Button */}
-                  <Button
-                    variant="contained"
-                    onClick={handleSend}
-                    disabled={!selectedTrip || !messageText.trim()}
-                    sx={{
-                      ml: 2,
-                      backgroundColor: "var(--primary)",
-                      borderRadius: "1em",
-                      padding: "8px 20px",
-                      display: "flex",
-                      alignItems: "center",
-                      "@media (max-width: 600px)": {
-                        padding: "6px 16px", // Smaller padding on mobile
-                      },
-                      "&:hover": { backgroundColor: "var(--primary-hover)" },
-                    }}
-                  >
-                    Send
-                  </Button>
-
-                  {/* Emoji Picker Pop-up */}
-                  {showEmojiPicker && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: "80px",
-                        zIndex: 1000,
-                        ...(isMaximized
-                          ? {
-                              left: "65%",
-                              transform: "translateX(-50%) scale(0.8)",
-                              transformOrigin: "bottom center",
-                            }
-                          : {
-                              right: 0,
-                              transform: "scale(0.7)",
-                              transformOrigin: "bottom center",
-                            }),
-                        backgroundColor: "var(--background-paper)",
-                        color: "var(--text)",
-                        "@media (max-width: 600px)": {
-                          transform: "scale(0.6)", // Smaller emoji picker on mobile
-                          bottom: "80px",
-                          ...(isMaximized
-                            ? {
-                                left: "5%",
-                                //transform: "translateX(-50%)",
-                                transformOrigin: "bottom center",
-                              }
-                            : {
-                                left: "1%",
-                                //transform: "scale(0.7)",
-                                transformOrigin: "bottom center",
-                              }),
-                        },
-                      }}
-                    >
-                      <EmojiPicker
-                        onEmojiClick={onEmojiClick}
-                        theme={currentEmojiTheme}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+              {/* Chat Input Component */}
+              <ChatInput
+                selectedTrip={selectedTrip}
+                onSendMessage={handleSend}
+                onHeightChange={handleInputHeightChange}
+                isMaximized={isMaximized}
+              />
             </Box>
           </Box>
         </Box>
