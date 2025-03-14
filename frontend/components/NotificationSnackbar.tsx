@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Snackbar, Alert } from "@mui/material";
+import React, { useEffect } from "react";
+import { Snackbar, Alert, SnackbarCloseReason } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
@@ -17,16 +17,34 @@ const iconMapping = {
 
 export default function NotificationSnackbar() {
   const { message, severity, clearNotification } = useNotificationStore();
+  const [open, setOpen] = React.useState(false);
+
+  useEffect(() => {
+    if(!!message){
+      setOpen(true)
+    }
+  }, [message]);
 
   if (severity === "close") {
     return <></>;
   }
 
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    clearNotification();
+    setOpen(false);
+  };
+
   return (
     <Snackbar
-      open={!!message}
+      open={open}
       autoHideDuration={6000}
-      onClose={clearNotification}
+      onClose={handleClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
     >
       <Alert
