@@ -85,7 +85,6 @@ export default function CreateEventDialog({
   const [category, setCategory] = useState("GENERAL");
   const [notes, setNotes] = useState<string[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
@@ -125,30 +124,24 @@ export default function CreateEventDialog({
   const validateForm = () => {
     if (!title.trim()) {
       setNotification("Please enter an event title", "error");
-      setError("Event title is required");
       return false;
     }
     if (!startTime.trim()) {
       setNotification("Please select a start time", "error");
-      setError("Start time is required");
       return false;
     }
     if (!endTime.trim()) {
       setNotification("Please select an end time", "error");
-      setError("End time is required");
       return false;
     }
     if (new Date(startTime) >= new Date(endTime)) {
       setNotification("End time must be after start time", "error");
-      setError("End time must be after start time");
       return false;
     }
     if (!category.trim()) {
       setNotification("Please select a category", "error");
-      setError("Category is required");
       return false;
     }
-    setError("");
     return true;
   };
 
@@ -528,12 +521,6 @@ export default function CreateEventDialog({
                 Add note {notes.length > 0 && `(${notes.length}/10)`}
               </Button>
             </Box>
-
-            {error && (
-              <Typography color="error" variant="body1">
-                {error}
-              </Typography>
-            )}
           </Stack>
         </DialogContent>
 
