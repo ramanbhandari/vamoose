@@ -6,9 +6,12 @@ import {
   useTheme,
   CircularProgress,
   Typography,
+  Stack,
 } from "@mui/material";
 import { MyLocation } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
+import MapSearchFilter from "./MapSearchFilter";
+
 interface MapComponentProps {
   initialCenter?: [number, number];
   initialZoom?: number;
@@ -104,58 +107,74 @@ export default function MapComponent({
     );
   }, [map, setNotification]);
 
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        height: "100vh",
-        width: "100%",
-        borderRadius: theme.shape.borderRadius,
-        overflow: "hidden",
-        cursor: "pointer",
-      }}
-    >
-      <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
+  const handleSearch = (query: string) => {
+    console.log("Searching for:", query);
+  };
 
+  const handleTagFilter = (tags: string[]) => {
+    console.log("Filtering by tags:", tags);
+  };
+
+  return (
+    <Stack spacing={2}>
+      {/* Map Search and Filter Component */}
+      <MapSearchFilter onSearch={handleSearch} onTagFilter={handleTagFilter} />
+
+      {/* Map Container */}
       <Box
         sx={{
-          position: "absolute",
-          top: theme.spacing(2),
-          left: theme.spacing(2),
-          p: 1,
-          display: "flex",
-          gap: 1,
-          zIndex: 1,
+          position: "relative",
+          height: "40rem",
+          width: "100%",
+          borderRadius: theme.shape.borderRadius,
+          overflow: "hidden",
+          cursor: "pointer",
         }}
       >
-        <IconButton
-          onClick={handleGeolocate}
-          color="primary"
-          aria-label="Locate me"
+        <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
+
+        {/* Geolocation Button */}
+        <Box
           sx={{
-            backgroundColor: theme.palette.background.paper,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.main,
-            },
+            position: "absolute",
+            top: theme.spacing(2),
+            left: theme.spacing(2),
+            p: 1,
+            display: "flex",
+            gap: 1,
+            zIndex: 1,
           }}
         >
-          {isLocating ? (
-            <CircularProgress size={24} />
-          ) : (
-            <MyLocation
-              fontSize="large"
-              sx={{ color: theme.palette.text.primary }}
-            />
-          )}
-        </IconButton>
+          <IconButton
+            onClick={handleGeolocate}
+            color="primary"
+            aria-label="Locate me"
+            sx={{
+              backgroundColor: theme.palette.background.paper,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.main,
+              },
+            }}
+          >
+            {isLocating ? (
+              <CircularProgress size={24} />
+            ) : (
+              <MyLocation
+                fontSize="large"
+                sx={{ color: theme.palette.text.primary }}
+              />
+            )}
+          </IconButton>
+        </Box>
+
+        <footer
+          style={{ position: "absolute", bottom: 0, right: 6, zIndex: 1000 }}
+        >
+          <Typography variant="caption" color="primary">
+            Map data © CARTO, OpenStreetMap contributors
+          </Typography>
+        </footer>
       </Box>
-      <footer
-        style={{ position: "absolute", bottom: 0, right: 6, zIndex: 1000 }}
-      >
-        <Typography variant="caption" color="primary">
-          Map data © CARTO, OpenStreetMap contributors
-        </Typography>
-      </footer>
-    </Box>
+    </Stack>
   );
 }
