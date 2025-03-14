@@ -32,7 +32,7 @@ interface ApiError {
 export default function InviteModal({ open, onClose }: InviteModalProps) {
   const params = useParams();
   const tripId = params.tripId as string;
-  const { setNotification, clearNotification } = useNotificationStore();
+  const { setNotification } = useNotificationStore();
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
