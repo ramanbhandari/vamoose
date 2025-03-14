@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CreateItineraryEvent } from "./types";
 import CreateEventModal from "./EventModal";
 import { useTripStore } from "@/stores/trip-store";
+
 interface ItineraryProps {
   tripId: number;
   tripName: string;
@@ -92,6 +93,7 @@ export default function Itinerary({
         open={isModalOpen}
         onClose={handleCloseModal}
         onCreate={handleSaveEvent}
+        members={tripData?.members}
         tripStart={tripData?.startDate}
         tripEnd={tripData?.endDate}
       />
