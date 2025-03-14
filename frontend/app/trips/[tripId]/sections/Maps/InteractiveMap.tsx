@@ -6,7 +6,6 @@ import {
   useTheme,
   CircularProgress,
   Typography,
-  Stack,
 } from "@mui/material";
 import { MyLocation } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
@@ -122,15 +121,11 @@ export default function MapComponent({
   };
 
   return (
-    <Stack spacing={2} sx={{ transition: "all 0.3s ease-in-out" }}>
-      {/* Map Search and Filter Component */}
-      <MapSearchFilter onSearch={handleSearch} onTagFilter={handleTagFilter} />
-
-      {/* Map Container */}
+    <Box sx={{ position: "relative" }}>
       <Box
         sx={{
           position: "relative",
-          height: "40rem",
+          height: "45rem",
           width: "100%",
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
@@ -140,11 +135,44 @@ export default function MapComponent({
       >
         <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
 
-        {/* Geolocation Button */}
+        {/* Map Search and Filter Component */}
         <Box
           sx={{
             position: "absolute",
             top: theme.spacing(2),
+            left: theme.spacing(2),
+            right: theme.spacing(2),
+            zIndex: 2,
+          }}
+        >
+          <Box
+            sx={{
+              position: "relative",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backdropFilter: "blur(8px)",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                borderRadius: theme.shape.borderRadius,
+              },
+            }}
+          >
+            <MapSearchFilter
+              onSearch={handleSearch}
+              onTagFilter={handleTagFilter}
+            />
+          </Box>
+        </Box>
+
+        {/* Geolocation Button */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: theme.spacing(2),
             left: theme.spacing(2),
             p: 1,
             display: "flex",
@@ -190,6 +218,6 @@ export default function MapComponent({
           </Typography>
         </footer>
       </Box>
-    </Stack>
+    </Box>
   );
 }
