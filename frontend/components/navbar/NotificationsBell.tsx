@@ -78,12 +78,19 @@ export default function NotificationsBell() {
       clearError();
       return;
     }
-    const notificationDetails = notificationSectionMapping[notif.type];
+    const section = notificationSectionMapping[notif.type]?.section;
 
     if (notif.tripId) {
-      if (notificationDetails.section) {
+      if (section) {
+        if (window.location.pathname === `/trips/${notif.tripId}`) {
+          window.dispatchEvent(
+            new CustomEvent("trip-section-change", { detail: { section } })
+          );
+        } else {
+          router.push(`/trips/${notif.tripId}`);
+        }
         // Navigate to the trip page with the section
-        router.push(`/trips/${notif.tripId}#${notificationDetails.section}`);
+        router.push(`/trips/${notif.tripId}#${section}`);
       } else {
         // Else navigate to the trip root
         router.push(`/trips/${notif.tripId}`);
