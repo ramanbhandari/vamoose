@@ -1,25 +1,30 @@
 import { Box, Typography, useTheme, Container, Button } from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
 import { useState } from "react";
-import { CreateItineraryEvent } from "./types";
+import { CreateItineraryEvent, ItineraryEvent } from "./types";
 import CreateEventModal from "./EventModal";
 import { useTripStore } from "@/stores/trip-store";
 import apiClient from "@/utils/apiClient";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useItineraryStore } from "@/stores/itinerary-store";
 
 interface ItineraryProps {
   tripId: number;
   tripName: string;
   imageUrl?: string;
+  itineraryEvents: ItineraryEvent[];
 }
 
 export default function Itinerary({
   tripId,
   tripName,
   imageUrl,
+  itineraryEvents,
 }: ItineraryProps) {
   const theme = useTheme();
   const { tripData } = useTripStore();
+  const { fetchItineraryEvents } = useItineraryStore();
+  console.log(itineraryEvents);
 
   const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,14 +39,11 @@ export default function Itinerary({
 
   const handleSaveEvent = async (eventData: CreateItineraryEvent) => {
     try {
-      const response = await apiClient.post(
-        `/trips/${tripId}/itinerary-events`,
-        eventData
-      );
-      console.log(response); // just log the response for now to confirm its working
+      await apiClient.post(`/trips/${tripId}/itinerary-events`, eventData);
 
       setNotification("Successfully created new Itinerary Event!", "success");
-      // TODO: add fetch itinerary for this trip when itinerary store is implemented
+      // replenish our store
+      fetchItineraryEvents(tripId);
     } catch (error) {
       setNotification(
         "Failed to create new Itinerary Event. Please refresh and try again!",
