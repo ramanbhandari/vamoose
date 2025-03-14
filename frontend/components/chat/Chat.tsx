@@ -28,6 +28,7 @@ import EmojiPicker, {
   EmojiClickData,
   Theme as EmojiTheme,
 } from "emoji-picker-react";
+import { useMediaQuery } from "@mui/material";
 
 import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
@@ -54,6 +55,15 @@ export default function Chat() {
   const [isMaximized, setIsMaximized] = useState(false);
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 600px)");
+
+  // Add a state to track whether the trips bar is open on mobile
+  const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
+
+  // Function to toggle the trips bar on mobile
+  const toggleTripBarOnMobile = () => {
+    setIsTripBarOpenOnMobile((prev) => !prev);
+  };
 
   // Add this state to track which trip's members are being shown on hover
   const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
@@ -434,11 +444,28 @@ export default function Chat() {
               justifyContent: "space-between",
             }}
           >
-            {!isMaximized && (
-              <IconButton onClick={toggleTripTab} sx={{ color: "#fff" }}>
+            {/* Hamburger menu button for mobile */}
+            {isMobile && (
+              <IconButton
+                onClick={toggleTripBarOnMobile}
+                sx={{
+                  color: "#fff",
+                }}
+              >
                 <MenuIcon />
               </IconButton>
             )}
+
+            {/* Original trip bar toggle button for non-mobile */}
+            {!isMobile && !isMaximized && (
+              <IconButton
+                onClick={toggleTripTab}
+                sx={{ color: "#fff", display: { xs: "none", sm: "block" } }} // Only show on non-mobile
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+
             <Typography
               variant="h6"
               color="#fff"
@@ -464,7 +491,16 @@ export default function Chat() {
           </Paper>
 
           <Box sx={{ display: "flex", flex: 1 }}>
-            <Collapse in={isMaximized || tripTabOpen} orientation="horizontal">
+            <Collapse
+              in={
+                isMobile
+                  ? isTripBarOpenOnMobile // On mobile, use isTripBarOpenOnMobile
+                  : isMaximized
+                    ? true // On non-mobile, keep trips bar open when maximized
+                    : tripTabOpen // On non-mobile, use tripTabOpen when not maximized
+              }
+              orientation="horizontal"
+            >
               <Box
                 sx={{
                   width: tripTabWidth,
