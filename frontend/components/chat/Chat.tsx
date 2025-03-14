@@ -13,6 +13,7 @@ import {
   Collapse,
   Grow,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 
 import Message from "@mui/icons-material/Message";
@@ -41,7 +42,8 @@ import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 600px)");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isMaximized, setIsMaximized] = useState(isMobile);
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [inputAreaHeight, setInputAreaHeight] = useState(115);
@@ -538,7 +540,7 @@ export default function Chat() {
                 textAlign: "center",
                 mx: 2,
                 fontFamily: "var(--font-brand), cursive",
-                "@media (max-width: 600px)": {
+                [theme.breakpoints.down("sm")]: {
                   fontSize: "1.25rem", // Smaller font size for mobile
                 },
               }}
@@ -576,7 +578,7 @@ export default function Chat() {
                   borderRight: "1px solid var(--divider)",
                   position: "relative",
                   p: 1,
-                  "@media (max-width: 600px)": {
+                  [theme.breakpoints.down("sm")]: {
                     width: "100%", // Full width on mobile
                   },
                   // Hide scrollbar

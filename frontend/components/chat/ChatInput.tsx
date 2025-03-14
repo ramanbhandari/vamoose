@@ -29,7 +29,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isMaximized,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width: 600px)");
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const effectiveMaximized = isMobile || isMaximized;
   const currentEmojiTheme =
     theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
@@ -128,7 +128,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         alignItems: "flex-end",
         justifyContent: effectiveMaximized ? "center" : "flex-start",
         transition: "all 0.3s ease",
-        "@media (max-width: 600px)": {
+        [theme.breakpoints.down("sm")]: {
           p: 1,
         },
       }}
@@ -146,7 +146,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           position: "relative",
           border: "1px solid rgba(255, 255, 255, 0.2)",
           transition: "all 0.3s ease",
-          "@media (max-width: 600px)": {
+          [theme.breakpoints.down("sm")]: {
             width: "100%",
             p: 1,
           },
@@ -204,7 +204,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               borderRadius: 20,
               padding: "10px 12px",
               fontSize: "1rem",
-              "@media (max-width: 600px)": {
+              [theme.breakpoints.down("sm")]: {
                 fontSize: "0.875rem", // Smaller font size on mobile
               },
               "& .MuiInputBase-root": {
@@ -278,7 +278,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             padding: "8px 20px",
             display: "flex",
             alignItems: "center",
-            "@media (max-width: 600px)": {
+            [theme.breakpoints.down("sm")]: {
               width: "36px",
               height: "36px",
               padding: "6px",
@@ -310,7 +310,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   }),
               backgroundColor: "var(--background-paper)",
               color: "var(--text)",
-              "@media (max-width: 600px)": {
+              [theme.breakpoints.down("sm")]: {
                 transform: "scale(0.6)", // Smaller emoji picker on mobile
                 bottom: "80px",
                 ...(effectiveMaximized
