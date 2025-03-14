@@ -76,7 +76,6 @@ export default function InviteModal({ open, onClose }: InviteModalProps) {
 
   const handleCopyInviteUrl = () => {
     navigator.clipboard.writeText(inviteUrl);
-    clearNotification();
     setNotification("Link copied to clipboard!", "info");
   };
 
