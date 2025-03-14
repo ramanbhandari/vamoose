@@ -55,6 +55,26 @@ export default function Chat() {
   const [tripTabOpen, setTripTabOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+  // Add this state to track which trip's members are being shown on hover
+  const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to handle mouse enter (start the 3-second timer)
+  const handleMouseEnter = (tripId: number) => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredTrip(tripId);
+    }, 500); // 3 seconds
+  };
+
+  // Function to handle mouse leave (clear the timer and hide members)
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredTrip(null);
+  };
+
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
   const MAX_TAB_MAX_WIDTH = 400;
@@ -493,8 +513,11 @@ export default function Chat() {
                             selectedTrip?.id === trip.id
                               ? "var(--chat)"
                               : "var(--text)",
+                          position: "relative",
                         }}
                         onClick={() => selectTrip(trip)}
+                        onMouseEnter={() => handleMouseEnter(trip.id)}
+                        onMouseLeave={handleMouseLeave}
                       >
                         <ListItemText
                           primary={
@@ -513,6 +536,46 @@ export default function Chat() {
                             </Typography>
                           }
                         />
+                        {/* Conditionally render the members on hover */}
+                        {hoveredTrip === trip.id && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "100%", // Position below the trip name
+                              left: 0,
+                              backgroundColor: "var(--background)",
+                              border: "1px solid var(--divider)",
+                              borderRadius: "4px",
+                              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                              zIndex: 1000,
+                              p: 1,
+                              mt: 1,
+                              minWidth: "100%",
+                              color: "var(--text)",
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: "bold", mb: 1 }}
+                            >
+                              Members
+                            </Typography>
+                            <List sx={{ p: 0 }}>
+                              {trip.members?.map((member) => (
+                                <ListItem key={member.userId} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={
+                                      <Typography variant="body2">
+                                        {member.user?.fullName ||
+                                          "Unknown User"}
+                                      </Typography>
+                                    }
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
                       </ListItem>
                     ))
                   ) : (
