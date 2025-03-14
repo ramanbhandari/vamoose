@@ -490,6 +490,7 @@ export default function CreateEventDialog({
                           setNotes(newNotes);
                         }}
                         autoFocus={index === notes.length - 1}
+                        helperText={`${note.length}/100 characters`}
                         slotProps={{
                           input: {
                             endAdornment: (
