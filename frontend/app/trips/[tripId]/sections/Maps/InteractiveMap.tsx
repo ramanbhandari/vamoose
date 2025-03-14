@@ -52,6 +52,12 @@ export default function MapComponent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapContainer]);
 
+  // Update map style when theme changes
+  useEffect(() => {
+    if (!map) return;
+    map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
+  }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
+
   // Auto-locate on mount, if fails tell the user that theres an error (mostly browser block)
   useEffect(() => {
     if (!map) return;
