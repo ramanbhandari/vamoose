@@ -447,6 +447,9 @@ export default function Chat() {
                 textAlign: "center",
                 mx: 2,
                 fontFamily: "var(--font-brand), cursive",
+                "@media (max-width: 600px)": {
+                  fontSize: "1.25rem", // Smaller font size for mobile
+                },
               }}
             >
               {selectedTrip?.name || "Select a Trip"}
@@ -471,6 +474,9 @@ export default function Chat() {
                   borderRight: "1px solid var(--divider)",
                   position: "relative",
                   p: 1,
+                  "@media (max-width: 600px)": {
+                    width: "100%", // Full width on mobile
+                  },
                   // Hide scrollbar
                   "&::-webkit-scrollbar": {
                     display: "none",
@@ -945,6 +951,9 @@ export default function Chat() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: isMaximized ? "center" : "flex-start",
+                  "@media (max-width: 600px)": {
+                    p: 1,
+                  },
                 }}
               >
                 <Box
@@ -959,6 +968,10 @@ export default function Chat() {
                     width: isMaximized ? "60%" : "100%",
                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                     position: "relative",
+                    "@media (max-width: 600px)": {
+                      width: "100%",
+                      p: 1,
+                    },
                   }}
                 >
                   <TextField
@@ -987,6 +1000,9 @@ export default function Chat() {
                       borderRadius: 50,
                       padding: "10px 12px",
                       fontSize: "1rem",
+                      "@media (max-width: 600px)": {
+                        fontSize: "0.875rem", // Smaller font size on mobile
+                      },
                       "& .MuiInputBase-root": { padding: 0 },
                       "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                     }}
@@ -1013,6 +1029,9 @@ export default function Chat() {
                       backgroundColor: "var(--primary)",
                       borderRadius: 50,
                       padding: "8px 20px",
+                      "@media (max-width: 600px)": {
+                        padding: "6px 16px", // Smaller padding on mobile
+                      },
                       "&:hover": { backgroundColor: "var(--primary-hover)" },
                     }}
                   >
@@ -1039,6 +1058,21 @@ export default function Chat() {
                             }),
                         backgroundColor: "var(--background-paper)",
                         color: "var(--text)",
+                        "@media (max-width: 600px)": {
+                          transform: "scale(0.6)", // Smaller emoji picker on mobile
+                          bottom: "80px",
+                          ...(isMaximized
+                            ? {
+                                left: "5%",
+                                //transform: "translateX(-50%)",
+                                transformOrigin: "bottom center",
+                              }
+                            : {
+                                left: "1%",
+                                //transform: "scale(0.7)",
+                                transformOrigin: "bottom center",
+                              }),
+                        },
                       }}
                     >
                       <EmojiPicker
