@@ -28,6 +28,7 @@ import EmojiPicker, {
   EmojiClickData,
   Theme as EmojiTheme,
 } from "emoji-picker-react";
+import { useMediaQuery } from "@mui/material";
 
 import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
@@ -56,6 +57,35 @@ export default function Chat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [inputAreaHeight, setInputAreaHeight] = useState(115);
   const inputAreaRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 600px)");
+
+  // Add a state to track whether the trips bar is open on mobile
+  const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
+
+  // Function to toggle the trips bar on mobile
+  const toggleTripBarOnMobile = () => {
+    setIsTripBarOpenOnMobile((prev) => !prev);
+  };
+
+  // Add this state to track which trip's members are being shown on hover
+  const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to handle mouse enter (start the 3-second timer)
+  const handleMouseEnter = (tripId: number) => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredTrip(tripId);
+    }, 500); // 3 seconds
+  };
+
+  // Function to handle mouse leave (clear the timer and hide members)
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredTrip(null);
+  };
 
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
@@ -433,11 +463,28 @@ export default function Chat() {
               justifyContent: "space-between",
             }}
           >
-            {!isMaximized && (
-              <IconButton onClick={toggleTripTab} sx={{ color: "#fff" }}>
+            {/* Hamburger menu button for mobile */}
+            {isMobile && (
+              <IconButton
+                onClick={toggleTripBarOnMobile}
+                sx={{
+                  color: "#fff",
+                }}
+              >
                 <MenuIcon />
               </IconButton>
             )}
+
+            {/* Original trip bar toggle button for non-mobile */}
+            {!isMobile && !isMaximized && (
+              <IconButton
+                onClick={toggleTripTab}
+                sx={{ color: "#fff", display: { xs: "none", sm: "block" } }} // Only show on non-mobile
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+
             <Typography
               variant="h6"
               color="#fff"
@@ -446,6 +493,9 @@ export default function Chat() {
                 textAlign: "center",
                 mx: 2,
                 fontFamily: "var(--font-brand), cursive",
+                "@media (max-width: 600px)": {
+                  fontSize: "1.25rem", // Smaller font size for mobile
+                },
               }}
             >
               {selectedTrip?.name || "Select a Trip"}
@@ -460,7 +510,16 @@ export default function Chat() {
           </Paper>
 
           <Box sx={{ display: "flex", flex: 1 }}>
-            <Collapse in={isMaximized || tripTabOpen} orientation="horizontal">
+            <Collapse
+              in={
+                isMobile
+                  ? isTripBarOpenOnMobile // On mobile, use isTripBarOpenOnMobile
+                  : isMaximized
+                    ? true // On non-mobile, keep trips bar open when maximized
+                    : tripTabOpen // On non-mobile, use tripTabOpen when not maximized
+              }
+              orientation="horizontal"
+            >
               <Box
                 sx={{
                   width: tripTabWidth,
@@ -470,6 +529,9 @@ export default function Chat() {
                   borderRight: "1px solid var(--divider)",
                   position: "relative",
                   p: 1,
+                  "@media (max-width: 600px)": {
+                    width: "100%", // Full width on mobile
+                  },
                   // Hide scrollbar
                   "&::-webkit-scrollbar": {
                     display: "none",
@@ -512,8 +574,11 @@ export default function Chat() {
                             selectedTrip?.id === trip.id
                               ? "var(--chat)"
                               : "var(--text)",
+                          position: "relative",
                         }}
                         onClick={() => selectTrip(trip)}
+                        onMouseEnter={() => handleMouseEnter(trip.id)}
+                        onMouseLeave={handleMouseLeave}
                       >
                         <ListItemText
                           primary={
@@ -532,6 +597,46 @@ export default function Chat() {
                             </Typography>
                           }
                         />
+                        {/* Conditionally render the members on hover */}
+                        {hoveredTrip === trip.id && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "100%", // Position below the trip name
+                              left: 0,
+                              backgroundColor: "var(--background)",
+                              border: "1px solid var(--divider)",
+                              borderRadius: "4px",
+                              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                              zIndex: 1000,
+                              p: 1,
+                              mt: 1,
+                              minWidth: "100%",
+                              color: "var(--text)",
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: "bold", mb: 1 }}
+                            >
+                              Members
+                            </Typography>
+                            <List sx={{ p: 0 }}>
+                              {trip.members?.map((member) => (
+                                <ListItem key={member.userId} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={
+                                      <Typography variant="body2">
+                                        {member.user?.fullName ||
+                                          "Unknown User"}
+                                      </Typography>
+                                    }
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
                       </ListItem>
                     ))
                   ) : (
@@ -899,6 +1004,9 @@ export default function Chat() {
                   alignItems: "flex-end",
                   justifyContent: isMaximized ? "center" : "flex-start",
                   transition: "height 0.2s ease",
+                  "@media (max-width: 600px)": {
+                    p: 1,
+                  },
                 }}
               >
                 <Box
@@ -913,6 +1021,10 @@ export default function Chat() {
                     width: isMaximized ? "60%" : "100%",
                     boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
                     position: "relative",
+                    "@media (max-width: 600px)": {
+                      width: "100%",
+                      p: 1,
+                    },
                   }}
                 >
                   <Box sx={{ position: "relative", flex: 1 }}>
@@ -960,6 +1072,9 @@ export default function Chat() {
                         borderRadius: 20,
                         padding: "10px 12px",
                         fontSize: "1rem",
+                        "@media (max-width: 600px)": {
+                        fontSize: "0.875rem", // Smaller font size on mobile
+                      },
                         "& .MuiInputBase-root": {
                           padding: 0,
                           alignItems: "flex-end",
@@ -1022,6 +1137,9 @@ export default function Chat() {
                       backgroundColor: "var(--primary)",
                       borderRadius: 50,
                       padding: "8px 20px",
+                      "@media (max-width: 600px)": {
+                        padding: "6px 16px", // Smaller padding on mobile
+                      },
                       "&:hover": { backgroundColor: "var(--primary-hover)" },
                     }}
                   >
@@ -1048,6 +1166,21 @@ export default function Chat() {
                             }),
                         backgroundColor: "var(--background-paper)",
                         color: "var(--text)",
+                        "@media (max-width: 600px)": {
+                          transform: "scale(0.6)", // Smaller emoji picker on mobile
+                          bottom: "80px",
+                          ...(isMaximized
+                            ? {
+                                left: "5%",
+                                //transform: "translateX(-50%)",
+                                transformOrigin: "bottom center",
+                              }
+                            : {
+                                left: "1%",
+                                //transform: "scale(0.7)",
+                                transformOrigin: "bottom center",
+                              }),
+                        },
                       }}
                     >
                       <EmojiPicker
