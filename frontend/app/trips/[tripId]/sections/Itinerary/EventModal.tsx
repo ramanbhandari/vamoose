@@ -254,12 +254,14 @@ export default function CreateEventDialog({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EditNote sx={{ color: "text.secondary" }} />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EditNote sx={{ color: "text.secondary" }} />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -399,7 +401,7 @@ export default function CreateEventDialog({
                 >
                   {eventCategories.map((cat: string) => (
                     <MenuItem key={cat} value={cat}>
-                      {cat}
+                      {cat === "FREE_TIME" ? "FREE TIME" : cat}
                     </MenuItem>
                   ))}
                 </Select>
@@ -488,20 +490,27 @@ export default function CreateEventDialog({
                           setNotes(newNotes);
                         }}
                         autoFocus={index === notes.length - 1}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() =>
-                                  setNotes(notes.filter((_, i) => i !== index))
-                                }
-                                size="small"
-                                edge="end"
-                              >
-                                <Close fontSize="small" />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  onClick={() =>
+                                    setNotes(
+                                      notes.filter((_, i) => i !== index)
+                                    )
+                                  }
+                                  size="small"
+                                  edge="end"
+                                >
+                                  <Close fontSize="small" />
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          },
+                          htmlInput: {
+                            maxLength: 100,
+                          },
                         }}
                       />
                     </Box>
