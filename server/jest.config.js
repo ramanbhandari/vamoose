@@ -1,8 +1,3 @@
-// export const preset = 'ts-jest';
-// export const testEnvironment = 'node';
-// export const clearMocks = true;
-// // export const setupFilesAfterEnv = ["<rootDir>/src/tests/jest.setup.ts"]; // Will enable for Integration testing
-
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -10,5 +5,12 @@ export default {
   testPathIgnorePatterns: ['/dist/'],
   moduleNameMapper: {
     '^@/(.*)\\.js$': '<rootDir>/src/$1.ts',
+  },
+  testMatch: [
+    '<rootDir>/tests/unit/**/*.test.ts',
+    '<rootDir>/tests/integration/**/*.test.ts',
+  ],
+  globals: {
+    __INTEGRATION__: process.env.TEST_TYPE === 'integration',
   },
 };
