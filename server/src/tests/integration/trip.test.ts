@@ -36,8 +36,8 @@ describe('Trip API Integration Tests', () => {
     // Insert test users into the database
     await prisma.user.createMany({
       data: [
-        { id: tripCreator, email: 'mockUser@example.com' },
-        { id: tripMember, email: 'anotherUser@example.com' },
+        { id: tripCreator, email: 'tripCreator@example.com' },
+        { id: tripMember, email: 'tripMember@example.com' },
         { id: nonMemberUserId, email: 'nonMember@example.com' },
       ],
       skipDuplicates: true,
@@ -45,7 +45,6 @@ describe('Trip API Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    // Insert a test trip for userId
     const trip = await prisma.trip.create({
       data: {
         name: 'Test Trip',
@@ -72,7 +71,6 @@ describe('Trip API Integration Tests', () => {
   afterAll(async () => {
     // Cleanup users
     await prisma.user.deleteMany({});
-    await prisma.$disconnect();
   });
 
   // ==========================
