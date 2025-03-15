@@ -19,10 +19,6 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
     await prisma.user.deleteMany({});
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
   // ==========================
   // INVITATION TESTS
   // ==========================
