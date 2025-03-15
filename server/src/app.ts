@@ -1,9 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
-import dotenv from 'dotenv';
 import appRouter from '@/routes/appRouter.js';
 import cors from 'cors';
-
-dotenv.config();
 
 const app = express();
 

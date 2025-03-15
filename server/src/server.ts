@@ -2,9 +2,12 @@ import app from '@/app.js';
 import { initializeSocketServer } from '@/socketServer.js';
 import prisma from '@/config/prismaClient.js';
 import connectMongoDB from '@/db/mongo.js';
+import dotenv from 'dotenv';
 import '@/cron/scheduler.js';
 
 const port: number | string = process.env.PORT || 8000;
+
+dotenv.config();
 
 connectMongoDB();
 
