@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-//import * as turf from "@turf/turf";
+import * as turf from "@turf/turf";
 import {
   Box,
   IconButton,
@@ -29,12 +29,17 @@ export default function MapComponent({
   const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [userMarker, setUserMarker] = useState<maplibre.Marker | null>(null);
+  // Save current location so it persists after initial load
+  const [currentLocation, setCurrentLocation] = useState<
+    [number, number] | null
+  >(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
     light: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
   };
 
+  // Initialize the map when the container is ready
   useEffect(() => {
     if (!mapContainer) return;
 
@@ -51,7 +56,6 @@ export default function MapComponent({
     setMap(initialMap);
 
     return () => initialMap.remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapContainer]);
 
   // Update map style when theme changes
@@ -60,29 +64,73 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
-  // Add current location marker and radius
+  // Update user location: center map, add marker and circle, and save location
   const updateUserLocation = useCallback(
     (longitude: number, latitude: number) => {
-      if (!map || !map.loaded()) {
-        console.error("Map not loaded yet.");
+      if (!map) {
+        console.warn("Map instance not available yet. Retrying...");
         return;
       }
-
+      
+      if (!map.loaded()) {
+        console.warn("Map not fully loaded yet. Waiting for load event...");
+        map.once("load", () => {
+          console.log("Map loaded! Proceeding with location update...");
+          updateUserLocation(longitude, latitude);
+        });
+        return;
+      }
+      
+      setCurrentLocation([longitude, latitude]);
       map.flyTo({
         center: [longitude, latitude],
         zoom: 14,
       });
 
-      const newMarker = new maplibre.Marker({ color: "red" })
-        .setLngLat([longitude, latitude])
-        .addTo(map);
-      setUserMarker(newMarker);
+      // Add or update user marker
+      if (userMarker) {
+        userMarker.setLngLat([longitude, latitude]);
+      } else {
+        const newMarker = new maplibre.Marker({ color: "red" })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+        setUserMarker(newMarker);
+      }
+
+      const radiusInKm = 0.5;
+      const circleGeoJSON = turf.circle([longitude, latitude], radiusInKm, {
+        steps: 64,
+        units: "kilometers",
+      });
+
+      // Add or update the circle layer
+      if (!map.getSource("user-radius")) {
+        map.addSource("user-radius", {
+          type: "geojson",
+          data: circleGeoJSON,
+        });
+        map.addLayer({
+          id: "user-radius-layer",
+          type: "fill",
+          source: "user-radius",
+          layout: {},
+          paint: {
+            "fill-color": "rgba(0, 123, 255, 0.2)",
+            "fill-outline-color": "rgba(0, 123, 255, 0.5)",
+          },
+        });
+      } else {
+        (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
+          circleGeoJSON
+        );
+      }
+
       setIsLocating(false);
     },
     [map, userMarker]
   );
 
-  // Auto-locate on mount
+  // Auto-locate on mount—only after the map has loaded
   useEffect(() => {
     if (!map) return;
 
@@ -95,15 +143,85 @@ export default function MapComponent({
           },
           (error) => {
             setNotification("Automatic location detection failed", "error");
-            console.log(error);
+            console.error(error);
           }
+        );
+      } else {
+        setNotification(
+          "Geolocation is not supported by your browser",
+          "error"
         );
       }
     };
 
-    autoLocate();
-  }, [map, setNotification]);
+    if (map.loaded()) {
+      autoLocate();
+    } else {
+      map.once("load", autoLocate);
+    }
+  }, [map, updateUserLocation, setNotification]);
 
+  // Re-add the circle layer after a style change (e.g., theme switch)
+  useEffect(() => {
+    if (!map) return;
+
+    const readdCircleLayer = () => {
+      if (userMarker) {
+        const lngLat = userMarker.getLngLat();
+        const radiusInKm = 0.5;
+        const circleGeoJSON = turf.circle(
+          [lngLat.lng, lngLat.lat],
+          radiusInKm,
+          {
+            steps: 64,
+            units: "kilometers",
+          }
+        );
+
+        if (!map.getSource("user-radius")) {
+          map.addSource("user-radius", {
+            type: "geojson",
+            data: circleGeoJSON,
+          });
+          map.addLayer({
+            id: "user-radius-layer",
+            type: "fill",
+            source: "user-radius",
+            layout: {},
+            paint: {
+              "fill-color": "rgba(0, 123, 255, 0.2)",
+              "fill-outline-color": "rgba(0, 123, 255, 0.5)",
+            },
+          });
+        } else {
+          (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
+            circleGeoJSON
+          );
+        }
+      }
+    };
+
+    map.once("styledata", readdCircleLayer);
+  }, [map, userMarker, isDarkMode]);
+
+  // When the tab becomes visible again, re-center the map using the saved location
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && map && currentLocation) {
+        map.flyTo({
+          center: currentLocation,
+          zoom: 14,
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [map, currentLocation]);
+
+  // Manual geolocation button handler
   const handleGeolocate = useCallback(() => {
     setIsLocating(true);
     if (!navigator.geolocation) {
@@ -120,7 +238,7 @@ export default function MapComponent({
       (error) => {
         setIsLocating(false);
         setNotification("Location access was denied", "error");
-        console.log(error);
+        console.error(error);
       },
       {
         enableHighAccuracy: true,
@@ -128,7 +246,7 @@ export default function MapComponent({
         maximumAge: 0,
       }
     );
-  }, [map, setNotification, userMarker]);
+  }, [map, setNotification, updateUserLocation]);
 
   const handleSearch = (query: string) => {
     console.log("Searching for:", query);
