@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+//import * as turf from "@turf/turf";
 import {
   Box,
   IconButton,
@@ -59,6 +60,28 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
+  // Add current location marker and radius
+  const updateUserLocation = useCallback(
+    (longitude: number, latitude: number) => {
+      if (!map || !map.loaded()) {
+        console.error("Map not loaded yet.");
+        return;
+      }
+
+      map.flyTo({
+        center: [longitude, latitude],
+        zoom: 14,
+      });
+
+      const newMarker = new maplibre.Marker({ color: "red" })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+      setUserMarker(newMarker);
+      setIsLocating(false);
+    },
+    [map, userMarker]
+  );
+
   // Auto-locate on mount
   useEffect(() => {
     if (!map) return;
@@ -68,17 +91,7 @@ export default function MapComponent({
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { longitude, latitude } = position.coords;
-            map.flyTo({
-              center: [longitude, latitude],
-              zoom: 14,
-            });
-            // Add a red marker at the user's location
-            const newMarker = new maplibre.Marker({ color: "var(--primary)" })
-              .setLngLat([longitude, latitude])
-              .addTo(map);
-
-            setUserMarker(newMarker);
-            setIsLocating(false);
+            updateUserLocation(longitude, latitude);
           },
           (error) => {
             setNotification("Automatic location detection failed", "error");
@@ -102,26 +115,7 @@ export default function MapComponent({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { longitude, latitude } = position.coords;
-
-        // Ensure the map is loaded before adding the marker
-        if (!map || !map.loaded()) {
-          console.error("Map not loaded yet.");
-          setIsLocating(false);
-          return;
-        }
-
-        map.flyTo({
-          center: [longitude, latitude],
-          zoom: 14,
-        });
-
-        // Add a red marker at the user's location
-        const newMarker = new maplibre.Marker({ color: "var(--primary)" })
-          .setLngLat([longitude, latitude])
-          .addTo(map);
-
-        setUserMarker(newMarker);
-        setIsLocating(false);
+        updateUserLocation(longitude, latitude);
       },
       (error) => {
         setIsLocating(false);
