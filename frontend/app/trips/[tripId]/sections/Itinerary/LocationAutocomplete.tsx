@@ -33,6 +33,11 @@ export default function LocationAutocomplete({
   const [options, setOptions] = useState<LocationOption[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Sync inputValue with parent value
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
   useEffect(() => {
     const fetchLocations = async () => {
       if (inputValue.length < 3) {
@@ -66,13 +71,16 @@ export default function LocationAutocomplete({
   return (
     <Autocomplete
       freeSolo
+      inputValue={inputValue}
       options={options}
       getOptionLabel={(option) =>
         typeof option === "string"
           ? option
           : `${option.properties.name}${
               option.properties.city ? `, ${option.properties.city}` : ""
-            }${option.properties.country ? `, ${option.properties.country}` : ""}`
+            }${
+              option.properties.country ? `, ${option.properties.country}` : ""
+            }`
       }
       filterOptions={(x) => x}
       onInputChange={(event, newInputValue) => {
@@ -85,11 +93,27 @@ export default function LocationAutocomplete({
           onChange(
             `${newValue.properties.name}${
               newValue.properties.city ? `, ${newValue.properties.city}` : ""
-            }${newValue.properties.country ? `, ${newValue.properties.country}` : ""}`
+            }${
+              newValue.properties.country
+                ? `, ${newValue.properties.country}`
+                : ""
+            }`
           );
         }
       }}
       loading={loading}
+      renderOption={(props, option) => {
+        const key = `${option.properties.name}-${option.geometry.coordinates[0]}-${option.geometry.coordinates[1]}`;
+        return (
+          <li {...props} key={key}>
+            {`${option.properties.name}${
+              option.properties.city ? `, ${option.properties.city}` : ""
+            }${
+              option.properties.country ? `, ${option.properties.country}` : ""
+            }`}
+          </li>
+        );
+      }}
       renderInput={(params) => (
         <TextField
           {...params}
