@@ -9,9 +9,10 @@ import {
   CircularProgress,
   Typography,
 } from "@mui/material";
-import { MyLocation } from "@mui/icons-material";
+import { MyLocation, EmojiPeople } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 import MapSearchFilter from "./MapSearchFilter";
+import Marker from "./Marker";
 
 interface MapComponentProps {
   initialCenter?: [number, number];
@@ -28,7 +29,6 @@ export default function MapComponent({
   const [map, setMap] = useState<MapType | null>(null);
   const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [userMarker, setUserMarker] = useState<maplibre.Marker | null>(null);
   // Save current location so it persists after initial load
   const [currentLocation, setCurrentLocation] = useState<
     [number, number] | null
@@ -71,7 +71,7 @@ export default function MapComponent({
         console.warn("Map instance not available yet. Retrying...");
         return;
       }
-      
+
       if (!map.loaded()) {
         console.warn("Map not fully loaded yet. Waiting for load event...");
         map.once("load", () => {
@@ -80,22 +80,12 @@ export default function MapComponent({
         });
         return;
       }
-      
+
       setCurrentLocation([longitude, latitude]);
       map.flyTo({
         center: [longitude, latitude],
         zoom: 14,
       });
-
-      // Add or update user marker
-      if (userMarker) {
-        userMarker.setLngLat([longitude, latitude]);
-      } else {
-        const newMarker = new maplibre.Marker({ color: "red" })
-          .setLngLat([longitude, latitude])
-          .addTo(map);
-        setUserMarker(newMarker);
-      }
 
       const radiusInKm = 0.5;
       const circleGeoJSON = turf.circle([longitude, latitude], radiusInKm, {
@@ -127,7 +117,7 @@ export default function MapComponent({
 
       setIsLocating(false);
     },
-    [map, userMarker]
+    [map]
   );
 
   // Auto-locate on mount—only after the map has loaded
@@ -161,48 +151,41 @@ export default function MapComponent({
     }
   }, [map, updateUserLocation, setNotification]);
 
-  // Re-add the circle layer after a style change (e.g., theme switch)
+  // Re-add the circle layer after a style change
   useEffect(() => {
-    if (!map) return;
+    if (!map || !currentLocation) return;
 
     const readdCircleLayer = () => {
-      if (userMarker) {
-        const lngLat = userMarker.getLngLat();
-        const radiusInKm = 0.5;
-        const circleGeoJSON = turf.circle(
-          [lngLat.lng, lngLat.lat],
-          radiusInKm,
-          {
-            steps: 64,
-            units: "kilometers",
-          }
-        );
+      const radiusInKm = 0.5;
+      const circleGeoJSON = turf.circle(currentLocation, radiusInKm, {
+        steps: 64,
+        units: "kilometers",
+      });
 
-        if (!map.getSource("user-radius")) {
-          map.addSource("user-radius", {
-            type: "geojson",
-            data: circleGeoJSON,
-          });
-          map.addLayer({
-            id: "user-radius-layer",
-            type: "fill",
-            source: "user-radius",
-            layout: {},
-            paint: {
-              "fill-color": "rgba(0, 123, 255, 0.2)",
-              "fill-outline-color": "rgba(0, 123, 255, 0.5)",
-            },
-          });
-        } else {
-          (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
-            circleGeoJSON
-          );
-        }
+      if (!map.getSource("user-radius")) {
+        map.addSource("user-radius", {
+          type: "geojson",
+          data: circleGeoJSON,
+        });
+        map.addLayer({
+          id: "user-radius-layer",
+          type: "fill",
+          source: "user-radius",
+          layout: {},
+          paint: {
+            "fill-color": "rgba(0, 123, 255, 0.2)",
+            "fill-outline-color": "rgba(0, 123, 255, 0.5)",
+          },
+        });
+      } else {
+        (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
+          circleGeoJSON
+        );
       }
     };
 
     map.once("styledata", readdCircleLayer);
-  }, [map, userMarker, isDarkMode]);
+  }, [map, currentLocation, isDarkMode]);
 
   // When the tab becomes visible again, re-center the map using the saved location
   useEffect(() => {
@@ -256,6 +239,10 @@ export default function MapComponent({
     console.log("Filtering by tags:", tags);
   };
 
+  const handleMarkerClick = () => {
+    console.log("User location marker clicked");
+  };
+
   return (
     <Box sx={{ position: "relative" }}>
       <Box
@@ -270,6 +257,18 @@ export default function MapComponent({
         }}
       >
         <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
+
+        {/* Render custom marker if we have a location */}
+        {map && currentLocation && (
+          <Marker
+            map={map}
+            position={currentLocation}
+            color={"green"}
+            size={30}
+            onClick={handleMarkerClick}
+            icon={<EmojiPeople />}
+          />
+        )}
 
         {/* Map Search and Filter Component */}
         <Box
