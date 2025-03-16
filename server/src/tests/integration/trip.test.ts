@@ -90,6 +90,11 @@ describe('Trip API Integration Tests', () => {
     expect(response.status).toBe(201);
     expect(response.body.trip).toHaveProperty('id');
     expect(response.body.trip.name).toBe('New Trip');
+
+    const createdTrip = await prisma.trip.findUnique({
+      where: { id: response.body.trip.id },
+    });
+    expect(createdTrip).not.toBeNull();
   });
 
   it('should return 400 if required fields are missing', async () => {
@@ -162,6 +167,9 @@ describe('Trip API Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.trip.name).toBe('Updated Trip Name');
+
+    const updatedTrip = await prisma.trip.findUnique({ where: { id: tripId } });
+    expect(updatedTrip?.name).toBe('Updated Trip Name');
   });
 
   it('should return 403 if a non-admin, non-creator tries to update the trip', async () => {
@@ -186,6 +194,9 @@ describe('Trip API Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('Trip deleted successfully');
+
+    const deletedTrip = await prisma.trip.findUnique({ where: { id: tripId } });
+    expect(deletedTrip).toBeNull();
   });
 
   it('should return 403 if a non-creator tries to delete a trip', async () => {
@@ -230,6 +241,11 @@ describe('Trip API Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.deletedCount).toBe(2);
+
+    const deletedTrips = await prisma.trip.findMany({
+      where: { id: { in: [trip1.id, trip2.id] } },
+    });
+    expect(deletedTrips.length).toBe(0);
   });
 
   it('should return 404 if a user tries to delete trips they do not own', async () => {
