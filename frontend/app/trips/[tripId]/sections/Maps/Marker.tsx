@@ -9,6 +9,8 @@ interface MarkerProps {
   color?: string;
   size?: number;
   onClick?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   icon: React.ReactElement<SvgIconProps>;
 }
 
@@ -18,6 +20,8 @@ export default function Marker({
   color = "red",
   size = 32,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   icon,
 }: MarkerProps) {
   const [marker, setMarker] = useState<maplibre.Marker | null>(null);
@@ -53,11 +57,18 @@ export default function Marker({
     iconContainer.innerHTML = iconHtml;
     el.appendChild(iconContainer);
 
+    // Attach click and hover events if provided
     if (onClick) {
       el.addEventListener("click", onClick);
     }
+    if (onMouseEnter) {
+      el.addEventListener("mouseenter", onMouseEnter);
+    }
+    if (onMouseLeave) {
+      el.addEventListener("mouseleave", onMouseLeave);
+    }
 
-    // Create and add the marker
+    // Create and add the marker to the map
     const newMarker = new maplibre.Marker({ element: el })
       .setLngLat(position)
       .addTo(map);
@@ -68,9 +79,15 @@ export default function Marker({
       if (onClick) {
         el.removeEventListener("click", onClick);
       }
+      if (onMouseEnter) {
+        el.removeEventListener("mouseenter", onMouseEnter);
+      }
+      if (onMouseLeave) {
+        el.removeEventListener("mouseleave", onMouseLeave);
+      }
       newMarker.remove();
     };
-  }, [map, color, size, onClick, position, icon]);
+  }, [map, color, size, onClick, onMouseEnter, onMouseLeave, position, icon]);
 
   // Update marker position if it changes
   useEffect(() => {

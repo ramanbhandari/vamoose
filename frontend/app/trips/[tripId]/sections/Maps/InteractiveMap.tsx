@@ -33,6 +33,7 @@ import {
   SEARCH_RADIUS_KM,
   SearchResult,
 } from "./services/mapbox";
+import MarkerCard from "./MarkerCard";
 
 // Map location types to icons and colors
 const locationConfig: Record<
@@ -78,6 +79,16 @@ export default function MapComponent({
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
     light: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
   };
+
+  const testPOI: POI = {
+    id: "test-marker",
+    name: "Test Location",
+    address: "Times Square, NYC",
+    locationType: LocationType.Hotels, // Using a valid enum value
+    coordinates: [-73.9855, 40.758], // Tuple with exactly two numbers
+  };
+
+  const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
 
   // Initialize the map when the container is ready
   useEffect(() => {
@@ -480,6 +491,31 @@ export default function MapComponent({
               />
             );
           })}
+
+        {/* Render the hardcoded Test Marker */}
+        {map && (
+          <Marker
+            key={testPOI.id}
+            map={map}
+            position={testPOI.coordinates}
+            color="blue"
+            size={32}
+            onMouseEnter={() => setHoveredPOI(testPOI)}
+            onMouseLeave={() => setHoveredPOI(null)}
+            icon={<Hotel />} // Or another suitable icon
+          />
+        )}
+
+        {/* Conditionally render the MarkerCard on hover */}
+        {hoveredPOI && map && (
+          <MarkerCard
+            map={map}
+            coordinates={hoveredPOI.coordinates}
+            name={hoveredPOI.name}
+            address={hoveredPOI.address} // optional
+            locationType={hoveredPOI.locationType}
+          />
+        )}
 
         {/* POI Info Popup */}
         {selectedPOI && (
