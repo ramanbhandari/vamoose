@@ -14,18 +14,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build Server Docker Image
-        run: |
-          docker build --no-cache -t server-ci ./server
+      - name: Build and Start Server Service with Docker Compose
+        working-directory: server
+        run: docker compose up --build -d server
 
-      - name: Run ESLint in Docker
+      - name: Run ESLint in Server Container
         run: |
-          docker run --rm server-ci npm run lint
+          docker exec server-ci npm run lint
 
-      - name: Run Tests in Docker
+      - name: Run Unit Tests in Server Container
         run: |
-          docker run --rm server-ci npm test
+          docker exec server-ci npm run test:unit
 
-      - name: Verify Build in Docker
+      - name: Run Integration Tests in Server Container
         run: |
-          docker run --rm server-ci npm run build
+          docker exec server-ci npm run test:integration
+
+      - name: Verify Build in Server Container
+        run: |
+          docker exec server-ci npm run build
+
+      - name: Tear Down Server Container
+        working-directory: server
+        run: |
+          docker compose down

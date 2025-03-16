@@ -12,9 +12,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD} # Load root password from .env
     env_file:
       - .env # Load variables from the .env file
+
   test-db:
     image: postgres:13
-    restart: always
     container_name: integration-tests-prisma
     ports:
       - '5433:5432'
@@ -22,3 +22,17 @@ services:
       POSTGRES_USER: prisma
       POSTGRES_PASSWORD: prisma
       POSTGRES_DB: tests
+
+  server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: server-ci
+    depends_on:
+      - test-db
+    environment:
+      # this value points to the test-db container using its service name.
+      DATABASE_URL: "postgresql://prisma:prisma@integration-tests-prisma:5432/tests"
+      DIRECT_URL: "postgresql://prisma:prisma@integration-tests-prisma:5432/tests"
+    ports:
+      - "8000:8000"

@@ -12,10 +12,10 @@
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "dotenv -e .env.test -- jest --config=jest.unit.config.js",
-    "pretest:integration": "npm run testdb:restart && dotenv -e .env.test -- prisma migrate reset --force",
+    "pretest:integration": "command -v docker >/dev/null 2>&1 && npm run testdb:restart || echo 'Docker not available, skipping pretest steps'",
     "test:integration": "dotenv -e .env.test -- jest -i --no-cache --config=jest.integration.config.js",
-    "aftertest:integration": "docker compose down test-db",
-    "testdb:restart": "docker compose down test-db && docker compose up test-db -d && sleep 1"
+    "posttest:integration": "command -v docker >/dev/null 2>&1 && docker compose stop test-db || echo 'Docker not available, skipping posttest steps'",
+    "testdb:restart": "docker compose up -d --force-recreate test-db && sleep 2"
   },
   "author": "",
   "license": "ISC",
