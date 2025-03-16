@@ -29,20 +29,15 @@ jobs:
 
       - name: Run Test Database Container
         run: |
-          docker run -d \
-            --name integration-tests-prisma \
-            --network ci-network \
-            -p 5433:5432 \
-            -e POSTGRES_USER=prisma \
-            -e POSTGRES_PASSWORD=prisma \
-            -e POSTGRES_DB=tests \
-            postgres:13
+          docker build -t test-db -f server/Dockerfile.testdb ./server
+          docker run -d --name integration-tests-prisma --network ci-network -p 5433:5432 test-db
 
       - name: Run Integration Tests in Docker
         run: | 
           docker run --rm --network ci-network \
           -e DATABASE_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
           -e DIRECT_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          -e SUPABASE_JWT_SECRET="Super-secret-key" \
           server-ci npm run test:integration
 
       - name: Cleanup Test Database Container
