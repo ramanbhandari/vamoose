@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as turf from "@turf/turf";
@@ -8,11 +8,43 @@ import {
   useTheme,
   CircularProgress,
   Typography,
+  Paper,
+  Fade,
+  SvgIconProps,
 } from "@mui/material";
-import { MyLocation, EmojiPeople } from "@mui/icons-material";
+import {
+  MyLocation,
+  EmojiPeople,
+  Restaurant,
+  LocalCafe,
+  Hotel,
+  LocalGasStation,
+  ShoppingBag,
+  Help,
+  Clear,
+} from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 import MapSearchFilter from "./MapSearchFilter";
 import Marker from "./Marker";
+import {
+  fetchPOIsByType,
+  POI,
+  LocationType,
+  SEARCH_RADIUS_KM,
+} from "./services/mapbox";
+
+// Map location types to icons and colors
+const locationConfig: Record<
+  LocationType,
+  { icon: React.ReactElement<SvgIconProps>; color: string }
+> = {
+  [LocationType.Hotels]: { icon: <Hotel />, color: "#5C6BC0" },
+  [LocationType.FoodAndDrink]: { icon: <Restaurant />, color: "#FF5252" },
+  [LocationType.CoffeeShops]: { icon: <LocalCafe />, color: "#8D6E63" },
+  [LocationType.Shopping]: { icon: <ShoppingBag />, color: "#EC407A" },
+  [LocationType.GasStations]: { icon: <LocalGasStation />, color: "#66BB6A" },
+  [LocationType.Other]: { icon: <Help />, color: "#757575" },
+};
 
 interface MapComponentProps {
   initialCenter?: [number, number];
@@ -33,6 +65,13 @@ export default function MapComponent({
   const [currentLocation, setCurrentLocation] = useState<
     [number, number] | null
   >(null);
+  // State for POIs
+  const [pois, setPois] = useState<POI[]>([]);
+  const [selectedLocationTypes, setSelectedLocationTypes] = useState<
+    LocationType[]
+  >([]);
+  const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
+  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -64,6 +103,42 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
+  // Fetch POIs when location or selected location types change
+  useEffect(() => {
+    const fetchPOIs = async () => {
+      if (!currentLocation || selectedLocationTypes.length === 0) {
+        setPois([]);
+        return;
+      }
+
+      setIsLoadingPOIs(true);
+
+      try {
+        // Clear existing POIs
+        setPois([]);
+
+        // Fetch POIs for each selected location type
+        const poiPromises = selectedLocationTypes.map((locationType) =>
+          fetchPOIsByType(locationType, currentLocation, SEARCH_RADIUS_KM)
+        );
+
+        const results = await Promise.all(poiPromises);
+
+        // Combine all POIs from different categories
+        const allPois = results.flat();
+
+        setPois(allPois);
+      } catch (error) {
+        console.error("Error fetching POIs:", error);
+        setNotification("Failed to load points of interest", "error");
+      } finally {
+        setIsLoadingPOIs(false);
+      }
+    };
+
+    fetchPOIs();
+  }, [currentLocation, selectedLocationTypes, setNotification]);
+
   // Update user location: center map, add marker and circle, and save location
   const updateUserLocation = useCallback(
     (longitude: number, latitude: number) => {
@@ -87,11 +162,14 @@ export default function MapComponent({
         zoom: 14,
       });
 
-      const radiusInKm = 0.5;
-      const circleGeoJSON = turf.circle([longitude, latitude], radiusInKm, {
-        steps: 64,
-        units: "kilometers",
-      });
+      const circleGeoJSON = turf.circle(
+        [longitude, latitude],
+        SEARCH_RADIUS_KM,
+        {
+          steps: 64,
+          units: "kilometers",
+        }
+      );
 
       // Add or update the circle layer
       if (!map.getSource("user-radius")) {
@@ -156,8 +234,7 @@ export default function MapComponent({
     if (!map || !currentLocation) return;
 
     const readdCircleLayer = () => {
-      const radiusInKm = 0.5;
-      const circleGeoJSON = turf.circle(currentLocation, radiusInKm, {
+      const circleGeoJSON = turf.circle(currentLocation, SEARCH_RADIUS_KM, {
         steps: 64,
         units: "kilometers",
       });
@@ -235,12 +312,27 @@ export default function MapComponent({
     console.log("Searching for:", query);
   };
 
-  const handleTagFilter = (tags: string[]) => {
-    console.log("Filtering by tags:", tags);
+  const handleLocationTypeFilter = (types: LocationType[]) => {
+    console.log("Filtering by location types:", types);
+    setSelectedLocationTypes(types);
   };
 
-  const handleMarkerClick = () => {
+  const handleUserMarkerClick = () => {
     console.log("User location marker clicked");
+    setSelectedPOI(null);
+  };
+
+  const handlePOIMarkerClick = (poi: POI) => {
+    console.log("POI marker clicked:", poi);
+    setSelectedPOI(poi);
+
+    // Center the map on the POI
+    if (map) {
+      map.flyTo({
+        center: poi.coordinates,
+        zoom: 16,
+      });
+    }
   };
 
   return (
@@ -258,16 +350,86 @@ export default function MapComponent({
       >
         <div ref={(el) => setMapContainer(el)} className="w-full h-full" />
 
-        {/* Render custom marker if we have a location */}
+        {/* Render user location marker */}
         {map && currentLocation && (
           <Marker
             map={map}
             position={currentLocation}
             color={"green"}
             size={30}
-            onClick={handleMarkerClick}
+            onClick={handleUserMarkerClick}
             icon={<EmojiPeople />}
           />
+        )}
+
+        {/* Render POI markers */}
+        {map &&
+          pois.map((poi) => {
+            const config = locationConfig[poi.locationType];
+            return (
+              <Marker
+                key={poi.id}
+                map={map}
+                position={poi.coordinates}
+                color={config.color}
+                size={32}
+                onClick={() => handlePOIMarkerClick(poi)}
+                icon={config.icon}
+              />
+            );
+          })}
+
+        {/* POI Info Popup */}
+        {selectedPOI && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: theme.spacing(10),
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "90%",
+              maxWidth: "400px",
+              zIndex: 10,
+            }}
+          >
+            <Fade in={!!selectedPOI}>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 2,
+                  borderLeft: `4px solid ${locationConfig[selectedPOI.locationType].color}`,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  <Box
+                    sx={{
+                      mr: 1,
+                      color: locationConfig[selectedPOI.locationType].color,
+                    }}
+                  >
+                    {locationConfig[selectedPOI.locationType].icon}
+                  </Box>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {selectedPOI.name}
+                  </Typography>
+                </Box>
+
+                {selectedPOI.address && (
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedPOI.address}
+                  </Typography>
+                )}
+
+                <Box
+                  sx={{ mt: 1, display: "flex", justifyContent: "flex-end" }}
+                >
+                  <IconButton size="small" onClick={() => setSelectedPOI(null)}>
+                    <Clear fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Paper>
+            </Fade>
+          </Box>
         )}
 
         {/* Map Search and Filter Component */}
@@ -298,7 +460,7 @@ export default function MapComponent({
           >
             <MapSearchFilter
               onSearch={handleSearch}
-              onTagFilter={handleTagFilter}
+              onTagFilter={handleLocationTypeFilter}
             />
           </Box>
         </Box>
@@ -339,6 +501,28 @@ export default function MapComponent({
           </IconButton>
         </Box>
 
+        {/* Loading indicator for POIs */}
+        {isLoadingPOIs && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: theme.spacing(2),
+              right: theme.spacing(2),
+              p: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              zIndex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              borderRadius: theme.shape.borderRadius,
+              color: "white",
+            }}
+          >
+            <CircularProgress size={20} color="inherit" />
+            <Typography variant="caption">Loading POIs...</Typography>
+          </Box>
+        )}
+
         <footer
           style={{
             position: "absolute",
@@ -349,7 +533,7 @@ export default function MapComponent({
           }}
         >
           <Typography variant="caption" color="primary">
-            Map data © CARTO, OpenStreetMap contributors
+            Map data © CARTO, OpenStreetMap contributors | POI data © Mapbox
           </Typography>
         </footer>
       </Box>

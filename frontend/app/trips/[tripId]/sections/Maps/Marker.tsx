@@ -16,7 +16,7 @@ export default function Marker({
   map,
   position,
   color = "red",
-  size = 24,
+  size = 32,
   onClick,
   icon,
 }: MarkerProps) {

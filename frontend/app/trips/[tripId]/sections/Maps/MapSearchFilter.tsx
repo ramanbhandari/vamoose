@@ -12,22 +12,22 @@ import {
   Collapse,
 } from "@mui/material";
 import { Search, Clear, FilterList } from "@mui/icons-material";
+import { LocationType } from "./services/mapbox";
 
 interface MapSearchFilterProps {
   onSearch?: (query: string) => void;
-  onTagFilter?: (tags: string[]) => void;
+  onTagFilter?: (types: LocationType[]) => void;
 }
 
-// Sample tags - these would typically come from your data
-const SAMPLE_TAGS = [
-  "Restaurant",
-  "Hotel",
-  "Attraction",
-  "Museum",
-  "Park",
-  "Beach",
-  "Landmark",
-];
+// Map of location types to display names
+const LOCATION_TYPES: Record<LocationType, string> = {
+  [LocationType.Hotels]: "Hotels",
+  [LocationType.FoodAndDrink]: "Food & Drink",
+  [LocationType.CoffeeShops]: "Coffee Shops",
+  [LocationType.Shopping]: "Shopping",
+  [LocationType.GasStations]: "Gas Stations",
+  [LocationType.Other]: "Other",
+};
 
 export default function MapSearchFilter({
   onSearch,
@@ -36,7 +36,7 @@ export default function MapSearchFilter({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<LocationType[]>([]);
   const [showFilters, setShowFilters] = useState(!isMobile);
   const isDarkMode = theme.palette.mode === "dark";
 
@@ -51,13 +51,13 @@ export default function MapSearchFilter({
     onSearch?.("");
   };
 
-  const handleTagToggle = (tag: string) => {
-    const newSelectedTags = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag];
+  const handleTypeToggle = (type: LocationType) => {
+    const newSelectedTypes = selectedTypes.includes(type)
+      ? selectedTypes.filter((t) => t !== type)
+      : [...selectedTypes, type];
 
-    setSelectedTags(newSelectedTags);
-    onTagFilter?.(newSelectedTags);
+    setSelectedTypes(newSelectedTypes);
+    onTagFilter?.(newSelectedTypes);
   };
 
   const handleToggleFilters = () => {
@@ -155,12 +155,16 @@ export default function MapSearchFilter({
                 flex: 1,
               }}
             >
-              {SAMPLE_TAGS.map((tag) => (
+              {Object.entries(LOCATION_TYPES).map(([type, label]) => (
                 <Chip
-                  key={tag}
-                  label={tag}
-                  color={selectedTags.includes(tag) ? "primary" : "default"}
-                  onClick={() => handleTagToggle(tag)}
+                  key={type}
+                  label={label}
+                  color={
+                    selectedTypes.includes(type as LocationType)
+                      ? "primary"
+                      : "default"
+                  }
+                  onClick={() => handleTypeToggle(type as LocationType)}
                   clickable
                   size="small"
                   sx={{
@@ -170,19 +174,19 @@ export default function MapSearchFilter({
               ))}
             </Box>
 
-            {(isMobile || selectedTags.length > 0) && (
+            {(isMobile || selectedTypes.length > 0) && (
               <Chip
                 label="Clear all"
                 size="small"
                 variant="outlined"
                 onClick={() => {
-                  setSelectedTags([]);
+                  setSelectedTypes([]);
                   onTagFilter?.([]);
                 }}
                 sx={{
                   ml: "auto",
                   transition: "all 0.2s ease-in-out",
-                  opacity: selectedTags.length > 0 ? 1 : 0.6,
+                  opacity: selectedTypes.length > 0 ? 1 : 0.6,
                 }}
               />
             )}
