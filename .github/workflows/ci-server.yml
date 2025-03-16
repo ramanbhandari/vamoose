@@ -9,34 +9,47 @@ on:
 jobs:
   server-test-lint-build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run ESLint
-        working-directory: server
+      - name: Build Server Docker Image
         run: |
-          docker compose up -d server
-          docker exec server-ci npm run lint
-          docker compose down
+          docker build --no-cache -t server-ci -f server/Dockerfile ./server
 
-      - name: Run Unit Tests
-        working-directory: server
-        run: |
-          docker compose up -d server
-          docker exec server-ci npm run test:unit
-          docker compose down
+      - name: Run ESLint in Docker
+        run: docker run --rm server-ci npm run lint
 
-      - name: Run Integration Tests
-        working-directory: server
-        run: |
-          docker compose up -d server
-          docker exec server-ci npm run test:integration
-          docker compose down
+      - name: Run Unit Tests in Docker
+        run: docker run --rm server-ci npm run test:unit
 
-      - name: Verify Build
-        working-directory: server
+      - name: Create Docker network for CI
+        run: docker network create ci-network
+
+      - name: Run Test Database Container
         run: |
-          docker compose up -d server
-          docker exec server-ci npm run build
-          docker compose down
+          docker run -d \
+            --name integration-tests-prisma \
+            --network ci-network \
+            -p 5433:5432 \
+            -e POSTGRES_USER=prisma \
+            -e POSTGRES_PASSWORD=prisma \
+            -e POSTGRES_DB=tests \
+            postgres:13
+
+      - name: Run Integration Tests in Docker
+        run: | 
+          docker run --rm --network ci-network \
+          -e DATABASE_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          -e DIRECT_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          server-ci npm run test:integration
+
+      - name: Cleanup Test Database Container
+        run: docker rm -f integration-tests-prisma
+
+      - name: Remove Docker network
+        run: docker network rm ci-network
+
+      - name: Verify Build in Docker
+        run: docker run --rm server-ci npm run build
