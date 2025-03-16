@@ -502,6 +502,7 @@ export default function MapComponent({
             name={hoveredPOI.name}
             address={hoveredPOI.address}
             locationType={hoveredPOI.locationType}
+            color={locationConfig[hoveredPOI.locationType].color}
           />
         )}
 

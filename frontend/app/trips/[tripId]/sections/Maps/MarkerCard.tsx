@@ -9,6 +9,9 @@ interface MarkerCardProps {
   address?: string;
   locationType: LocationType;
   coordinates: [number, number]; // [longitude, latitude]
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  color?: string; // Added color prop to match marker color
 }
 
 export default function MarkerCard({
@@ -16,6 +19,7 @@ export default function MarkerCard({
   name,
   address,
   coordinates,
+  color = "#757575", // Default color if none provided
 }: MarkerCardProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -40,23 +44,23 @@ export default function MarkerCard({
         top: position.y,
         transform: "translate(-50%, -120%)",
         zIndex: 1000,
-        pointerEvents: "none",
+        pointerEvents: "auto", // Changed to auto to handle mouse events
       }}
     >
       <Paper
         elevation={3}
         sx={{
           p: 2,
-          backgroundColor: "var(--background-paper)", 
-          color: "var(--text)",
-          borderLeft: "4px solid var(--primary)", 
+          backgroundColor: "background.paper",
+          color: "text.primary",
+          borderLeft: `4px solid ${color}`, // Use the marker's color here
         }}
       >
         <Typography variant="subtitle2" fontWeight="bold">
           {name}
         </Typography>
         {address && (
-          <Typography variant="body2" sx={{ color: "var(--text)" }}>
+          <Typography variant="body2" color="text.secondary">
             {address}
           </Typography>
         )}
