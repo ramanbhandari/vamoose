@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import {
   MyLocation,
-  EmojiPeople,
   Restaurant,
   LocalCafe,
   Hotel,
@@ -22,6 +21,7 @@ import {
   ShoppingBag,
   Help,
   Clear,
+  Place,
 } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 import MapSearchFilter from "./MapSearchFilter";
@@ -385,6 +385,28 @@ export default function MapComponent({
     }
   };
 
+  // Update user location marker position when map moves
+  useEffect(() => {
+    if (!map || !currentLocation) return;
+
+    const updateMarkerPosition = () => {
+      const markerEl = document.getElementById("user-location-marker");
+      if (markerEl) {
+        const { x, y } = map.project(currentLocation);
+        markerEl.style.left = `${x}px`;
+        markerEl.style.top = `${y}px`;
+      }
+    };
+
+    map.on("move", updateMarkerPosition);
+    map.on("zoom", updateMarkerPosition);
+
+    return () => {
+      map.off("move", updateMarkerPosition);
+      map.off("zoom", updateMarkerPosition);
+    };
+  }, [map, currentLocation]);
+
   return (
     <Box sx={{ position: "relative" }}>
       <Box
@@ -402,14 +424,44 @@ export default function MapComponent({
 
         {/* Render user location marker */}
         {map && currentLocation && (
-          <Marker
-            map={map}
-            position={currentLocation}
-            color={"green"}
-            size={30}
-            onClick={handleUserMarkerClick}
-            icon={<EmojiPeople />}
-          />
+          <div
+            style={{
+              position: "absolute",
+              zIndex: 5,
+              pointerEvents: "none",
+              left: 0,
+              top: 0,
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                transform: "translate(-50%, -100%)",
+                pointerEvents: "auto",
+              }}
+              id="user-location-marker"
+              ref={(el) => {
+                if (el && map) {
+                  const { x, y } = map.project(currentLocation);
+                  el.style.left = `${x}px`;
+                  el.style.top = `${y}px`;
+                }
+              }}
+            >
+              <Place
+                color="primary"
+                fontSize="large"
+                sx={{
+                  fontSize: 44,
+                  filter: "drop-shadow(0px 2px 3px rgba(0,0,0,0.4))",
+                  cursor: "pointer",
+                }}
+                onClick={handleUserMarkerClick}
+              />
+            </div>
+          </div>
         )}
 
         {/* Render POI markers */}
