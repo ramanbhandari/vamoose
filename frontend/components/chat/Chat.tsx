@@ -849,7 +849,7 @@ export default function Chat() {
                           </Typography>
                           <Box
                             sx={{
-                              width: "100%",
+                              maxWidth: "70%",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"
@@ -863,6 +863,10 @@ export default function Chat() {
                                 msg.userId === user.id
                                   ? "16px 16px 0 16px"
                                   : "16px 16px 16px 0",
+                              alignSelf:
+                                msg.userId === user.id
+                                  ? "flex-end"
+                                  : "flex-start",
                             }}
                           >
                             <Typography variant="body1">{msg.text}</Typography>
