@@ -31,6 +31,7 @@ import {
   POI,
   LocationType,
   SEARCH_RADIUS_KM,
+  SearchResult,
 } from "./services/mapbox";
 
 // Map location types to icons and colors
@@ -306,7 +307,7 @@ export default function MapComponent({
         maximumAge: 0,
       }
     );
-  }, [map, setNotification, updateUserLocation]);
+  }, [setNotification, updateUserLocation]);
 
   const handleSearch = (query: string) => {
     console.log("Searching for:", query);
@@ -315,6 +316,55 @@ export default function MapComponent({
   const handleLocationTypeFilter = (types: LocationType[]) => {
     console.log("Filtering by location types:", types);
     setSelectedLocationTypes(types);
+  };
+
+  const handleLocationSelect = (location: SearchResult) => {
+    console.log("Location selected:", location);
+
+    // Update the map center to the selected location
+    if (map) {
+      const { coordinates } = location;
+
+      // Update the current location
+      setCurrentLocation(coordinates);
+
+      // Fly to the selected location
+      map.flyTo({
+        center: coordinates,
+        zoom: 14,
+      });
+
+      // Clear any selected POI
+      setSelectedPOI(null);
+
+      // Create a circle for the search radius
+      const circleGeoJSON = turf.circle(coordinates, SEARCH_RADIUS_KM, {
+        steps: 64,
+        units: "kilometers",
+      });
+
+      // Add or update the circle layer
+      if (!map.getSource("user-radius")) {
+        map.addSource("user-radius", {
+          type: "geojson",
+          data: circleGeoJSON,
+        });
+        map.addLayer({
+          id: "user-radius-layer",
+          type: "fill",
+          source: "user-radius",
+          layout: {},
+          paint: {
+            "fill-color": "rgba(0, 123, 255, 0.2)",
+            "fill-outline-color": "rgba(0, 123, 255, 0.5)",
+          },
+        });
+      } else {
+        (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
+          circleGeoJSON
+        );
+      }
+    }
   };
 
   const handleUserMarkerClick = () => {
@@ -461,6 +511,7 @@ export default function MapComponent({
             <MapSearchFilter
               onSearch={handleSearch}
               onTagFilter={handleLocationTypeFilter}
+              onLocationSelect={handleLocationSelect}
             />
           </Box>
         </Box>

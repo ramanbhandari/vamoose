@@ -1,5 +1,6 @@
 import * as turf from "@turf/turf";
 
+// Consistent search radius in kilometers
 export const SEARCH_RADIUS_KM = 1;
 
 export interface POI {
@@ -9,6 +10,13 @@ export interface POI {
   locationType: LocationType;
   coordinates: [number, number]; // [longitude, latitude]
   properties?: Record<string, unknown>;
+}
+
+export interface SearchResult {
+  name: string;
+  coordinates: [number, number];
+  address?: string;
+  placeType?: string;
 }
 
 export enum LocationType {
@@ -34,11 +42,67 @@ interface MapboxFeature {
     category?: string;
     [key: string]: unknown;
   };
+  place_name?: string;
+  place_type?: string[];
+  text?: string;
 }
 
 interface MapboxResponse {
   features?: MapboxFeature[];
   [key: string]: unknown;
+}
+
+/**
+ * Search for locations using Mapbox Geocoding API
+ */
+export async function searchLocation(
+  query: string,
+  limit: number = 5
+): Promise<SearchResult[]> {
+  if (!query.trim()) {
+    return [];
+  }
+
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+  if (!token) {
+    console.error("Mapbox access token is missing");
+    return [];
+  }
+
+  // URL encode the query
+  const encodedQuery = encodeURIComponent(query);
+
+  // Mapbox Geocoding API endpoint
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=${limit}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Mapbox Geocoding API error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as MapboxResponse;
+
+    if (!data.features || !Array.isArray(data.features)) {
+      return [];
+    }
+
+    return data.features.map((feature) => {
+      const coordinates = feature.geometry?.coordinates || [0, 0];
+
+      return {
+        name: feature.text || feature.place_name || "Unknown location",
+        coordinates: coordinates as [number, number],
+        address: feature.place_name,
+        placeType: feature.place_type?.[0],
+      };
+    });
+  } catch (error) {
+    console.error("Error searching for location:", error);
+    return [];
+  }
 }
 
 /**

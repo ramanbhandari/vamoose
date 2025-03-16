@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -10,13 +10,20 @@ import {
   Typography,
   useMediaQuery,
   Collapse,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  CircularProgress,
 } from "@mui/material";
-import { Search, Clear, FilterList } from "@mui/icons-material";
-import { LocationType } from "./services/mapbox";
+import { Search, Clear, FilterList, LocationOn } from "@mui/icons-material";
+import { LocationType, searchLocation, SearchResult } from "./services/mapbox";
 
 interface MapSearchFilterProps {
   onSearch?: (query: string) => void;
   onTagFilter?: (types: LocationType[]) => void;
+  onLocationSelect?: (location: SearchResult) => void;
 }
 
 // Map of location types to display names
@@ -32,6 +39,7 @@ const LOCATION_TYPES: Record<LocationType, string> = {
 export default function MapSearchFilter({
   onSearch,
   onTagFilter,
+  onLocationSelect,
 }: MapSearchFilterProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -39,6 +47,33 @@ export default function MapSearchFilter({
   const [selectedTypes, setSelectedTypes] = useState<LocationType[]>([]);
   const [showFilters, setShowFilters] = useState(!isMobile);
   const isDarkMode = theme.palette.mode === "dark";
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+
+  // Debounced search for locations
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchLocation(searchQuery);
+        setSearchResults(results);
+        setShowSearchResults(results.length > 0);
+      } catch (error) {
+        console.error("Error searching for location:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -48,6 +83,8 @@ export default function MapSearchFilter({
 
   const handleClearSearch = () => {
     setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
     onSearch?.("");
   };
 
@@ -62,6 +99,29 @@ export default function MapSearchFilter({
 
   const handleToggleFilters = () => {
     setShowFilters(!showFilters);
+  };
+
+  const handleLocationClick = (location: SearchResult) => {
+    onLocationSelect?.(location);
+    setShowSearchResults(false);
+    // Keep the search query to show what was searched
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowSearchResults(false);
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  // Prevent clicks inside the search results from closing them
+  const handleSearchResultsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   return (
@@ -82,7 +142,14 @@ export default function MapSearchFilter({
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            position: "relative",
+          }}
+        >
           <TextField
             fullWidth
             variant="outlined"
@@ -93,7 +160,11 @@ export default function MapSearchFilter({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search color="action" />
+                  {isSearching ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <Search color="action" />
+                  )}
                 </InputAdornment>
               ),
               endAdornment: searchQuery && (
@@ -109,6 +180,12 @@ export default function MapSearchFilter({
                 </InputAdornment>
               ),
             }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (searchResults.length > 0) {
+                setShowSearchResults(true);
+              }
+            }}
           />
           {isMobile && (
             <IconButton
@@ -122,6 +199,58 @@ export default function MapSearchFilter({
             >
               <FilterList />
             </IconButton>
+          )}
+
+          {/* Search Results Dropdown */}
+          {showSearchResults && (
+            <Paper
+              elevation={4}
+              sx={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: isMobile ? 48 : 0,
+                mt: 0.5,
+                zIndex: 10,
+                maxHeight: "300px",
+                overflow: "auto",
+              }}
+              onClick={handleSearchResultsClick}
+            >
+              <List dense>
+                {searchResults.map((result, index) => (
+                  <Box key={`${result.name}-${index}`}>
+                    <ListItem
+                      onClick={() => handleLocationClick(result)}
+                      sx={{
+                        py: 1,
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: theme.palette.action.hover,
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <LocationOn color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={result.name}
+                        secondary={result.address}
+                        primaryTypographyProps={{
+                          variant: "body2",
+                          fontWeight: "medium",
+                        }}
+                        secondaryTypographyProps={{
+                          variant: "caption",
+                          noWrap: true,
+                        }}
+                      />
+                    </ListItem>
+                    {index < searchResults.length - 1 && <Divider />}
+                  </Box>
+                ))}
+              </List>
+            </Paper>
           )}
         </Box>
 
