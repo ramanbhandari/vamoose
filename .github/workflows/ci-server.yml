@@ -9,32 +9,34 @@ on:
 jobs:
   server-test-lint-build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build and Start Server Service with Docker Compose
+      - name: Run ESLint
         working-directory: server
-        run: docker compose up --build -d server
-
-      - name: Run ESLint in Server Container
         run: |
+          docker compose up -d server
           docker exec server-ci npm run lint
+          docker compose down
 
-      - name: Run Unit Tests in Server Container
-        run: |
-          docker exec server-ci npm run test:unit
-
-      - name: Run Integration Tests in Server Container
-        run: |
-          docker exec server-ci npm run test:integration
-
-      - name: Verify Build in Server Container
-        run: |
-          docker exec server-ci npm run build
-
-      - name: Tear Down Server Container
+      - name: Run Unit Tests
         working-directory: server
         run: |
+          docker compose up -d server
+          docker exec server-ci npm run test:unit
+          docker compose down
+
+      - name: Run Integration Tests
+        working-directory: server
+        run: |
+          docker compose up -d server
+          docker exec server-ci npm run test:integration
+          docker compose down
+
+      - name: Verify Build
+        working-directory: server
+        run: |
+          docker compose up -d server
+          docker exec server-ci npm run build
           docker compose down
