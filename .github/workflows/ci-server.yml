@@ -29,14 +29,8 @@ jobs:
 
       - name: Run Test Database Container
         run: |
-          docker run -d \
-            --name integration-tests-prisma \
-            --network ci-network \
-            -p 5433:5432 \
-            -e POSTGRES_USER=prisma \
-            -e POSTGRES_PASSWORD=prisma \
-            -e POSTGRES_DB=tests \
-            postgres:13
+          docker build -t test-db -f Dockerfile.testdb ./server
+          docker run -d --name integration-tests-prisma --network ci-network -p 5433:5432 test-db
 
       - name: Run Integration Tests in Docker
         run: | 
