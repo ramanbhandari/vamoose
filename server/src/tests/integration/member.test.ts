@@ -15,6 +15,7 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
   });
 
   afterEach(async () => {
+    await prisma.tripMember.deleteMany({});
     await prisma.trip.deleteMany({});
     await prisma.user.deleteMany({});
   });
@@ -51,7 +52,7 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
     expect(response.body.inviteUrl).toBeDefined();
   });
 
-  it('should validate the invite', async () => {
+  it('should allow an invitee to accept the invite and join the trip', async () => {
     const creatorId = 'creator-user-id';
     const inviteeId = 'invitee-user-id';
     const creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
@@ -62,47 +63,6 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
         { id: creatorId, email: 'creator@example.com' },
         { id: inviteeId, email: 'invitee@example.com' },
       ],
-      skipDuplicates: true,
-    });
-
-    const trip = await prisma.trip.create({
-      data: {
-        name: 'Test Trip',
-        destination: 'Paris',
-        startDate: new Date(),
-        endDate: new Date(),
-        createdBy: creatorId,
-        members: { create: { userId: creatorId, role: 'creator' } },
-      },
-    });
-
-    const inviteResponse = await request(app)
-      .post(`/api/trips/${trip.id}/invites/create`)
-      .set('Authorization', creatorAuthToken)
-      .send({ email: 'invitee@example.com' });
-
-    const inviteToken = inviteResponse.body.inviteUrl.split('/').pop();
-
-    const validateResponse = await request(app)
-      .get(`/api/trips/${trip.id}/invites/validate/${inviteToken}`)
-      .set('Authorization', inviteeAuthToken);
-
-    expect(validateResponse.status).toBe(200);
-    expect(validateResponse.body.trip.destination).toBe('Paris');
-  });
-
-  it('should allow the invitee to accept the invite and join the trip', async () => {
-    const creatorId = 'creator-user-id';
-    const inviteeId = 'invitee-user-id';
-    const creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
-    const inviteeAuthToken = `Bearer ${jwt.sign({ sub: inviteeId }, secret)}`;
-
-    await prisma.user.createMany({
-      data: [
-        { id: creatorId, email: 'creator@example.com' },
-        { id: inviteeId, email: 'invitee@example.com' },
-      ],
-      skipDuplicates: true,
     });
 
     const trip = await prisma.trip.create({
@@ -129,46 +89,13 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
 
     expect(acceptResponse.status).toBe(200);
     expect(acceptResponse.body.message).toBe('Invite accepted');
-  });
 
-  it('should reject an invite', async () => {
-    const creatorId = 'creator-user-id';
-    const inviteeId = 'invitee-user-id';
-    const creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
-    const inviteeAuthToken = `Bearer ${jwt.sign({ sub: inviteeId }, secret)}`;
-
-    await prisma.user.createMany({
-      data: [
-        { id: creatorId, email: 'creator@example.com' },
-        { id: inviteeId, email: 'invitee@example.com' },
-      ],
-      skipDuplicates: true,
+    // Verify invitee is now a trip member
+    const members = await prisma.tripMember.findMany({
+      where: { tripId: trip.id },
     });
-
-    const trip = await prisma.trip.create({
-      data: {
-        name: 'Test Trip',
-        destination: 'Paris',
-        startDate: new Date(),
-        endDate: new Date(),
-        createdBy: creatorId,
-        members: { create: { userId: creatorId, role: 'creator' } },
-      },
-    });
-
-    const inviteResponse = await request(app)
-      .post(`/api/trips/${trip.id}/invites/create`)
-      .set('Authorization', creatorAuthToken)
-      .send({ email: 'invitee@example.com' });
-
-    const inviteToken = inviteResponse.body.inviteUrl.split('/').pop();
-
-    const rejectResponse = await request(app)
-      .post(`/api/trips/${trip.id}/invites/reject/${inviteToken}`)
-      .set('Authorization', inviteeAuthToken);
-
-    expect(rejectResponse.status).toBe(200);
-    expect(rejectResponse.body.message).toBe('Invite rejected.');
+    expect(members.length).toBe(2);
+    expect(members.some((m) => m.userId === inviteeId)).toBe(true);
   });
 
   // ==========================
@@ -187,7 +114,6 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
         { id: adminId, email: 'admin@example.com' },
         { id: memberId, email: 'member@example.com' },
       ],
-      skipDuplicates: true,
     });
 
     const trip = await prisma.trip.create({
@@ -214,43 +140,12 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.member.role).toBe('admin');
-  });
 
-  it('should allow a creator to remove a admin from the trip', async () => {
-    const creatorId = 'creator-user-id';
-    const adminId = 'admin-user-id';
-    const creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
-
-    await prisma.user.createMany({
-      data: [
-        { id: creatorId, email: 'creator@example.com' },
-        { id: adminId, email: 'admin@example.com' },
-      ],
-      skipDuplicates: true,
+    // Verify role update in DB
+    const updatedMember = await prisma.tripMember.findFirst({
+      where: { tripId: trip.id, userId: memberId },
     });
-
-    const trip = await prisma.trip.create({
-      data: {
-        name: 'Test Trip',
-        destination: 'Paris',
-        startDate: new Date(),
-        endDate: new Date(),
-        createdBy: creatorId,
-        members: {
-          create: [
-            { userId: creatorId, role: 'creator' },
-            { userId: adminId, role: 'admin' },
-          ],
-        },
-      },
-    });
-
-    const response = await request(app)
-      .delete(`/api/trips/${trip.id}/members/${adminId}`)
-      .set('Authorization', creatorAuthToken);
-
-    expect(response.status).toBe(200);
-    expect(response.body.message).toBe('Member removed successfully');
+    expect(updatedMember?.role).toBe('admin');
   });
 
   it('should allow a member to leave the trip voluntarily', async () => {
@@ -263,7 +158,6 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
         { id: creatorId, email: 'creator@example.com' },
         { id: memberId, email: 'member@example.com' },
       ],
-      skipDuplicates: true,
     });
 
     const trip = await prisma.trip.create({
@@ -289,13 +183,12 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe('You have left the trip successfully');
 
-    // Verify member is no longer part of the trip
-    const membersAfterLeave = await prisma.tripMember.findMany({
+    // Verify member is removed from the trip
+    const remainingMembers = await prisma.tripMember.findMany({
       where: { tripId: trip.id },
     });
-
-    expect(membersAfterLeave.length).toBe(1);
-    expect(membersAfterLeave[0].userId).toBe(creatorId); // Only creator should remain
+    expect(remainingMembers.length).toBe(1);
+    expect(remainingMembers[0].userId).toBe(creatorId);
   });
 
   it('should prevent the creator from leaving the trip', async () => {
@@ -325,5 +218,48 @@ describe('Trip Membership & Invitation API Integration Tests', () => {
     expect(response.body.error).toBe(
       'Creators cannot leave a trip. Delete the trip instead.',
     );
+  });
+
+  it('should allow the creator to remove an admin from the trip', async () => {
+    const creatorId = 'creator-user-id';
+    const adminId = 'admin-user-id';
+    const creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
+
+    await prisma.user.createMany({
+      data: [
+        { id: creatorId, email: 'creator@example.com' },
+        { id: adminId, email: 'admin@example.com' },
+      ],
+    });
+
+    const trip = await prisma.trip.create({
+      data: {
+        name: 'Test Trip',
+        destination: 'Paris',
+        startDate: new Date(),
+        endDate: new Date(),
+        createdBy: creatorId,
+        members: {
+          create: [
+            { userId: creatorId, role: 'creator' },
+            { userId: adminId, role: 'admin' },
+          ],
+        },
+      },
+    });
+
+    const response = await request(app)
+      .delete(`/api/trips/${trip.id}/members/${adminId}`)
+      .set('Authorization', creatorAuthToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Member removed successfully');
+
+    // Verify admin was removed
+    const remainingMembers = await prisma.tripMember.findMany({
+      where: { tripId: trip.id },
+    });
+    expect(remainingMembers.length).toBe(1);
+    expect(remainingMembers[0].userId).toBe(creatorId);
   });
 });

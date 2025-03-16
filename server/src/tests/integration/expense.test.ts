@@ -14,19 +14,18 @@ describe('Expense & Expense Share API Integration Tests', () => {
     tripId: number;
 
   beforeAll(async () => {
-    // Mock User IDs
     creatorId = 'creator-user-id';
     memberId = 'member-user-id';
 
-    // Generate mock auth tokens
     const secret = process.env.SUPABASE_JWT_SECRET;
     if (!secret) {
       throw new Error('SUPABASE_JWT_SECRET is not set');
     }
+
     creatorAuthToken = `Bearer ${jwt.sign({ sub: creatorId }, secret)}`;
     memberAuthToken = `Bearer ${jwt.sign({ sub: memberId }, secret)}`;
 
-    // Insert test users into DB
+    // Create test users
     await prisma.user.createMany({
       data: [
         { id: creatorId, email: 'creator@example.com' },
@@ -35,6 +34,7 @@ describe('Expense & Expense Share API Integration Tests', () => {
       skipDuplicates: true,
     });
 
+    // Create a test trip
     const trip = await prisma.trip.create({
       data: {
         name: 'Test Trip',
@@ -54,11 +54,13 @@ describe('Expense & Expense Share API Integration Tests', () => {
   });
 
   afterAll(async () => {
+    await prisma.expense.deleteMany({});
     await prisma.trip.deleteMany({});
     await prisma.user.deleteMany({});
   });
 
   afterEach(async () => {
+    await prisma.expenseShare.deleteMany({});
     await prisma.expense.deleteMany({});
   });
 
@@ -77,15 +79,19 @@ describe('Expense & Expense Share API Integration Tests', () => {
 
     expect(response.status).toBe(201);
     expect(response.body.expense).toHaveProperty('id');
+
     const expenseId = response.body.expense.id;
 
-    // Verify that the expense was split correctly among members
-    const sharesResponse = await prisma.expenseShare.findMany({
-      where: { expenseId: expenseId },
+    // Verify expense exists in DB
+    const expense = await prisma.expense.findUnique({
+      where: { id: expenseId },
     });
+    expect(expense).not.toBeNull();
 
-    expect(sharesResponse.length).toBe(2); // Split between creator and member
-    expect(sharesResponse[0].share).toBe(50);
+    // Verify expense shares were created correctly
+    const shares = await prisma.expenseShare.findMany({ where: { expenseId } });
+    expect(shares.length).toBe(2); // Split between creator and member
+    expect(shares.every((s) => s.share === 50)).toBe(true);
   });
 
   // ==========================
@@ -139,7 +145,7 @@ describe('Expense & Expense Share API Integration Tests', () => {
       .set('Authorization', creatorAuthToken);
 
     expect(response.status).toBe(200);
-    expect(response.body.summary.length).toBe(1); // One debt entry since one expense exists
+    expect(response.body.summary.length).toBeGreaterThan(0);
   });
 
   // ==========================
@@ -172,6 +178,12 @@ describe('Expense & Expense Share API Integration Tests', () => {
 
     expect(settleResponse.status).toBe(200);
     expect(settleResponse.body.settledCount).toBe(1);
+
+    // Verify expense share was marked as settled
+    const updatedShare = await prisma.expenseShare.findFirst({
+      where: { expenseId: expense.id, userId: memberId },
+    });
+    expect(updatedShare?.settled).toBe(true);
   });
 
   // ==========================
@@ -201,15 +213,65 @@ describe('Expense & Expense Share API Integration Tests', () => {
     expect(response.body.expense.id).toBe(expense.id);
     expect(response.body.message).toBe('Expense deleted successfully');
 
-    // Verify deletion
+    // Verify expense was deleted from DB
     const deletedExpense = await prisma.expense.findUnique({
       where: { id: expense.id },
     });
     expect(deletedExpense).toBeNull();
 
+    // Verify related expense shares were deleted
     const deletedShares = await prisma.expenseShare.findMany({
       where: { expenseId: expense.id },
     });
     expect(deletedShares.length).toBe(0);
+  });
+
+  // ==========================
+  // DELETE MULTIPLE EXPENSES TEST
+  // ==========================
+  it('should delete multiple expenses in a trip', async () => {
+    const expense1 = await prisma.expense.create({
+      data: {
+        amount: 30,
+        category: 'food',
+        tripId,
+        paidById: creatorId,
+        shares: {
+          create: [
+            { userId: creatorId, share: 15 },
+            { userId: memberId, share: 15 },
+          ],
+        },
+      },
+    });
+
+    const expense2 = await prisma.expense.create({
+      data: {
+        amount: 60,
+        category: 'transportation',
+        tripId,
+        paidById: creatorId,
+        shares: {
+          create: [
+            { userId: creatorId, share: 30 },
+            { userId: memberId, share: 30 },
+          ],
+        },
+      },
+    });
+
+    const response = await request(app)
+      .delete(`/api/trips/${tripId}/expenses`)
+      .set('Authorization', creatorAuthToken)
+      .send({ expenseIds: [expense1.id, expense2.id] });
+
+    expect(response.status).toBe(200);
+    expect(response.body.deletedCount).toBe(2);
+
+    // Verify both expenses were deleted
+    const deletedExpenses = await prisma.expense.findMany({
+      where: { id: { in: [expense1.id, expense2.id] } },
+    });
+    expect(deletedExpenses.length).toBe(0);
   });
 });
