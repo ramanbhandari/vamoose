@@ -59,26 +59,6 @@ describe('Expense & Expense Share API Integration Tests', () => {
     await prisma.$disconnect();
   });
 
-  //   beforeEach(async () => {
-  //     // Create a new trip before each test
-  //     const trip = await prisma.trip.create({
-  //       data: {
-  //         name: 'Test Trip',
-  //         destination: 'Paris',
-  //         startDate: new Date(),
-  //         endDate: new Date(),
-  //         createdBy: creatorId,
-  //         members: {
-  //           create: [
-  //             { userId: creatorId, role: 'creator' },
-  //             { userId: memberId, role: 'member' },
-  //           ],
-  //         },
-  //       },
-  //     });
-  //     tripId = trip.id;
-  //   });
-
   afterEach(async () => {
     await prisma.expense.deleteMany({});
   });
