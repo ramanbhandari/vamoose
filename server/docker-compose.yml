@@ -17,8 +17,6 @@ services:
       context: ./
       dockerfile: Dockerfile
     container_name: server-ci
-    depends_on:
-      - test-db
     environment:
       # this value points to the test-db container using its service name.
       DATABASE_URL: "postgresql://prisma:prisma@integration-tests-prisma:5432/tests"
