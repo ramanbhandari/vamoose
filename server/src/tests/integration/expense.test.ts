@@ -56,7 +56,6 @@ describe('Expense & Expense Share API Integration Tests', () => {
   afterAll(async () => {
     await prisma.trip.deleteMany({});
     await prisma.user.deleteMany({});
-    await prisma.$disconnect();
   });
 
   afterEach(async () => {
