@@ -74,21 +74,12 @@ export default function MapComponent({
   >([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+  const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
     light: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
   };
-
-  const testPOI: POI = {
-    id: "test-marker",
-    name: "Test Location",
-    address: "Times Square, NYC",
-    locationType: LocationType.Hotels, // Using a valid enum value
-    coordinates: [-73.9855, 40.758], // Tuple with exactly two numbers
-  };
-
-  const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
 
   // Initialize the map when the container is ready
   useEffect(() => {
@@ -396,6 +387,15 @@ export default function MapComponent({
     }
   };
 
+  // Mouse event handlers for POI markers
+  const handlePOIMarkerMouseEnter = (poi: POI) => {
+    setHoveredPOI(poi);
+  };
+
+  const handlePOIMarkerMouseLeave = () => {
+    setHoveredPOI(null);
+  };
+
   // Update user location marker position when map moves
   useEffect(() => {
     if (!map || !currentLocation) return;
@@ -488,23 +488,11 @@ export default function MapComponent({
                 size={32}
                 onClick={() => handlePOIMarkerClick(poi)}
                 icon={config.icon}
+                onMouseEnter={() => handlePOIMarkerMouseEnter(poi)}
+                onMouseLeave={handlePOIMarkerMouseLeave}
               />
             );
           })}
-
-        {/* Render the hardcoded Test Marker */}
-        {map && (
-          <Marker
-            key={testPOI.id}
-            map={map}
-            position={testPOI.coordinates}
-            color="blue"
-            size={32}
-            onMouseEnter={() => setHoveredPOI(testPOI)}
-            onMouseLeave={() => setHoveredPOI(null)}
-            icon={<Hotel />} // Or another suitable icon
-          />
-        )}
 
         {/* Conditionally render the MarkerCard on hover */}
         {hoveredPOI && map && (
@@ -512,7 +500,7 @@ export default function MapComponent({
             map={map}
             coordinates={hoveredPOI.coordinates}
             name={hoveredPOI.name}
-            address={hoveredPOI.address} // optional
+            address={hoveredPOI.address}
             locationType={hoveredPOI.locationType}
           />
         )}
