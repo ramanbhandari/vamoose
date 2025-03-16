@@ -194,7 +194,6 @@ const ListView: React.FC<ListViewProps> = ({
         maxWidth: 800,
         mx: "auto",
         p: 3,
-        background: `linear-gradient(45deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.light, 0.05)} 100%)`,
       }}
     >
       <AnimatePresence>
@@ -351,268 +350,265 @@ const ListView: React.FC<ListViewProps> = ({
                           </Typography>
                         )}
 
-                        {evt.notes.length > 0 && (
-                          <Box
+                        <Box
+                          sx={{
+                            backgroundColor: alpha(
+                              theme.palette.background.default,
+                              0.4
+                            ),
+                            borderRadius: 2,
+                            p: 2,
+                            mt: 1,
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
                             sx={{
-                              backgroundColor: alpha(
-                                theme.palette.background.default,
-                                0.4
-                              ),
-                              borderRadius: 2,
-                              p: 2,
-                              mt: 1,
+                              mb: 2,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
                             }}
                           >
-                            <Typography
-                              variant="subtitle2"
-                              sx={{
-                                mb: 2,
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <Note fontSize="small" />
-                              {evt.notes.length} Note
-                              {evt.notes.length > 1 && "s"}
-                            </Typography>
+                            <Note fontSize="small" />
+                            {evt.notes.length} Note
+                            {evt.notes.length > 1 && "s"}
+                          </Typography>
 
-                            {evt.notes.map((note) => (
-                              <Box
-                                key={note.id}
-                                sx={{
-                                  display: "flex",
-                                  gap: 1.5,
-                                  mb: 2,
-                                  p: 1.5,
-                                  background: alpha(
-                                    theme.palette.background.paper,
-                                    0.4
-                                  ),
-                                  borderRadius: 2,
-                                  position: "relative",
-                                }}
-                              >
-                                {editingNote?.id === note.id ? (
-                                  <>
-                                    <TextField
-                                      fullWidth
-                                      variant="outlined"
-                                      size="small"
-                                      value={editingNote.content}
-                                      onChange={(e) =>
-                                        setEditingNote({
-                                          ...editingNote,
-                                          content: e.target.value,
-                                        })
-                                      }
-                                      autoFocus
-                                      sx={{ flexGrow: 1 }}
-                                    />
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => {
-                                        onUpdateNote(evt.id, note.id, {
-                                          content: editingNote.content,
-                                        });
-                                        setEditingNote(null);
-                                      }}
-                                      color="primary"
-                                    >
-                                      <Check fontSize="small" />
-                                    </IconButton>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Avatar
-                                      sx={{
-                                        width: 32,
-                                        height: 32,
-                                        bgcolor: theme.palette.primary.main,
-                                      }}
-                                    >
-                                      {note.user.fullName[0]}
-                                    </Avatar>
-                                    <Box sx={{ flexGrow: 1 }}>
-                                      <Box
-                                        sx={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          mb: 0.5,
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="caption"
-                                          sx={{ fontWeight: 500 }}
-                                        >
-                                          {note.user.fullName}
-                                        </Typography>
-                                        <Typography
-                                          variant="caption"
-                                          sx={{ color: "text.secondary" }}
-                                        >
-                                          {new Date(
-                                            note.createdAt
-                                          ).toLocaleDateString()}
-                                        </Typography>
-                                      </Box>
-                                      <Typography variant="body2">
-                                        {note.content}
-                                      </Typography>
-                                    </Box>
-                                    <Box
-                                      sx={{
-                                        display: isMobile ? "flex" : undefined,
-                                      }}
-                                    >
-                                      <IconButton
-                                        size="small"
-                                        onClick={() =>
-                                          setEditingNote({
-                                            id: note.id,
-                                            content: note.content,
-                                          })
-                                        }
-                                        sx={{ color: "text.secondary" }}
-                                      >
-                                        <Edit fontSize="small" />
-                                      </IconButton>
-                                      <IconButton
-                                        size="small"
-                                        onClick={() =>
-                                          onDeleteNote(evt.id, note.id)
-                                        }
-                                        sx={{ color: "error.main" }}
-                                      >
-                                        <DeleteOutline fontSize="small" />
-                                      </IconButton>
-                                    </Box>
-                                  </>
-                                )}
-                              </Box>
-                            ))}
-
+                          {evt.notes.map((note) => (
                             <Box
+                              key={note.id}
                               sx={{
-                                mt: 2,
                                 display: "flex",
-                                flexDirection: "column",
-                                gap: 1,
+                                gap: 1.5,
+                                mb: 2,
+                                p: 1.5,
+                                background: alpha(
+                                  theme.palette.background.paper,
+                                  0.4
+                                ),
+                                borderRadius: 2,
+                                position: "relative",
                               }}
                             >
-                              {showAddNote ? (
-                                <Box sx={{ display: "flex", gap: 1 }}>
+                              {editingNote?.id === note.id ? (
+                                <>
                                   <TextField
                                     fullWidth
                                     variant="outlined"
                                     size="small"
-                                    placeholder="Enter your note..."
-                                    value={newNoteContent}
+                                    value={editingNote.content}
                                     onChange={(e) =>
-                                      setNewNoteContent(e.target.value)
+                                      setEditingNote({
+                                        ...editingNote,
+                                        content: e.target.value,
+                                      })
                                     }
                                     autoFocus
+                                    sx={{ flexGrow: 1 }}
                                   />
                                   <IconButton
                                     size="small"
                                     onClick={() => {
-                                      if (newNoteContent.trim()) {
-                                        onAddNote(evt.id, {
-                                          content: newNoteContent,
-                                        });
-                                        setNewNoteContent("");
-                                        setShowAddNote(false);
-                                      }
+                                      onUpdateNote(evt.id, note.id, {
+                                        content: editingNote.content,
+                                      });
+                                      setEditingNote(null);
                                     }}
                                     color="primary"
                                   >
                                     <Check fontSize="small" />
                                   </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => setShowAddNote(false)}
-                                    color="inherit"
-                                  >
-                                    <Close fontSize="small" />
-                                  </IconButton>
-                                </Box>
+                                </>
                               ) : (
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  startIcon={<Add />}
-                                  onClick={() => setShowAddNote(true)}
-                                  sx={{
-                                    alignSelf: "flex-start",
-                                    color: "text.secondary",
-                                    borderColor: "divider",
-                                    "&:hover": {
-                                      borderColor: "primary.main",
-                                      color: "primary.main",
-                                    },
-                                  }}
-                                >
-                                  Add Note
-                                </Button>
+                                <>
+                                  <Avatar
+                                    sx={{
+                                      width: 32,
+                                      height: 32,
+                                      bgcolor: theme.palette.primary.main,
+                                    }}
+                                  >
+                                    {note.user.fullName[0]}
+                                  </Avatar>
+                                  <Box sx={{ flexGrow: 1 }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        mb: 0.5,
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        sx={{ fontWeight: 500 }}
+                                      >
+                                        {note.user.fullName}
+                                      </Typography>
+                                      <Typography
+                                        variant="caption"
+                                        sx={{ color: "text.secondary" }}
+                                      >
+                                        {new Date(
+                                          note.createdAt
+                                        ).toLocaleDateString()}
+                                      </Typography>
+                                    </Box>
+                                    <Typography variant="body2">
+                                      {note.content}
+                                    </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{
+                                      display: isMobile ? "flex" : undefined,
+                                    }}
+                                  >
+                                    <IconButton
+                                      size="small"
+                                      onClick={() =>
+                                        setEditingNote({
+                                          id: note.id,
+                                          content: note.content,
+                                        })
+                                      }
+                                      sx={{ color: "text.secondary" }}
+                                    >
+                                      <Edit fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() =>
+                                        onDeleteNote(evt.id, note.id)
+                                      }
+                                      sx={{ color: "error.main" }}
+                                    >
+                                      <DeleteOutline fontSize="small" />
+                                    </IconButton>
+                                  </Box>
+                                </>
                               )}
                             </Box>
-                          </Box>
-                        )}
+                          ))}
 
-                        {evt.assignedUsers.length > 0 && (
                           <Box
                             sx={{
                               mt: 2,
                               display: "flex",
-                              alignItems: "center",
+                              flexDirection: "column",
                               gap: 1,
-                              position: "relative",
                             }}
                           >
-                            <AvatarGroup
-                              max={4}
-                              sx={{
-                                "& .MuiAvatar-root": {
-                                  width: 28,
-                                  height: 28,
-                                  fontSize: "0.75rem",
-                                },
-                              }}
-                            >
-                              {evt.assignedUsers.map((user) => (
-                                <Avatar
-                                  key={user.user.id}
-                                  alt={user.user.fullName}
-                                  sx={{ bgcolor: theme.palette.primary.main }}
+                            {showAddNote ? (
+                              <Box sx={{ display: "flex", gap: 1 }}>
+                                <TextField
+                                  fullWidth
+                                  variant="outlined"
+                                  size="small"
+                                  placeholder="Enter your note..."
+                                  value={newNoteContent}
+                                  onChange={(e) =>
+                                    setNewNoteContent(e.target.value)
+                                  }
+                                  autoFocus
+                                />
+                                <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                    if (newNoteContent.trim()) {
+                                      onAddNote(evt.id, {
+                                        content: newNoteContent,
+                                      });
+                                      setNewNoteContent("");
+                                      setShowAddNote(false);
+                                    }
+                                  }}
+                                  color="primary"
                                 >
-                                  {user.user.fullName[0]}
-                                </Avatar>
-                              ))}
-                            </AvatarGroup>
-                            <Typography variant="caption" color="textSecondary">
-                              {evt.assignedUsers.length} participant
-                              {evt.assignedUsers.length > 1 && "s"}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setEditingMembersEventId(evt.id);
-                                setSelectedMemberIds(
-                                  evt.assignedUsers.map((u) => u.user.id)
-                                );
-                              }}
-                              className="edit-members-button"
-                              sx={{
-                                opacity: 1,
-                                transition: "opacity 0.2s",
-                                color: "text.secondary",
-                                ml: "auto",
-                              }}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
+                                  <Check fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setShowAddNote(false)}
+                                  color="inherit"
+                                >
+                                  <Close fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            ) : (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<Add />}
+                                onClick={() => setShowAddNote(true)}
+                                sx={{
+                                  alignSelf: "flex-start",
+                                  color: "text.secondary",
+                                  borderColor: "divider",
+                                  "&:hover": {
+                                    borderColor: "primary.main",
+                                    color: "primary.main",
+                                  },
+                                }}
+                              >
+                                Add Note
+                              </Button>
+                            )}
                           </Box>
-                        )}
+                        </Box>
+
+                        <Box
+                          sx={{
+                            mt: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            position: "relative",
+                          }}
+                        >
+                          <AvatarGroup
+                            max={4}
+                            sx={{
+                              "& .MuiAvatar-root": {
+                                width: 28,
+                                height: 28,
+                                fontSize: "0.75rem",
+                              },
+                            }}
+                          >
+                            {evt.assignedUsers.map((user) => (
+                              <Avatar
+                                key={user.user.id}
+                                alt={user.user.fullName}
+                                sx={{ bgcolor: theme.palette.primary.main }}
+                              >
+                                {user.user.fullName[0]}
+                              </Avatar>
+                            ))}
+                          </AvatarGroup>
+                          <Typography variant="caption" color="textSecondary">
+                            {evt.assignedUsers.length} participant
+                            {evt.assignedUsers.length > 1 ||
+                              (evt.assignedUsers.length == 0 && "s")}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setEditingMembersEventId(evt.id);
+                              setSelectedMemberIds(
+                                evt.assignedUsers.map((u) => u.user.id)
+                              );
+                            }}
+                            className="edit-members-button"
+                            sx={{
+                              opacity: 1,
+                              transition: "opacity 0.2s",
+                              color: "text.secondary",
+                              ml: "auto",
+                            }}
+                          >
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        </Box>
                       </Box>
                     </Collapse>
                   </StyledEventCard>
