@@ -113,7 +113,7 @@ export async function fetchPOIsByType(
   locationType: LocationType,
   center: [number, number],
   radiusKm: number = SEARCH_RADIUS_KM,
-  limit: number = 10
+  limit: number = 3
 ): Promise<POI[]> {
   // Access the token from the environment variable
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
