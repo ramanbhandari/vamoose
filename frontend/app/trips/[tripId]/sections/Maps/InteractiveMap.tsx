@@ -12,10 +12,8 @@ import {
   Fade,
   SvgIconProps,
   Link,
-  Slider,
 } from "@mui/material";
 import {
-  MyLocation,
   Restaurant,
   LocalCafe,
   Hotel,
@@ -37,6 +35,7 @@ import {
   SearchResult,
 } from "./services/mapbox";
 import MarkerCard from "./MarkerCard";
+import { GeolocationButton, RadiusSlider } from "./controls";
 
 // Map location types to icons and colors
 const locationConfig: Record<
@@ -688,89 +687,16 @@ export default function MapComponent({
         </Box>
 
         {/* Radius Slider */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: theme.spacing(12),
-            left: theme.spacing(3.75),
-            zIndex: 100,
-            height: "150px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <Slider
-            value={searchRadius}
-            min={1}
-            max={15}
-            step={1}
-            orientation="vertical"
-            onChange={handleRadiusChange}
-            valueLabelDisplay="off"
-            aria-labelledby="search-radius-slider"
-            sx={{
-              height: "100%",
-              "& .MuiSlider-thumb": {
-                width: 16,
-                height: 16,
-              },
-              "& .MuiSlider-track": {
-                width: 4,
-              },
-              "& .MuiSlider-rail": {
-                width: 4,
-              },
-            }}
-          />
-          <Typography
-            variant="caption"
-            color="white"
-            sx={{
-              mt: 1,
-              textShadow: "0px 0px 4px rgba(0,0,0,0.7)",
-              fontWeight: "bold",
-            }}
-          >
-            {searchRadius}km
-          </Typography>
-        </Box>
+        <RadiusSlider
+          searchRadius={searchRadius}
+          onRadiusChange={handleRadiusChange}
+        />
 
         {/* Geolocation Button */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: theme.spacing(2),
-            left: theme.spacing(2),
-            p: 1,
-            display: "flex",
-            gap: 1,
-            zIndex: 1,
-            transition: "all 0.3s ease-in-out",
-          }}
-        >
-          <IconButton
-            onClick={handleGeolocate}
-            color="primary"
-            aria-label="Locate me"
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              transition: "all 0.2s ease-in-out",
-              "&:hover": {
-                backgroundColor: theme.palette.primary.main,
-              },
-            }}
-          >
-            {isLocating ? (
-              <CircularProgress size={24} />
-            ) : (
-              <MyLocation
-                fontSize="large"
-                sx={{ color: theme.palette.text.primary }}
-              />
-            )}
-          </IconButton>
-        </Box>
+        <GeolocationButton
+          isLocating={isLocating}
+          onGeolocate={handleGeolocate}
+        />
 
         {/* Loading indicator for POIs */}
         {isLoadingPOIs && (
