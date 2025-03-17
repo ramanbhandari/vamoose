@@ -20,12 +20,10 @@ export default function Itinerary({
   tripId,
   tripName,
   imageUrl,
-  itineraryEvents,
 }: ItineraryProps) {
   const theme = useTheme();
   const { tripData } = useTripStore();
   const { loading, error, fetchItineraryEvents } = useItineraryStore();
-  console.log(itineraryEvents);
 
   const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -272,9 +270,6 @@ export default function Itinerary({
           onDeleteNote={handleDeleteItineraryEventNote}
           onAssignMembers={handleAssignMembers}
           onUnAssignMembers={handleDeleteAssignedMembers}
-          onEventSelect={(event) => {
-            console.log(event);
-          }}
         />
       </Container>
 

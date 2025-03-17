@@ -87,7 +87,6 @@ export default function CreateEventDialog({
     !event ? false : true
   );
   const contentRef = useRef<HTMLDivElement>(null);
-  console.log(event?.startTime);
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [location, setLocation] = useState(event?.location || "");
@@ -106,8 +105,6 @@ export default function CreateEventDialog({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
     event?.assignedUsers?.map((u) => u.user.id) || []
   );
-
-  console.log(event?.category);
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
@@ -334,9 +331,6 @@ export default function CreateEventDialog({
               <LocationAutocomplete
                 value={location}
                 onChange={(val) => setLocation(val)}
-                onSelect={(selectedOption) => {
-                  console.log("Selected location:", selectedOption);
-                }}
               />
             </Box>
 

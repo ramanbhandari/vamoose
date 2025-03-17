@@ -19,13 +19,11 @@ interface LocationOption {
 }
 
 interface LocationAutocompleteProps {
-  onSelect: (option: LocationOption) => void;
   value: string;
   onChange: (value: string) => void;
 }
 
 export default function LocationAutocomplete({
-  onSelect,
   value,
   onChange,
 }: LocationAutocompleteProps) {
@@ -89,7 +87,6 @@ export default function LocationAutocomplete({
       }}
       onChange={(event, newValue) => {
         if (newValue && typeof newValue !== "string") {
-          onSelect(newValue);
           onChange(
             `${newValue.properties.name}${
               newValue.properties.city ? `, ${newValue.properties.city}` : ""
