@@ -126,7 +126,17 @@ export default function MapComponent({
         // Combine all POIs from different categories
         const allPois = results.flat();
 
-        setPois(allPois);
+        // Filter POIs to ensure they're within the circle using turf
+        const filteredPois = allPois.filter((poi) => {
+          const distance = turf.distance(
+            turf.point(currentLocation),
+            turf.point(poi.coordinates),
+            { units: "kilometers" }
+          );
+          return distance <= searchRadius;
+        });
+
+        setPois(filteredPois);
       } catch (error) {
         console.error("Error fetching POIs:", error);
         setNotification("Failed to load points of interest", "error");
