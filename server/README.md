@@ -184,9 +184,11 @@ Integration tests run against a PostgreSQL test database that is launched in Doc
 
 ## 📡 API Endpoints
 
+For a detailed breakdown of all API endpoints, refer to the [API Documentation](../Documentation/api_documentation.md).
+
 Below is a summary of the key endpoints provided by the backend:
 
-### Trips & General Operations
+### Trips
 
 | Endpoint             | Method | Description           |
 | -------------------- | ------ | --------------------- |
