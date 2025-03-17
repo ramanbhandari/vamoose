@@ -98,7 +98,6 @@ export default function MapComponent({
       logoPosition: "bottom-left",
     });
 
-    initialMap.addControl(new maplibre.NavigationControl(), "top-right");
     setMap(initialMap);
 
     return () => initialMap.remove();
@@ -165,7 +164,6 @@ export default function MapComponent({
 
       setCurrentLocation([longitude, latitude]);
 
-      // Calculate zoom level based on current radius
       const zoomLevel = calculateZoomForRadius(searchRadius);
 
       map.flyTo({
@@ -441,25 +439,17 @@ export default function MapComponent({
         );
       }
 
-      // Adjust zoom level based on radius
-      // Smaller radius = higher zoom level (more zoomed in)
-      // Larger radius = lower zoom level (more zoomed out)
       const zoomLevel = calculateZoomForRadius(newRadius);
 
       map.flyTo({
         center: currentLocation,
         zoom: zoomLevel,
-        duration: 500, // shorter animation for better UX when sliding
+        duration: 500,
       });
     }
   };
 
-  // Calculate appropriate zoom level based on radius
   const calculateZoomForRadius = (radiusKm: number): number => {
-    // These values can be adjusted based on preference
-    // The formula creates a logarithmic relationship between radius and zoom
-    // Max zoom (closest) = 16 when radius = 1km
-    // Min zoom (furthest) = 10 when radius = 10km
     return 16 - Math.log2(radiusKm) * 2;
   };
 
