@@ -19,8 +19,8 @@ import {
 import {
   assignUsersToItineraryEventHandler,
   unassignUserFromItineraryEventHandler,
-} from '@/controllers/itineraryEventAssignment.controller';
-import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators';
+} from '@/controllers/itineraryEventAssignment.controller.js';
+import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators.js';
 import eventNoteRouter from '@/routes/itineraryEventNote.routes.js';
 
 const router = express.Router({ mergeParams: true });
