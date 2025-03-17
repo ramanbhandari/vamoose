@@ -98,7 +98,7 @@ export default function MapComponent({
     setMap(initialMap);
 
     return () => initialMap.remove();
-  }, [initialCenter, initialZoom, isDarkMode, mapContainer, mapStyles.dark, mapStyles.light]);
+  }, [mapContainer]); //ignore other dependencies, cause it re-renders the map infinitely
 
   // Update map style when theme changes
   useEffect(() => {
