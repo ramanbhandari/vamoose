@@ -6,7 +6,9 @@ export default {
   moduleNameMapper: {
     '^@/(.*)\\.js$': '<rootDir>/src/$1.ts',
   },
+  testMatch: ['<rootDir>/src/tests/integration/**/*.test.ts'],
   globals: {
-    __INTEGRATION__: process.env.TEST_TYPE === 'integration',
+    __INTEGRATION__: true,
   },
+  setupFilesAfterEnv: ['<rootDir>/src/tests/integration/setupTestDB.ts'],
 };

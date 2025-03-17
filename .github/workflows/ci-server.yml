@@ -16,16 +16,35 @@ jobs:
 
       - name: Build Server Docker Image
         run: |
-          docker build --no-cache -t server-ci ./server
+          docker build --no-cache -t server-ci -f server/Dockerfile ./server
 
       - name: Run ESLint in Docker
-        run: |
-          docker run --rm server-ci npm run lint
+        run: docker run --rm server-ci npm run lint
 
-      - name: Run Tests in Docker
+      - name: Run Unit Tests in Docker
+        run: docker run --rm server-ci npm run test:unit
+
+      - name: Create Docker network for CI
+        run: docker network create ci-network
+
+      - name: Run Test Database Container
         run: |
-          docker run --rm server-ci npm test
+          docker build -t test-db -f server/Dockerfile.testdb ./server
+          docker run -d --name integration-tests-prisma --network ci-network -p 5433:5432 test-db
+
+      - name: Run Integration Tests in Docker
+        run: | 
+          docker run --rm --network ci-network \
+          -e DATABASE_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          -e DIRECT_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          -e SUPABASE_JWT_SECRET="Super-secret-key" \
+          server-ci npm run test:integration
+
+      - name: Cleanup Test Database Container
+        run: docker rm -f integration-tests-prisma
+
+      - name: Remove Docker network
+        run: docker network rm ci-network
 
       - name: Verify Build in Docker
-        run: |
-          docker run --rm server-ci npm run build
+        run: docker run --rm server-ci npm run build
