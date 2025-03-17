@@ -68,6 +68,9 @@ interface CreateEventDialogProps {
   tripEnd: string;
 }
 
+const MIN_START_BUFFER_MINUTES = 5; // If today, start time must be at least now + 5 minutes
+const MIN_DURATION_MINUTES = 30; // End must be at least 30 minutes after start
+
 export default function CreateEventDialog({
   open,
   onClose,
@@ -158,6 +161,19 @@ export default function CreateEventDialog({
       setNotification("End time must be after start time", "error");
       return false;
     }
+
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    if (
+      endDate.getTime() - startDate.getTime() <
+      MIN_DURATION_MINUTES * 60000
+    ) {
+      setNotification(
+        `End time must be at least ${MIN_DURATION_MINUTES} minutes after start time`,
+        "error"
+      );
+      return false;
+    }
     if (!category.trim()) {
       setNotification("Please select a category", "error");
       return false;
@@ -222,6 +238,28 @@ export default function CreateEventDialog({
 
   const handleStartTimeChange = (newValue: Date | null) => {
     if (newValue) {
+      const now = new Date();
+      // If the selected date is today, enforce a minimum start time (now + buffer)
+      if (
+        formatDateTimeForAPI(newValue).slice(0, 10) ===
+        formatDateTimeForAPI(now).slice(0, 10)
+      ) {
+        const minStart = new Date(
+          now.getTime() + MIN_START_BUFFER_MINUTES * 60000
+        );
+        if (newValue < minStart) {
+          newValue = minStart;
+          setNotification(
+            `Start time adjusted to ${newValue.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })} (at least ${MIN_START_BUFFER_MINUTES} minutes from now)`,
+            "info"
+          );
+        }
+      }
+      // Clear the end time since start has changed
+      setEndTime("");
       const formatted = formatDateTimeForAPI(newValue);
       setStartTime(formatted);
     }
@@ -229,6 +267,25 @@ export default function CreateEventDialog({
 
   const handleEndTimeChange = (newValue: Date | null) => {
     if (newValue) {
+      if (!startTime) {
+        setNotification("Please select a start time first", "error");
+        return;
+      }
+      const startDate = new Date(startTime);
+      const minEnd = new Date(
+        startDate.getTime() + MIN_DURATION_MINUTES * 60000
+      );
+      if (newValue < minEnd) {
+        newValue = minEnd;
+        setNotification(
+          `End time adjusted to ${newValue.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} (at least ${MIN_DURATION_MINUTES} minutes after start)`,
+          "info"
+        );
+      }
+
       const formatted = formatDateTimeForAPI(newValue);
       setEndTime(formatted);
     }
