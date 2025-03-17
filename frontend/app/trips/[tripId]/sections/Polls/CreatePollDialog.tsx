@@ -55,6 +55,8 @@ export default function CreatePollDialog({
   const [expiresAtDate, setExpiresAtDate] = useState("");
   const [error, setError] = useState("");
 
+  const MIN_BUFFER_MINUTES = 10;
+
   const validateForm = () => {
     if (!question.trim()) {
       setNotification("Please enter a question", "error");
@@ -82,6 +84,19 @@ export default function CreatePollDialog({
       setError("Please enter a deadline");
       return false;
     }
+
+    const expiry = new Date(expiresAtDate);
+    const now = new Date();
+    if (expiry.getTime() - now.getTime() < MIN_BUFFER_MINUTES * 60 * 1000) {
+      setNotification(
+        `Expiry time must be at least ${MIN_BUFFER_MINUTES} minutes from now`,
+        "error"
+      );
+      setError(
+        `Expiry time must be at least ${MIN_BUFFER_MINUTES} minutes from now`
+      );
+      return false;
+    }
     setError("");
     return true;
   };
@@ -106,8 +121,43 @@ export default function CreatePollDialog({
     onClose();
   };
 
+  const roundUpToNearestFive = (date: Date): Date => {
+    const ms = date.getTime();
+    const minutes = date.getMinutes();
+    const remainder = minutes % 5;
+    const diff = remainder === 0 ? 0 : 5 - remainder;
+    return new Date(ms + diff * 60000);
+  };
+
   const handleExpiresAtDate = (newValue: Date | null) => {
     if (newValue) {
+      const now = new Date();
+      const minExpiry = new Date(
+        now.getTime() + MIN_BUFFER_MINUTES * 60 * 1000
+      );
+      // If the selected date is today and chosen time is before the minimum expiry,
+      // round up the minimum expiry to the next multiple of 5 minutes
+      if (
+        formatDateTimeForAPI(newValue).slice(0, 10) ===
+          formatDateTimeForAPI(now).slice(0, 10) &&
+        newValue < minExpiry
+      ) {
+        newValue = roundUpToNearestFive(minExpiry);
+        setNotification(
+          `Expiry time adjusted to ${newValue.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} to ensure at least ${MIN_BUFFER_MINUTES} minutes from now`,
+          "info"
+        );
+      }
+      // If the user selects a date that defaults to 00:00 today, force them to pick a time
+      if (
+        formatDateTimeForAPI(newValue).slice(11, 16) === "00:00" &&
+        formatDateTimeForAPI(newValue).slice(0, 10) ===
+          formatDateTimeForAPI(now).slice(0, 10)
+      ) {
+        setNotification("Please select a valid time for expiry", "error");
+        return;
+      }
+
       const formattedDate = formatDateTimeForAPI(newValue);
 
       setExpiresAtDate(formattedDate);
@@ -115,7 +165,7 @@ export default function CreatePollDialog({
   };
 
   return (
-    <FloatingDialog open={open} onClose={onClose}>
+    <FloatingDialog open={open} onClose={handleClose}>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DialogTitle
           sx={{
@@ -135,7 +185,7 @@ export default function CreatePollDialog({
             <Typography variant="h6" fontWeight={600}>
               New Poll
             </Typography>
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={handleClose} size="small">
               <Close />
             </IconButton>
           </Box>
