@@ -7,6 +7,7 @@ export interface POI {
   id: string;
   name: string;
   address?: string;
+  website?: string;
   locationType: LocationType;
   coordinates: [number, number]; // [longitude, latitude]
   properties?: Record<string, unknown>;
@@ -183,14 +184,33 @@ function transformMapboxResponseToPOIs(
 
   return response.features.map((feature: MapboxFeature) => {
     const coordinates = feature.geometry?.coordinates || [0, 0];
+    const properties = feature.properties || {};
+    const name = properties.name || "Unknown Location";
+
+    // Extract website from metadata.website
+    let website = "";
+
+    // Check if metadata exists and has a website property
+    if (properties.metadata && typeof properties.metadata === "object") {
+      const metadata = properties.metadata as Record<string, unknown>;
+      if (metadata.website && typeof metadata.website === "string") {
+        website = metadata.website;
+      }
+    }
+    
+    // Ensure website has proper protocol
+    if (website && !website.startsWith("http")) {
+      website = "https://" + website;
+    }
 
     return {
       id: feature.id || `poi-${Math.random().toString(36).substring(2, 9)}`,
-      name: feature.properties?.name || "Unknown Location",
-      address: feature.properties?.address || "",
+      name,
+      address: properties.address || "",
+      website,
       locationType: locationType,
       coordinates: coordinates as [number, number],
-      properties: feature.properties || {},
+      properties,
     };
   });
 }

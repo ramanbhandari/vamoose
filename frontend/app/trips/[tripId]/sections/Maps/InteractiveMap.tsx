@@ -11,6 +11,7 @@ import {
   Paper,
   Fade,
   SvgIconProps,
+  Link,
 } from "@mui/material";
 import {
   MyLocation,
@@ -22,6 +23,7 @@ import {
   Help,
   Clear,
   Place,
+  Language,
 } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 import MapSearchFilter from "./MapSearchFilter";
@@ -370,12 +372,10 @@ export default function MapComponent({
   };
 
   const handleUserMarkerClick = () => {
-    console.log("User location marker clicked");
     setSelectedPOI(null);
   };
 
   const handlePOIMarkerClick = (poi: POI) => {
-    console.log("POI marker clicked:", poi);
     setSelectedPOI(poi);
 
     // Center the map on the POI
@@ -497,6 +497,7 @@ export default function MapComponent({
         {/* Conditionally render the MarkerCard on hover */}
         {hoveredPOI && map && (
           <MarkerCard
+            key={hoveredPOI.id}
             map={map}
             coordinates={hoveredPOI.coordinates}
             name={hoveredPOI.name}
@@ -542,10 +543,68 @@ export default function MapComponent({
                 </Box>
 
                 {selectedPOI.address && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                  >
                     {selectedPOI.address}
                   </Typography>
                 )}
+
+                {/* Website links section */}
+                <Box
+                  sx={{
+                    mt: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0.5,
+                  }}
+                >
+                  {/* Direct website link */}
+                  {selectedPOI.website && (
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Language
+                        fontSize="small"
+                        sx={{ mr: 0.5, color: theme.palette.primary.main }}
+                      />
+                      <Link
+                        href={selectedPOI.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="body2"
+                        sx={{
+                          textDecoration: "none",
+                          "&:hover": { textDecoration: "underline" },
+                          color: theme.palette.primary.main,
+                          fontWeight: "medium",
+                        }}
+                      >
+                        Visit website
+                      </Link>
+                    </Box>
+                  )}
+
+                  {/* Google search link */}
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Language
+                      fontSize="small"
+                      sx={{ mr: 0.5, color: "text.secondary" }}
+                    />
+                    <Link
+                      href={`https://www.google.com/search?q=${encodeURIComponent(selectedPOI.name + " " + (selectedPOI.address || ""))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="body2"
+                      sx={{
+                        textDecoration: "none",
+                        "&:hover": { textDecoration: "underline" },
+                      }}
+                    >
+                      Search on Google
+                    </Link>
+                  </Box>
+                </Box>
 
                 <Box
                   sx={{ mt: 1, display: "flex", justifyContent: "flex-end" }}

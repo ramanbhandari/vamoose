@@ -64,6 +64,7 @@ export default function Marker({
     if (onMouseEnter) {
       el.addEventListener("mouseenter", onMouseEnter);
     }
+
     if (onMouseLeave) {
       el.addEventListener("mouseleave", onMouseLeave);
     }

@@ -28,9 +28,17 @@ export default function MarkerCard({
       const point = map.project(coordinates);
       setPosition({ x: point.x, y: point.y });
     };
+
+    // Initial position calculation
+    updatePosition();
+
+    // Update position on map move and zoom
     map.on("move", updatePosition);
+    map.on("zoom", updatePosition);
+
     return () => {
       map.off("move", updatePosition);
+      map.off("zoom", updatePosition);
     };
   }, [map, coordinates]);
 
@@ -42,23 +50,28 @@ export default function MarkerCard({
         top: position.y,
         transform: "translate(-50%, -120%)",
         zIndex: 1000,
-        pointerEvents: "auto",
+        pointerEvents: "none",
+        width: "200px",
       }}
     >
       <Paper
         elevation={3}
         sx={{
-          p: 2,
+          p: 1.5,
           backgroundColor: "background.paper",
           color: "text.primary",
           borderLeft: `4px solid ${color}`,
+          maxWidth: "100%",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          textOverflow: "ellipsis",
         }}
       >
-        <Typography variant="subtitle2" fontWeight="bold">
+        <Typography variant="subtitle2" fontWeight="bold" noWrap>
           {name}
         </Typography>
         {address && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" noWrap>
             {address}
           </Typography>
         )}
