@@ -29,7 +29,7 @@ export default function Marker({
   useEffect(() => {
     if (!map) return;
 
-    // Create a custom element for the marker
+    //custom element for the marker
     const el = document.createElement("div");
     el.className = "custom-marker";
     el.style.width = `${size}px`;
@@ -43,7 +43,7 @@ export default function Marker({
     el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
     el.style.cursor = "pointer";
 
-    // Create a container for the icon
+    // container for the icon
     const iconContainer = document.createElement("div");
     iconContainer.style.width = `${size * 0.6}px`;
     iconContainer.style.height = `${size * 0.6}px`;
@@ -89,7 +89,7 @@ export default function Marker({
     };
   }, [map, color, size, onClick, onMouseEnter, onMouseLeave, position, icon]);
 
-  // Update marker position if it changes
+  // Update marker position on change
   useEffect(() => {
     if (marker) {
       marker.setLngLat(position);

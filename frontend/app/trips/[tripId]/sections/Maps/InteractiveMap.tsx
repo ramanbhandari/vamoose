@@ -98,7 +98,7 @@ export default function MapComponent({
     setMap(initialMap);
 
     return () => initialMap.remove();
-  }, [mapContainer]);
+  }, [initialCenter, initialZoom, isDarkMode, mapContainer, mapStyles.dark, mapStyles.light]);
 
   // Update map style when theme changes
   useEffect(() => {
@@ -142,7 +142,7 @@ export default function MapComponent({
     fetchPOIs();
   }, [currentLocation, selectedLocationTypes, setNotification]);
 
-  // Update user location: center map, add marker and circle, and save location
+  // Update user location{ center map, add marker and circle, and save location}
   const updateUserLocation = useCallback(
     (longitude: number, latitude: number) => {
       if (!map) {
