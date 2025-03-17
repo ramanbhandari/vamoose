@@ -1,0 +1,8 @@
+# test-db
+FROM postgres:13
+
+ENV POSTGRES_USER=prisma
+ENV POSTGRES_PASSWORD=prisma
+ENV POSTGRES_DB=tests
+
+EXPOSE 5432
