@@ -32,6 +32,8 @@ import Expenses from "./sections/Expenses";
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
 import { usePollStore } from "@/stores/polls-store";
+import { useItineraryStore } from "@/stores/itinerary-store";
+
 import { LocationOn } from "@mui/icons-material";
 import Maps from "./sections/Maps";
 
@@ -82,6 +84,8 @@ export default function TripSummaryPage() {
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
   const { activePolls, completedPolls, fetchPolls } = usePollStore();
+  const { itineraryEvents, fetchItineraryEvents } = useItineraryStore();
+
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleSectionChange = (sectionId: string) => {
@@ -93,6 +97,8 @@ export default function TripSummaryPage() {
       fetchTripData(tripId);
       // silently also pull Polls
       fetchPolls(tripId);
+      // silently also pull Itinerary Events
+      fetchItineraryEvents(tripId);
     }
 
     // update section from hash
@@ -269,6 +275,7 @@ export default function TripSummaryPage() {
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
+            itineraryEvents={itineraryEvents}
           />
         )}
         {activeSection === "packing" && tripData && (
