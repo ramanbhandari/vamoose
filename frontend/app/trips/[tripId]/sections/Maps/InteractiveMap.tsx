@@ -12,6 +12,7 @@ import {
   Fade,
   SvgIconProps,
   Link,
+  Slider,
 } from "@mui/material";
 import {
   MyLocation,
@@ -77,6 +78,7 @@ export default function MapComponent({
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
   const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
+  const [searchRadius, setSearchRadius] = useState<number>(SEARCH_RADIUS_KM);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -124,7 +126,7 @@ export default function MapComponent({
 
         // Fetch POIs for each selected location type
         const poiPromises = selectedLocationTypes.map((locationType) =>
-          fetchPOIsByType(locationType, currentLocation, SEARCH_RADIUS_KM)
+          fetchPOIsByType(locationType, currentLocation, searchRadius)
         );
 
         const results = await Promise.all(poiPromises);
@@ -142,7 +144,7 @@ export default function MapComponent({
     };
 
     fetchPOIs();
-  }, [currentLocation, selectedLocationTypes, setNotification]);
+  }, [currentLocation, selectedLocationTypes, searchRadius, setNotification]);
 
   // Update user location{ center map, add marker and circle, and save location}
   const updateUserLocation = useCallback(
@@ -162,19 +164,19 @@ export default function MapComponent({
       }
 
       setCurrentLocation([longitude, latitude]);
+
+      // Calculate zoom level based on current radius
+      const zoomLevel = calculateZoomForRadius(searchRadius);
+
       map.flyTo({
         center: [longitude, latitude],
-        zoom: 14,
+        zoom: zoomLevel,
       });
 
-      const circleGeoJSON = turf.circle(
-        [longitude, latitude],
-        SEARCH_RADIUS_KM,
-        {
-          steps: 64,
-          units: "kilometers",
-        }
-      );
+      const circleGeoJSON = turf.circle([longitude, latitude], searchRadius, {
+        steps: 64,
+        units: "kilometers",
+      });
 
       // Add or update the circle layer
       if (!map.getSource("user-radius")) {
@@ -200,7 +202,7 @@ export default function MapComponent({
 
       setIsLocating(false);
     },
-    [map]
+    [map, searchRadius]
   );
 
   // Auto-locate on mount—only after the map has loaded
@@ -239,7 +241,7 @@ export default function MapComponent({
     if (!map || !currentLocation) return;
 
     const readdCircleLayer = () => {
-      const circleGeoJSON = turf.circle(currentLocation, SEARCH_RADIUS_KM, {
+      const circleGeoJSON = turf.circle(currentLocation, searchRadius, {
         steps: 64,
         units: "kilometers",
       });
@@ -267,7 +269,7 @@ export default function MapComponent({
     };
 
     map.once("styledata", readdCircleLayer);
-  }, [map, currentLocation, isDarkMode]);
+  }, [map, currentLocation, searchRadius, isDarkMode]);
 
   // When the tab becomes visible again, re-center the map using the saved location
   useEffect(() => {
@@ -332,17 +334,20 @@ export default function MapComponent({
       // Update the current location
       setCurrentLocation(coordinates);
 
+      // Calculate zoom level based on current radius
+      const zoomLevel = calculateZoomForRadius(searchRadius);
+
       // Fly to the selected location
       map.flyTo({
         center: coordinates,
-        zoom: 14,
+        zoom: zoomLevel,
       });
 
       // Clear any selected POI
       setSelectedPOI(null);
 
       // Create a circle for the search radius
-      const circleGeoJSON = turf.circle(coordinates, SEARCH_RADIUS_KM, {
+      const circleGeoJSON = turf.circle(coordinates, searchRadius, {
         steps: 64,
         units: "kilometers",
       });
@@ -417,6 +422,46 @@ export default function MapComponent({
       map.off("zoom", updateMarkerPosition);
     };
   }, [map, currentLocation]);
+
+  // Handle radius change
+  const handleRadiusChange = (_event: Event, value: number | number[]) => {
+    const newRadius = Array.isArray(value) ? value[0] : value;
+    setSearchRadius(newRadius);
+
+    // Update the circle if we have a current location
+    if (map && currentLocation) {
+      const circleGeoJSON = turf.circle(currentLocation, newRadius, {
+        steps: 64,
+        units: "kilometers",
+      });
+
+      if (map.getSource("user-radius")) {
+        (map.getSource("user-radius") as maplibre.GeoJSONSource).setData(
+          circleGeoJSON
+        );
+      }
+
+      // Adjust zoom level based on radius
+      // Smaller radius = higher zoom level (more zoomed in)
+      // Larger radius = lower zoom level (more zoomed out)
+      const zoomLevel = calculateZoomForRadius(newRadius);
+
+      map.flyTo({
+        center: currentLocation,
+        zoom: zoomLevel,
+        duration: 500, // shorter animation for better UX when sliding
+      });
+    }
+  };
+
+  // Calculate appropriate zoom level based on radius
+  const calculateZoomForRadius = (radiusKm: number): number => {
+    // These values can be adjusted based on preference
+    // The formula creates a logarithmic relationship between radius and zoom
+    // Max zoom (closest) = 16 when radius = 1km
+    // Min zoom (furthest) = 10 when radius = 10km
+    return 16 - Math.log2(radiusKm) * 2;
+  };
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -650,6 +695,55 @@ export default function MapComponent({
               onLocationSelect={handleLocationSelect}
             />
           </Box>
+        </Box>
+
+        {/* Radius Slider */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: theme.spacing(12),
+            left: theme.spacing(3.75),
+            zIndex: 100,
+            height: "150px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Slider
+            value={searchRadius}
+            min={1}
+            max={15}
+            step={1}
+            orientation="vertical"
+            onChange={handleRadiusChange}
+            valueLabelDisplay="off"
+            aria-labelledby="search-radius-slider"
+            sx={{
+              height: "100%",
+              "& .MuiSlider-thumb": {
+                width: 16,
+                height: 16,
+              },
+              "& .MuiSlider-track": {
+                width: 4,
+              },
+              "& .MuiSlider-rail": {
+                width: 4,
+              },
+            }}
+          />
+          <Typography
+            variant="caption"
+            color="white"
+            sx={{
+              mt: 1,
+              textShadow: "0px 0px 4px rgba(0,0,0,0.7)",
+              fontWeight: "bold",
+            }}
+          >
+            {searchRadius}km
+          </Typography>
         </Box>
 
         {/* Geolocation Button */}
