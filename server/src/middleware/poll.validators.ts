@@ -1,4 +1,5 @@
 import { body, checkExact, param } from 'express-validator';
+import { DateTime } from 'luxon';
 
 export const validateCreatePollInput = checkExact([
   param('tripId')
@@ -13,7 +14,17 @@ export const validateCreatePollInput = checkExact([
 
   body('expiresAt')
     .isISO8601()
-    .withMessage('Expiration date must be a valid ISO8601 date'),
+    .withMessage('Expiration date must be a valid ISO8601 date')
+    .custom((value) => {
+      const backendTime = DateTime.now().toUTC();
+      const minExpireTime = backendTime.plus({ minutes: 4, seconds: 50 }); // Allows 10s buffer for latency from frontend
+      const inputExpireTime = DateTime.fromISO(value).toUTC();
+
+      if (inputExpireTime < minExpireTime) {
+        throw new Error('Poll expiration must be at least 5 minutes from now');
+      }
+      return true;
+    }),
 
   body('options')
     .isArray({ min: 2 })
