@@ -4,14 +4,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as turf from "@turf/turf";
 import {
   Box,
-  IconButton,
   useTheme,
   CircularProgress,
   Typography,
-  Paper,
-  Fade,
   SvgIconProps,
-  Link,
 } from "@mui/material";
 import {
   Restaurant,
@@ -20,9 +16,7 @@ import {
   LocalGasStation,
   ShoppingBag,
   Help,
-  Clear,
   Place,
-  Language,
 } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
 import MapSearchFilter from "./MapSearchFilter";
@@ -472,7 +466,7 @@ export default function MapComponent({
           <div
             style={{
               position: "absolute",
-              zIndex: 5,
+              zIndex: 1,
               pointerEvents: "none",
               left: 0,
               top: 0,
@@ -529,7 +523,7 @@ export default function MapComponent({
           })}
 
         {/* Conditionally render the MarkerCard on hover */}
-        {hoveredPOI && map && (
+        {hoveredPOI && map && hoveredPOI.id !== selectedPOI?.id && (
           <MarkerCard
             key={hoveredPOI.id}
             map={map}
@@ -538,118 +532,24 @@ export default function MapComponent({
             address={hoveredPOI.address}
             locationType={hoveredPOI.locationType}
             color={locationConfig[hoveredPOI.locationType].color}
+            isSelected={false}
           />
         )}
 
-        {/* POI Info Popup */}
-        {selectedPOI && (
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: theme.spacing(10),
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "90%",
-              maxWidth: "400px",
-              zIndex: 10,
-            }}
-          >
-            <Fade in={!!selectedPOI}>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 2,
-                  borderLeft: `4px solid ${locationConfig[selectedPOI.locationType].color}`,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                  <Box
-                    sx={{
-                      mr: 1,
-                      color: locationConfig[selectedPOI.locationType].color,
-                    }}
-                  >
-                    {locationConfig[selectedPOI.locationType].icon}
-                  </Box>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {selectedPOI.name}
-                  </Typography>
-                </Box>
-
-                {selectedPOI.address && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 1 }}
-                  >
-                    {selectedPOI.address}
-                  </Typography>
-                )}
-
-                {/* Website links section */}
-                <Box
-                  sx={{
-                    mt: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 0.5,
-                  }}
-                >
-                  {/* Direct website link */}
-                  {selectedPOI.website && (
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Language
-                        fontSize="small"
-                        sx={{ mr: 0.5, color: theme.palette.primary.main }}
-                      />
-                      <Link
-                        href={selectedPOI.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="body2"
-                        sx={{
-                          textDecoration: "none",
-                          "&:hover": { textDecoration: "underline" },
-                          color: theme.palette.primary.main,
-                          fontWeight: "medium",
-                        }}
-                      >
-                        Visit website
-                      </Link>
-                    </Box>
-                  )}
-
-                  {/* Google search link */}
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Language
-                      fontSize="small"
-                      sx={{ mr: 0.5, color: "text.secondary" }}
-                    />
-                    <Link
-                      href={`https://www.google.com/search?q=${encodeURIComponent(selectedPOI.name + " " + (selectedPOI.address || ""))}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="body2"
-                      sx={{
-                        textDecoration: "none",
-                        "&:hover": { textDecoration: "underline" },
-                      }}
-                    >
-                      Search on Google
-                    </Link>
-                  </Box>
-                </Box>
-
-                <Box
-                  sx={{ mt: 1, display: "flex", justifyContent: "flex-end" }}
-                >
-                  <IconButton size="small" onClick={() => setSelectedPOI(null)}>
-                    <Clear fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Paper>
-            </Fade>
-          </Box>
+        {/* Selected POI Info */}
+        {selectedPOI && map && (
+          <MarkerCard
+            key={selectedPOI.id}
+            map={map}
+            coordinates={selectedPOI.coordinates}
+            name={selectedPOI.name}
+            address={selectedPOI.address}
+            locationType={selectedPOI.locationType}
+            color={locationConfig[selectedPOI.locationType].color}
+            isSelected={true}
+            website={selectedPOI.website}
+            onClose={() => setSelectedPOI(null)}
+          />
         )}
 
         {/* Map Search and Filter Component */}
