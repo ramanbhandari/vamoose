@@ -36,7 +36,6 @@ import {
 import {
   formatDateTime,
   formatDateTimeForAPI,
-  parseLocalDate,
   parseLocalDateWithTime,
 } from "@/utils/dateFormatter";
 
