@@ -16,9 +16,7 @@ describe('MarkedLocation Validators Middleware', () => {
     return validationResult(req);
   };
 
-  /** ───────────────────────────────────────────────────────
-   * CREATE MARKED LOCATION VALIDATION TESTS
-   * ─────────────────────────────────────────────────────── */
+  // CREATE MARKED LOCATION VALIDATION TESTS
   describe('Create Marked Location Validation', () => {
     it('should pass validation for a valid input', async () => {
       mockReq = {
@@ -239,9 +237,7 @@ describe('MarkedLocation Validators Middleware', () => {
     });
   });
 
-  /** ───────────────────────────────────────────────────────
-   * UPDATE MARKED LOCATION NOTES VALIDATION TESTS
-   * ─────────────────────────────────────────────────────── */
+  // CREATE MARKED LOCATION VALIDATION TESTS
   describe('Update Marked Location Notes Validation', () => {
     it('should pass validation for valid input', async () => {
       mockReq = {
@@ -373,6 +369,164 @@ describe('MarkedLocation Validators Middleware', () => {
           expect.objectContaining({
             msg: 'Invalid value',
           }),
+        ]),
+      );
+    });
+  });
+
+  // GET ALL MARKED LOCATION VALIDATION TESTS
+  describe('Get All Marked Locations Validation', () => {
+    it('should pass validation for valid tripId', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllMarkedLocationsInput,
+      );
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: { tripId: 'abc' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllMarkedLocationsInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if tripId is negative', async () => {
+      mockReq = {
+        params: { tripId: '-5' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllMarkedLocationsInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if tripId is missing', async () => {
+      mockReq = {
+        params: {},
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateGetAllMarkedLocationsInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+  });
+
+  /** ───────────────────────────────────────────────────────
+   * DELETE MARKED LOCATION VALIDATION TESTS
+   * ─────────────────────────────────────────────────────── */
+  describe('Delete Marked Location Validation', () => {
+    it('should pass validation for valid input', async () => {
+      mockReq = {
+        params: {
+          tripId: '1',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMarkedLocationInput,
+      );
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: {
+          tripId: 'abc',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMarkedLocationInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if locationId is not a UUID', async () => {
+      mockReq = {
+        params: { tripId: '1', locationId: 'not-a-uuid' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMarkedLocationInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Location ID must be a valid UUID' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if locationId is missing', async () => {
+      mockReq = {
+        params: { tripId: '1' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMarkedLocationInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Location ID must be a valid UUID' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if both tripId and locationId are invalid', async () => {
+      mockReq = {
+        params: { tripId: 'abc', locationId: 'not-a-uuid' },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateDeleteMarkedLocationInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+          expect.objectContaining({ msg: 'Location ID must be a valid UUID' }),
         ]),
       );
     });
