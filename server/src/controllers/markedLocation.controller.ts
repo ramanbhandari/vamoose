@@ -89,6 +89,15 @@ export const getAllMarkedLocationsHandler = async (
       return;
     }
 
+    // Check if the user is a member of the trip
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
     const markedLocations = await getAllMarkedLocationsForTrip(tripId, userId);
 
     res.status(200).json({
@@ -121,7 +130,7 @@ export const updateMarkedLocationNotesHandler = async (
       return;
     }
 
-    // Check if the user is a member of the trip
+    // Check if the user is a member of the trip and get their role
     const requestingMember = await getTripMember(tripId, userId);
     if (!requestingMember) {
       res.status(403).json({
@@ -134,6 +143,18 @@ export const updateMarkedLocationNotesHandler = async (
     const location = await getMarkedLocationById(tripId, locationId, userId);
     if (!location) {
       res.status(404).json({ error: 'Marked location not found' });
+      return;
+    }
+
+    const isMarkerCreator = location.createdById === userId;
+    const isTripAdminOrCreator =
+      requestingMember.role === 'admin' || requestingMember.role === 'creator';
+
+    if (!isMarkerCreator && !isTripAdminOrCreator) {
+      res.status(403).json({
+        error:
+          'Only the marker creator, trip admins, and trip creators can update marked locations',
+      });
       return;
     }
 
@@ -169,7 +190,35 @@ export const deleteMarkedLocationHandler = async (
       return;
     }
 
-    // Delete the location (permissions are checked in the model)
+    // Check if the user is a member of the trip and get their role
+    const requestingMember = await getTripMember(tripId, userId);
+    if (!requestingMember) {
+      res.status(403).json({
+        error: `You are not a member of this trip: ${tripId}`,
+      });
+      return;
+    }
+
+    // Check if the location exists first
+    const location = await getMarkedLocationById(tripId, locationId, userId);
+    if (!location) {
+      res.status(404).json({ error: 'Marked location not found' });
+      return;
+    }
+
+    const isMarkerCreator = location.createdById === userId;
+    const isTripAdminOrCreator =
+      requestingMember.role === 'admin' || requestingMember.role === 'creator';
+
+    if (!isMarkerCreator && !isTripAdminOrCreator) {
+      res.status(403).json({
+        error:
+          'Only the marker creator, trip admins, and trip creators can delete marked locations',
+      });
+      return;
+    }
+
+    // Delete the location
     const deletedLocation = await deleteMarkedLocation(
       tripId,
       locationId,
