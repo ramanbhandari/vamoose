@@ -270,48 +270,74 @@ export default function Itinerary({
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box
           sx={{
-            // display: "flex",
-            alignItems: "center",
-            borderRadius: "8px",
+            display: "flex",
+            justifyContent: "center",
             position: "relative",
-            maxWidth: 800,
-            mx: "auto",
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.8)}`,
           }}
         >
-          <IconButton
-            onClick={() => setViewMode("list")}
+          <Box
             sx={{
-              color:
-                viewMode === "list"
-                  ? "primary.main"
-                  : alpha(theme.palette.secondary.main, 0.7),
-              backgroundColor:
-                viewMode === "list"
-                  ? alpha(theme.palette.primary.light, 0.3)
-                  : "transparent",
-              transition: "all 0.2s",
+              display: "flex",
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              borderRadius: "12px",
+              p: 0.5,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              boxShadow: theme.shadows[1],
             }}
           >
-            <ViewList />
-          </IconButton>
-
-          <IconButton
-            onClick={() => setViewMode("calendar")}
-            sx={{
-              color:
-                viewMode === "calendar"
-                  ? "primary.main"
-                  : alpha(theme.palette.secondary.main, 0.7),
-              backgroundColor:
-                viewMode === "calendar"
-                  ? alpha(theme.palette.primary.light, 0.3)
-                  : "transparent",
-              transition: "all 0.2s",
-            }}
-          >
-            <CalendarMonth />
-          </IconButton>
+            <Button
+              onClick={() => setViewMode("list")}
+              variant={viewMode === "list" ? "contained" : "text"}
+              sx={{
+                minWidth: 120,
+                borderRadius: "8px",
+                textTransform: "none",
+                color:
+                  viewMode === "list"
+                    ? theme.palette.primary.contrastText
+                    : "text.secondary",
+                bgcolor:
+                  viewMode === "list"
+                    ? theme.palette.primary.main
+                    : "transparent",
+                "&:hover": {
+                  bgcolor:
+                    viewMode === "list"
+                      ? theme.palette.primary.dark
+                      : alpha(theme.palette.primary.light, 0.1),
+                },
+              }}
+              startIcon={<ViewList />}
+            >
+              List View
+            </Button>
+            <Button
+              onClick={() => setViewMode("calendar")}
+              variant={viewMode === "calendar" ? "contained" : "text"}
+              sx={{
+                minWidth: 120,
+                borderRadius: "8px",
+                textTransform: "none",
+                color:
+                  viewMode === "calendar"
+                    ? theme.palette.primary.contrastText
+                    : "text.secondary",
+                bgcolor:
+                  viewMode === "calendar"
+                    ? theme.palette.primary.main
+                    : "transparent",
+                "&:hover": {
+                  bgcolor:
+                    viewMode === "calendar"
+                      ? theme.palette.primary.dark
+                      : alpha(theme.palette.primary.light, 0.1),
+                },
+              }}
+              startIcon={<CalendarMonth />}
+            >
+              Calendar
+            </Button>
+          </Box>
         </Box>
 
         {viewMode === "list" ? (
