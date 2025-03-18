@@ -856,6 +856,10 @@ export default function Chat() {
                           <Box
                             sx={{
                               maxWidth: "70%",
+                              wordWrap: "break-word",
+                              overflowWrap: "break-word",
+                              whiteSpace: "normal",
+                              overflow: "hidden",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"
