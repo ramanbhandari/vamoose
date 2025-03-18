@@ -267,9 +267,9 @@ describe('MarkedLocation API - Get All Locations', () => {
     mockReq = setupRequest();
 
     (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue({
-        tripId: 1,
-        userId: 'test-user-id',
-      });
+      tripId: 1,
+      userId: 'test-user-id',
+    });
 
     (prisma.markedLocation.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -299,7 +299,253 @@ describe('MarkedLocation API - Get All Locations', () => {
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: expect.stringContaining('An unexpected database error occurred.'),
+        error: expect.stringContaining(
+          'An unexpected database error occurred.',
+        ),
+      }),
+    );
+  });
+});
+
+describe('MarkedLocation API - Update Location Notes', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+
+    jest.clearAllMocks();
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1', locationId: '550e8400-e29b-41d4-a716-446655440000' },
+    body: {
+      notes: 'Updated notes for the location',
+    },
+    ...overrides,
+  });
+
+  it('should update location notes successfully', async () => {
+    mockReq = setupRequest();
+    const fakeLocation = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      name: 'Great Restaurant',
+      type: LocationType.RESTAURANT,
+      coordinates: { latitude: 37.7749, longitude: -122.4194 },
+      notes: 'Original notes',
+      createdById: 'test-user-id',
+      tripId: 1,
+    };
+
+    const updatedLocation = {
+      ...fakeLocation,
+      notes: 'Updated notes for the location',
+    };
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue({
+      userId: 'test-user-id',
+      tripId: 1,
+    });
+    (prisma.markedLocation.findUnique as jest.Mock).mockResolvedValue(
+      fakeLocation,
+    );
+    (prisma.markedLocation.update as jest.Mock).mockResolvedValue(
+      updatedLocation,
+    );
+
+    await updateMarkedLocationNotesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Marked location notes updated successfully',
+      updatedLocation,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await updateMarkedLocationNotesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if tripId is invalid', async () => {
+    mockReq = setupRequest({
+      params: {
+        tripId: 'invalid',
+        locationId: '550e8400-e29b-41d4-a716-446655440000',
+      },
+    });
+
+    await updateMarkedLocationNotesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 403 if user is not a member of the trip', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await updateMarkedLocationNotesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(403);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'You are not a member of this trip: 1',
+    });
+  });
+
+  it('should return 500 on database error', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await updateMarkedLocationNotesHandler(
+      mockReq as Request,
+      mockRes as Response,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.stringContaining(
+          'An unexpected database error occurred.',
+        ),
+      }),
+    );
+  });
+});
+
+describe('MarkedLocation API - Delete Location', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+
+    jest.clearAllMocks();
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1', locationId: '550e8400-e29b-41d4-a716-446655440000' },
+    ...overrides,
+  });
+
+  it('should delete a location successfully', async () => {
+    mockReq = setupRequest();
+    const fakeLocation = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      name: 'Great Restaurant',
+      type: LocationType.RESTAURANT,
+      coordinates: { latitude: 37.7749, longitude: -122.4194 },
+      createdById: 'test-user-id',
+      tripId: 1,
+    };
+
+    (prisma.markedLocation.findUnique as jest.Mock).mockResolvedValue(
+      fakeLocation,
+    );
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue({
+      userId: 'test-user-id',
+      tripId: 1,
+    });
+    (prisma.markedLocation.delete as jest.Mock).mockResolvedValue(fakeLocation);
+
+    await deleteMarkedLocationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Marked location deleted successfully',
+      deletedLocation: fakeLocation,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await deleteMarkedLocationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if tripId is invalid', async () => {
+    mockReq = setupRequest({
+      params: {
+        tripId: 'invalid',
+        locationId: '550e8400-e29b-41d4-a716-446655440000',
+      },
+    });
+
+    await deleteMarkedLocationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return 404 if location is not found', async () => {
+    mockReq = setupRequest();
+
+    (prisma.markedLocation.findUnique as jest.Mock).mockResolvedValue(null);
+
+    await deleteMarkedLocationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(404);
+    expect(jsonMock).toHaveBeenCalledWith({
+      error: 'Marked location not found',
+    });
+  });
+
+  it('should return 500 on database error', async () => {
+    mockReq = setupRequest();
+
+    (prisma.markedLocation.findUnique as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await deleteMarkedLocationHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.stringContaining(
+          'An unexpected database error occurred.',
+        ),
       }),
     );
   });
