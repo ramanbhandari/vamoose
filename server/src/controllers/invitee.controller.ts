@@ -3,12 +3,9 @@ import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import TripInvite from '@/models/invitee.model.js';
 import { getUserByEmail, getUserById } from '@/models/user.model.js';
 import { addTripMember, getTripMember } from '@/models/member.model.js';
-import dotenv from 'dotenv';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import prisma from '@/config/prismaClient.js';
-
-dotenv.config();
 
 export const checkInvite = async (req: Request, res: Response) => {
   try {

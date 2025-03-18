@@ -1,13 +1,13 @@
 import express from 'express';
-import tripRouter from './trip.routes.js';
-import expenseRouter from './expense.routes.js';
-import expenseShareRouter from './expenseShare.routes.js';
-import inviteRouter, { nonAuthInviteRouter } from './invitee.routes.js';
-import memberRouter from './member.routes.js';
-import messageRouter from './message.routes.js';
-import pollRouter from './poll.routes.js';
-import itineraryEventRouter from './itineraryEvent.routes.js';
-import notificationRouter from './notification.routes.js';
+import tripRouter from '@/routes/trip.routes.js';
+import expenseRouter from '@/routes/expense.routes.js';
+import expenseShareRouter from '@/routes/expenseShare.routes.js';
+import inviteRouter, { nonAuthInviteRouter } from '@/routes/invitee.routes.js';
+import memberRouter from '@/routes/member.routes.js';
+import messageRouter from '@/routes/message.routes.js';
+import pollRouter from '@/routes/poll.routes.js';
+import itineraryEventRouter from '@/routes/itineraryEvent.routes.js';
+import notificationRouter from '@/routes/notification.routes.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
 
 const router = express.Router();

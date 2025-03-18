@@ -32,6 +32,24 @@ export interface CreateNote {
   content: string;
 }
 
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface AssignedUser {
+  user: User;
+}
+
+export interface Note {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  user: User;
+}
+
 export interface ItineraryEvent {
   id: number;
   tripId: number;
@@ -43,19 +61,11 @@ export interface ItineraryEvent {
   category: EventCategory;
   createdById: string;
   createdAt: string;
-  assignedUsers?: AssignedUser[];
-  notes?: Note[];
+  assignedUsers: AssignedUser[];
+  notes: Note[];
+  createdBy: User;
 }
 
-export interface Note {
-  id: number;
-  eventId: number;
-  content: string;
-  createdBy: string;
-  createdAt: string;
-}
-
-export interface AssignedUser {
-  eventId: number;
-  userId: string;
+export interface ItineraryEventsResponse {
+  itineraryEvents: ItineraryEvent[];
 }

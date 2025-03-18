@@ -27,7 +27,12 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { styled } from "@mui/material/styles";
 import { Dialog } from "@mui/material";
 
-import { CreateItineraryEvent, eventCategories } from "./types";
+import {
+  CreateItineraryEvent,
+  eventCategories,
+  EventCategory,
+  ItineraryEvent,
+} from "./types";
 import {
   formatDateTimeForAPI,
   parseLocalDateWithTime,
@@ -53,6 +58,8 @@ export const FloatingDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 interface CreateEventDialogProps {
+  event?: ItineraryEvent;
+  onUpdate?: (payload: CreateItineraryEvent) => void;
   open: boolean;
   onClose: () => void;
   onCreate: (eventData: CreateItineraryEvent) => void;
@@ -65,6 +72,8 @@ export default function CreateEventDialog({
   open,
   onClose,
   onCreate,
+  onUpdate,
+  event,
   members,
   tripStart,
   tripEnd,
@@ -74,17 +83,28 @@ export default function CreateEventDialog({
   const notesContainerRef = useRef<HTMLDivElement>(null);
   const prevNotesLength = useRef(0);
 
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(
+    !event ? false : true
+  );
   const contentRef = useRef<HTMLDivElement>(null);
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [category, setCategory] = useState("GENERAL");
-  const [notes, setNotes] = useState<string[]>([]);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [title, setTitle] = useState(event?.title || "");
+  const [description, setDescription] = useState(event?.description || "");
+  const [location, setLocation] = useState(event?.location || "");
+  const [startTime, setStartTime] = useState(
+    event ? formatDateTimeForAPI(new Date(event.startTime)) : ""
+  );
+  const [endTime, setEndTime] = useState(
+    event ? formatDateTimeForAPI(new Date(event.endTime)) : ""
+  );
+  const [category, setCategory] = useState<EventCategory>(
+    event?.category ?? "GENERAL"
+  );
+  const [notes, setNotes] = useState<string[]>(
+    event?.notes?.map((n) => n.content) || []
+  );
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
+    event?.assignedUsers?.map((u) => u.user.id) || []
+  );
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
@@ -171,6 +191,22 @@ export default function CreateEventDialog({
     setHasScrolledToBottom(false);
   };
 
+  const handleSave = () => {
+    if (event && onUpdate) {
+      onUpdate({
+        title,
+        description: description.trim() ? description : undefined,
+        location: location.trim() ? location : undefined,
+        startTime,
+        endTime,
+        category: category as CreateItineraryEvent["category"],
+      });
+    } else {
+      handleCreate();
+    }
+    onClose();
+  };
+
   const handleClose = () => {
     setTitle("");
     setDescription("");
@@ -226,7 +262,7 @@ export default function CreateEventDialog({
             }}
           >
             <Typography variant="h6" fontWeight={600}>
-              New Event
+              {event ? "Update Event" : "New Event"}
             </Typography>
             <IconButton onClick={handleClose} size="small">
               <Close />
@@ -295,9 +331,6 @@ export default function CreateEventDialog({
               <LocationAutocomplete
                 value={location}
                 onChange={(val) => setLocation(val)}
-                onSelect={(selectedOption) => {
-                  console.log("Selected location:", selectedOption);
-                }}
               />
             </Box>
 
@@ -397,7 +430,7 @@ export default function CreateEventDialog({
                 <Select
                   value={category}
                   label="Category"
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => setCategory(e.target.value as EventCategory)}
                 >
                   {eventCategories.map((cat: string) => (
                     <MenuItem key={cat} value={cat}>
@@ -408,129 +441,136 @@ export default function CreateEventDialog({
               </FormControl>
             </Box>
 
-            <Divider sx={{ my: 1 }} />
-
-            <Box>
-              <FormControl fullWidth>
-                <InputLabel>Assign to Members</InputLabel>
-                <Select
-                  multiple
-                  value={selectedUserIds}
-                  onChange={(e) =>
-                    setSelectedUserIds(e.target.value as string[])
-                  }
-                  label="Assign to Members"
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((userId) => {
-                        const member = members.find((m) => m.userId === userId);
-                        return (
-                          <Chip
-                            key={userId}
-                            label={member?.user.fullName || member?.user.email}
-                            size="small"
-                          />
-                        );
-                      })}
-                    </Box>
-                  )}
-                >
-                  {members.map((member) => (
-                    <MenuItem key={member.userId} value={member.userId}>
-                      {member.user.fullName || member.user.email}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Divider sx={{ my: 1 }} />
-
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Notes ({notes.length}/10)
-              </Typography>
-              <Box
-                ref={notesContainerRef}
-                sx={{
-                  maxHeight: 200,
-                  overflow: "auto",
-                  mb: 1,
-                  pr: 1,
-                  "&::-webkit-scrollbar": {
-                    width: "6px",
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: theme.palette.action.hover,
-                    borderRadius: 3,
-                  },
-                }}
-              >
-                <Stack gap={2}>
-                  {notes.map((note, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        mt: 1,
-                        alignItems: "center",
-                        transition: "opacity 0.2s",
-                        "&:hover": { opacity: 0.9 },
-                      }}
-                    >
-                      <TextField
-                        fullWidth
-                        label={`Note ${index + 1}`}
-                        value={note}
-                        multiline
-                        onChange={(e) => {
-                          const newNotes = [...notes];
-                          newNotes[index] = e.target.value;
-                          setNotes(newNotes);
-                        }}
-                        autoFocus={index === notes.length - 1}
-                        helperText={`${note.length}/100 characters`}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  onClick={() =>
-                                    setNotes(
-                                      notes.filter((_, i) => i !== index)
-                                    )
-                                  }
-                                  size="small"
-                                  edge="end"
-                                >
-                                  <Close fontSize="small" />
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          },
-                          htmlInput: {
-                            maxLength: 100,
-                          },
-                        }}
-                      />
-                    </Box>
-                  ))}
-                </Stack>
+            {!event && <Divider sx={{ my: 1 }} />}
+            {!event && (
+              <Box>
+                <FormControl fullWidth>
+                  <InputLabel>Assign to Members</InputLabel>
+                  <Select
+                    multiple
+                    value={selectedUserIds}
+                    onChange={(e) =>
+                      setSelectedUserIds(e.target.value as string[])
+                    }
+                    label="Assign to Members"
+                    renderValue={(selected) => (
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {selected.map((userId) => {
+                          const member = members.find(
+                            (m) => m.userId === userId
+                          );
+                          return (
+                            <Chip
+                              key={userId}
+                              label={
+                                member?.user.fullName || member?.user.email
+                              }
+                              size="small"
+                            />
+                          );
+                        })}
+                      </Box>
+                    )}
+                  >
+                    {members.map((member) => (
+                      <MenuItem key={member.userId} value={member.userId}>
+                        {member.user.fullName || member.user.email}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Box>
-              <Button
-                startIcon={<Add />}
-                onClick={handleAddNote}
-                size="small"
-                disabled={notes.length >= 10}
-                sx={{
-                  alignSelf: "flex-start",
-                  "&.Mui-disabled": { opacity: 0.6 },
-                }}
-              >
-                Add note {notes.length > 0 && `(${notes.length}/10)`}
-              </Button>
-            </Box>
+            )}
+
+            {!event && <Divider sx={{ my: 1 }} />}
+
+            {!event && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Notes ({notes.length}/10)
+                </Typography>
+                <Box
+                  ref={notesContainerRef}
+                  sx={{
+                    maxHeight: 200,
+                    overflow: "auto",
+                    mb: 1,
+                    pr: 1,
+                    "&::-webkit-scrollbar": {
+                      width: "6px",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: theme.palette.action.hover,
+                      borderRadius: 3,
+                    },
+                  }}
+                >
+                  <Stack gap={2}>
+                    {notes.map((note, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          mt: 1,
+                          alignItems: "center",
+                          transition: "opacity 0.2s",
+                          "&:hover": { opacity: 0.9 },
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          label={`Note ${index + 1}`}
+                          value={note}
+                          multiline
+                          onChange={(e) => {
+                            const newNotes = [...notes];
+                            newNotes[index] = e.target.value;
+                            setNotes(newNotes);
+                          }}
+                          autoFocus={index === notes.length - 1}
+                          helperText={`${note.length}/100 characters`}
+                          slotProps={{
+                            input: {
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton
+                                    onClick={() =>
+                                      setNotes(
+                                        notes.filter((_, i) => i !== index)
+                                      )
+                                    }
+                                    size="small"
+                                    edge="end"
+                                  >
+                                    <Close fontSize="small" />
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            },
+                            htmlInput: {
+                              maxLength: 100,
+                            },
+                          }}
+                        />
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+                <Button
+                  startIcon={<Add />}
+                  onClick={handleAddNote}
+                  size="small"
+                  disabled={notes.length >= 10}
+                  sx={{
+                    alignSelf: "flex-start",
+                    "&.Mui-disabled": { opacity: 0.6 },
+                  }}
+                >
+                  Add note {notes.length > 0 && `(${notes.length}/10)`}
+                </Button>
+              </Box>
+            )}
           </Stack>
         </DialogContent>
 
@@ -546,7 +586,7 @@ export default function CreateEventDialog({
           </Button>
           <Button
             variant="contained"
-            onClick={handleCreate}
+            onClick={handleSave}
             sx={{
               px: 3,
               borderRadius: "8px",
@@ -554,7 +594,7 @@ export default function CreateEventDialog({
             }}
             disabled={!hasScrolledToBottom}
           >
-            Create Event
+            {event ? "Update Event" : "Create Event"}
           </Button>
         </DialogActions>
       </LocalizationProvider>

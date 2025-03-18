@@ -41,7 +41,7 @@ export const initializeSocket = (): ReturnType<typeof io> => {
   }
 
   // Create new socket connection
-  socket = io("http://localhost:8000", {
+  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000", {
     autoConnect: true,
   });
 
