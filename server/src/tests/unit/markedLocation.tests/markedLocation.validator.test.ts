@@ -237,7 +237,7 @@ describe('MarkedLocation Validators Middleware', () => {
     });
   });
 
-  // CREATE MARKED LOCATION VALIDATION TESTS
+  // UPDATE MARKED LOCATION VALIDATION TESTS
   describe('Update Marked Location Notes Validation', () => {
     it('should pass validation for valid input', async () => {
       mockReq = {
@@ -440,9 +440,8 @@ describe('MarkedLocation Validators Middleware', () => {
     });
   });
 
-  /** ───────────────────────────────────────────────────────
-   * DELETE MARKED LOCATION VALIDATION TESTS
-   * ─────────────────────────────────────────────────────── */
+
+// DELETE MARKED LOCATION VALIDATION TESTS
   describe('Delete Marked Location Validation', () => {
     it('should pass validation for valid input', async () => {
       mockReq = {
