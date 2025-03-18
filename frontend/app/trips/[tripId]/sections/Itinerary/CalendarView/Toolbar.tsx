@@ -37,26 +37,58 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        mb: 2,
+        mb: 3,
+        p: 2,
+        background: "var(--background-paper)",
+        borderRadius: "12px",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        transition: "all 0.3s ease",
+        "&:hover": { boxShadow: "0 6px 24px rgba(0,0,0,0.12)" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton onClick={() => handleNavigate("PREV")} size="small">
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <IconButton
+          onClick={() => handleNavigate("PREV")}
+          sx={{
+            color: "var(--primary)",
+            "&:hover": { background: "var(--primary-light)" },
+          }}
+        >
           <ArrowBackIos fontSize="small" />
         </IconButton>
         <Button
           onClick={() => handleNavigate("TODAY")}
           variant="outlined"
-          size="small"
+          sx={{
+            textTransform: "none",
+            borderColor: "var(--primary)",
+            color: "var(--primary)",
+            "&:hover": { borderColor: "var(--primary-hover)" },
+          }}
         >
           Today
         </Button>
-        <IconButton onClick={() => handleNavigate("NEXT")} size="small">
+        <IconButton
+          onClick={() => handleNavigate("NEXT")}
+          sx={{
+            color: "var(--primary)",
+            "&:hover": { background: "var(--primary-light)" },
+          }}
+        >
           <ArrowForwardIos fontSize="small" />
         </IconButton>
       </Box>
 
-      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+          background:
+            "linear-gradient(45deg, var(--primary), var(--secondary))",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        }}
+      >
         {label}
       </Typography>
 
@@ -64,21 +96,53 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         <Button
           onClick={() => onView("month")}
           variant={view === "month" ? "contained" : "outlined"}
-          size="small"
+          sx={{
+            textTransform: "capitalize",
+            borderRadius: "8px",
+            bgcolor: view === "month" ? "var(--primary)" : "transparent",
+            color: view === "month" ? "white" : "var(--text)",
+            borderColor: "var(--divider)",
+            "&:hover": {
+              bgcolor:
+                view === "month" ? "var(--primary-hover)" : "var(--background)",
+            },
+          }}
         >
           Month
         </Button>
+
         <Button
           onClick={() => onView("week")}
           variant={view === "week" ? "contained" : "outlined"}
-          size="small"
+          sx={{
+            textTransform: "capitalize",
+            borderRadius: "8px",
+            bgcolor: view === "week" ? "var(--primary)" : "transparent",
+            color: view === "week" ? "white" : "var(--text)",
+            borderColor: "var(--divider)",
+            "&:hover": {
+              bgcolor:
+                view === "week" ? "var(--primary-hover)" : "var(--background)",
+            },
+          }}
         >
           Week
         </Button>
+
         <Button
           onClick={() => onView("day")}
           variant={view === "day" ? "contained" : "outlined"}
-          size="small"
+          sx={{
+            textTransform: "capitalize",
+            borderRadius: "8px",
+            bgcolor: view === "day" ? "var(--primary)" : "transparent",
+            color: view === "day" ? "white" : "var(--text)",
+            borderColor: "var(--divider)",
+            "&:hover": {
+              bgcolor:
+                view === "day" ? "var(--primary-hover)" : "var(--background)",
+            },
+          }}
         >
           Day
         </Button>
