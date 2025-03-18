@@ -6,7 +6,6 @@ import {
 } from '@/middleware/markedLocation.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
-import { LocationType } from '@prisma/client';
 
 describe('MarkedLocation Validators Middleware', () => {
   let mockReq: Partial<Request>;
@@ -440,8 +439,7 @@ describe('MarkedLocation Validators Middleware', () => {
     });
   });
 
-
-// DELETE MARKED LOCATION VALIDATION TESTS
+  // DELETE MARKED LOCATION VALIDATION TESTS
   describe('Delete Marked Location Validation', () => {
     it('should pass validation for valid input', async () => {
       mockReq = {
