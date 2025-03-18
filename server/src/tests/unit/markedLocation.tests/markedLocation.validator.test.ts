@@ -238,4 +238,143 @@ describe('MarkedLocation Validators Middleware', () => {
       expect(result.isEmpty()).toBe(true);
     });
   });
+
+  /** ───────────────────────────────────────────────────────
+   * UPDATE MARKED LOCATION NOTES VALIDATION TESTS
+   * ─────────────────────────────────────────────────────── */
+  describe('Update Marked Location Notes Validation', () => {
+    it('should pass validation for valid input', async () => {
+      mockReq = {
+        params: {
+          tripId: '1',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+        body: {
+          notes: 'Updated notes for the location',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(true);
+    });
+
+    it('should fail validation if tripId is not a number', async () => {
+      mockReq = {
+        params: {
+          tripId: 'abc',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+        body: {
+          notes: 'Updated notes for the location',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Trip ID must be a number' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if locationId is not a UUID', async () => {
+      mockReq = {
+        params: { tripId: '1', locationId: 'not-a-uuid' },
+        body: {
+          notes: 'Updated notes for the location',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ msg: 'Location ID must be a valid UUID' }),
+        ]),
+      );
+    });
+
+    it('should fail validation if notes are missing', async () => {
+      mockReq = {
+        params: {
+          tripId: '1',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+        body: {},
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Notes are required and must be a non-empty string',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if notes are empty', async () => {
+      mockReq = {
+        params: {
+          tripId: '1',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+        body: {
+          notes: '',
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Notes are required and must be a non-empty string',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation if notes are not a string', async () => {
+      mockReq = {
+        params: {
+          tripId: '1',
+          locationId: '550e8400-e29b-41d4-a716-446655440000',
+        },
+        body: {
+          notes: 123, // Not a string
+        },
+      };
+
+      const result = await runValidation(
+        mockReq,
+        validateUpdateMarkedLocationNotesInput,
+      );
+      expect(result.isEmpty()).toBe(false);
+      expect(result.array()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Invalid value',
+          }),
+        ]),
+      );
+    });
+  });
 });
