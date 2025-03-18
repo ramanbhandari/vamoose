@@ -98,7 +98,7 @@ export const getAllMarkedLocationsHandler = async (
       return;
     }
 
-    const markedLocations = await getAllMarkedLocationsForTrip(tripId, userId);
+    const markedLocations = await getAllMarkedLocationsForTrip(tripId);
 
     res.status(200).json({
       message: 'Marked locations retrieved successfully',

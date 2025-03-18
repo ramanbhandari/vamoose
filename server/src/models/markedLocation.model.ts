@@ -1,20 +1,12 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError, ForbiddenError } from '@/utils/errors.js';
-import { LocationType } from '@prisma/client';
+import { CreateMarkedLocationInput } from '@/interfaces/interfaces.js';
 
 // Create a Marked Location
-export const createMarkedLocation = async (locationData: {
-  tripId: number;
-  name: string;
-  type: LocationType;
-  coordinates: { latitude: number; longitude: number };
-  address?: string;
-  createdById: string;
-  notes?: string;
-  website?: string;
-  phoneNumber?: string;
-}) => {
+export const createMarkedLocation = async (
+  locationData: CreateMarkedLocationInput,
+) => {
   try {
     return await prisma.markedLocation.create({
       data: locationData,
@@ -26,23 +18,8 @@ export const createMarkedLocation = async (locationData: {
 };
 
 // Get all Marked Locations for a Trip
-export const getAllMarkedLocationsForTrip = async (
-  tripId: number,
-  userId: string,
-) => {
+export const getAllMarkedLocationsForTrip = async (tripId: number) => {
   try {
-    // Check if user is a member of the trip
-    const member = await prisma.tripMember.findFirst({
-      where: {
-        tripId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new ForbiddenError('You are not a member of this trip');
-    }
-
     return await prisma.markedLocation.findMany({
       where: {
         tripId,
