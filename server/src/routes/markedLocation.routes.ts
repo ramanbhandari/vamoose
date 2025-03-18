@@ -33,7 +33,7 @@ router
   )
 
   // Update the notes of a marked location
-  .patch(
+  .put(
     '/:locationId/notes',
     validateUpdateMarkedLocationNotesInput,
     validationErrorHandler,
