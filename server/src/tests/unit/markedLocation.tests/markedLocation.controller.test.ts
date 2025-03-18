@@ -172,6 +172,133 @@ describe('MarkedLocation API - Create Location', () => {
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        error: expect.stringContaining(
+          'An unexpected database error occurred.',
+        ),
+      }),
+    );
+  });
+});
+
+describe('MarkedLocation API - Get All Locations', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let statusMock: jest.Mock;
+  let jsonMock: jest.Mock;
+
+  beforeEach(() => {
+    jsonMock = jest.fn();
+    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+
+    mockRes = {
+      status: statusMock,
+      json: jsonMock,
+    } as Partial<Response>;
+
+    jest.clearAllMocks();
+  });
+
+  const setupRequest = (overrides = {}) => ({
+    userId: 'test-user-id',
+    params: { tripId: '1' },
+    ...overrides,
+  });
+
+  it('should retrieve all marked locations successfully', async () => {
+    mockReq = setupRequest();
+    const fakeLocations = [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'Great Restaurant',
+        type: LocationType.RESTAURANT,
+        coordinates: { latitude: 37.7749, longitude: -122.4194 },
+        createdById: 'test-user-id',
+        tripId: 1,
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Awesome Cafe',
+        type: LocationType.CAFE,
+        coordinates: { latitude: 37.7739, longitude: -122.4184 },
+        createdById: 'test-user-id',
+        tripId: 1,
+      },
+    ];
+
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue({
+      tripId: 1,
+      userId: 'test-user-id',
+    });
+
+    (prisma.markedLocation.findMany as jest.Mock).mockResolvedValue(
+      fakeLocations,
+    );
+
+    await getAllMarkedLocationsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Marked locations retrieved successfully',
+      markedLocations: fakeLocations,
+    });
+  });
+
+  it('should return 401 if user is not authenticated', async () => {
+    mockReq = setupRequest({ userId: undefined });
+
+    await getAllMarkedLocationsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(401);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized Request' });
+  });
+
+  it('should return 400 if tripId is invalid', async () => {
+    mockReq = setupRequest({
+      params: { tripId: 'invalid' },
+    });
+
+    await getAllMarkedLocationsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(400);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Invalid trip ID' });
+  });
+
+  it('should return empty array if no locations exist', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue({
+        tripId: 1,
+        userId: 'test-user-id',
+      });
+
+    (prisma.markedLocation.findMany as jest.Mock).mockResolvedValue([]);
+
+    await getAllMarkedLocationsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(200);
+    expect(jsonMock).toHaveBeenCalledWith({
+      message: 'Marked locations retrieved successfully',
+      markedLocations: [],
+    });
+  });
+
+  it('should return 500 on database error', async () => {
+    mockReq = setupRequest();
+
+    (prisma.tripMember.findFirst as jest.Mock).mockResolvedValue({
+      tripId: 1,
+      userId: 'test-user-id',
+    });
+
+    (prisma.markedLocation.findMany as jest.Mock).mockRejectedValue(
+      new Error('Database error'),
+    );
+
+    await getAllMarkedLocationsHandler(mockReq as Request, mockRes as Response);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith(
+      expect.objectContaining({
         error: expect.stringContaining('An unexpected database error occurred.'),
       }),
     );
