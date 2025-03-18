@@ -66,6 +66,8 @@ interface CreateEventDialogProps {
   members: Member[];
   tripStart: string;
   tripEnd: string;
+  initialStartTime?: Date;
+  initialEndTime?: Date;
 }
 
 export default function CreateEventDialog({
@@ -77,6 +79,8 @@ export default function CreateEventDialog({
   members,
   tripStart,
   tripEnd,
+  initialStartTime,
+  initialEndTime,
 }: CreateEventDialogProps) {
   const theme = useTheme();
   const { setNotification } = useNotificationStore();
@@ -90,12 +94,22 @@ export default function CreateEventDialog({
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [location, setLocation] = useState(event?.location || "");
+
   const [startTime, setStartTime] = useState(
-    event ? formatDateTimeForAPI(new Date(event.startTime)) : ""
+    event
+      ? formatDateTimeForAPI(new Date(event.startTime))
+      : initialStartTime
+        ? formatDateTimeForAPI(initialStartTime)
+        : ""
   );
   const [endTime, setEndTime] = useState(
-    event ? formatDateTimeForAPI(new Date(event.endTime)) : ""
+    event
+      ? formatDateTimeForAPI(new Date(event.endTime))
+      : initialEndTime
+        ? formatDateTimeForAPI(initialEndTime)
+        : ""
   );
+
   const [category, setCategory] = useState<EventCategory>(
     event?.category ?? "GENERAL"
   );
@@ -105,6 +119,15 @@ export default function CreateEventDialog({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
     event?.assignedUsers?.map((u) => u.user.id) || []
   );
+
+  useEffect(() => {
+    if (!event && open) {
+      setStartTime(
+        initialStartTime ? formatDateTimeForAPI(initialStartTime) : ""
+      );
+      setEndTime(initialEndTime ? formatDateTimeForAPI(initialEndTime) : "");
+    }
+  }, [event, initialStartTime, initialEndTime, open]);
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
