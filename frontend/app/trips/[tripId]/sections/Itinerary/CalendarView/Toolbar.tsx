@@ -1,5 +1,5 @@
 import React from "react";
-import { ToolbarProps as RBCToolbarProps } from "react-big-calendar";
+import { ToolbarProps, Navigate } from "react-big-calendar";
 import { Box, Typography, IconButton, Button } from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { ItineraryEvent } from "../types";
@@ -12,21 +12,24 @@ export interface CalendarEvent {
   resource: ItineraryEvent;
 }
 
-const allowedViews = ["month", "week", "day"] as const;
-type AllowedView = (typeof allowedViews)[number];
-
-const CustomToolbar: React.FC<RBCToolbarProps<CalendarEvent, object>> = (
-  toolbar
+const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
+  props
 ) => {
-  const { label, onNavigate, onView, view, views } = toolbar;
-  // Convert the views prop into an array of allowed views
-  const availableViews: AllowedView[] = Array.isArray(views)
-    ? views.filter((v): v is AllowedView =>
-        allowedViews.includes(v as AllowedView)
-      )
-    : Object.keys(views).filter((key): key is AllowedView =>
-        allowedViews.includes(key as AllowedView)
-      );
+  const { label, onNavigate, onView, view } = props;
+
+  const handleNavigate = (action: "PREV" | "NEXT" | "TODAY") => {
+    switch (action) {
+      case "PREV":
+        onNavigate(Navigate.PREVIOUS);
+        break;
+      case "NEXT":
+        onNavigate(Navigate.NEXT);
+        break;
+      case "TODAY":
+        onNavigate(Navigate.TODAY);
+        break;
+    }
+  };
 
   return (
     <Box
@@ -38,34 +41,47 @@ const CustomToolbar: React.FC<RBCToolbarProps<CalendarEvent, object>> = (
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton onClick={() => onNavigate("PREV")} size="small">
+        <IconButton onClick={() => handleNavigate("PREV")} size="small">
           <ArrowBackIos fontSize="small" />
         </IconButton>
         <Button
-          onClick={() => onNavigate("TODAY")}
+          onClick={() => handleNavigate("TODAY")}
           variant="outlined"
           size="small"
         >
           Today
         </Button>
-        <IconButton onClick={() => onNavigate("NEXT")} size="small">
+        <IconButton onClick={() => handleNavigate("NEXT")} size="small">
           <ArrowForwardIos fontSize="small" />
         </IconButton>
       </Box>
+
       <Typography variant="h6" sx={{ fontWeight: "bold" }}>
         {label}
       </Typography>
+
       <Box sx={{ display: "flex", gap: 1 }}>
-        {availableViews.map((v: AllowedView) => (
-          <Button
-            key={v}
-            onClick={() => onView(v)}
-            variant={v === view ? "contained" : "outlined"}
-            size="small"
-          >
-            {v.charAt(0).toUpperCase() + v.slice(1)}
-          </Button>
-        ))}
+        <Button
+          onClick={() => onView("month")}
+          variant={view === "month" ? "contained" : "outlined"}
+          size="small"
+        >
+          Month
+        </Button>
+        <Button
+          onClick={() => onView("week")}
+          variant={view === "week" ? "contained" : "outlined"}
+          size="small"
+        >
+          Week
+        </Button>
+        <Button
+          onClick={() => onView("day")}
+          variant={view === "day" ? "contained" : "outlined"}
+          size="small"
+        >
+          Day
+        </Button>
       </Box>
     </Box>
   );
