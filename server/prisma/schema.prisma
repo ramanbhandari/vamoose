@@ -43,6 +43,7 @@ model User {
   assignedEvents         ItineraryEventAssignment[]
   eventNotes             EventNote[]
   ItineraryEvent         ItineraryEvent[]
+  markedLocations        MarkedLocation[]
 }
 
 model Trip {
@@ -68,6 +69,7 @@ model Trip {
   creator         User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   invitees        TripInvitee[]
   members         TripMember[]
+  markedLocations MarkedLocation[]
 }
 
 model TripMember {
@@ -265,6 +267,41 @@ model ScheduledNotification {
   @@index([userId])
   @@index([sendAt])
   @@index([isSent])
+}
+
+model MarkedLocation {
+  id            String    @id @default(uuid())
+  name          String
+  type          LocationType
+  coordinates   Json      // { latitude: number, longitude: number }
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  tripId        Int
+  trip          Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User      @relation(fields: [createdById], references: [id])
+
+  // Additional details
+  notes         String?
+  website       String?
+  phoneNumber   String?
+
+  // Indexes for query performance
+  @@index([tripId])
+  @@index([createdById])
+  @@index([type])
+}
+
+enum LocationType {
+  ACCOMMODATION
+  RESTAURANT
+  CAFE
+  SHOPPING
+  GAS_STATION
+  OTHER
 }
 
 //Unimplemented

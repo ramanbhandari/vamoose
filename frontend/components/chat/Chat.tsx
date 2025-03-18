@@ -838,6 +838,12 @@ export default function Chat() {
                           <Typography
                             variant="caption"
                             sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignSelf:
+                                user.id === msg.userId
+                                  ? "flex-end"
+                                  : "flex-start",
                               color:
                                 msg.userId === user.id
                                   ? "grey.500"
@@ -849,7 +855,7 @@ export default function Chat() {
                           </Typography>
                           <Box
                             sx={{
-                              width: "100%",
+                              maxWidth: "70%",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"
@@ -863,6 +869,10 @@ export default function Chat() {
                                 msg.userId === user.id
                                   ? "16px 16px 0 16px"
                                   : "16px 16px 16px 0",
+                              alignSelf:
+                                msg.userId === user.id
+                                  ? "flex-end"
+                                  : "flex-start",
                             }}
                           >
                             <Typography variant="body1">{msg.text}</Typography>
@@ -1061,7 +1071,11 @@ export default function Chat() {
                                     emoji
                                   )}
                                   sx={{
+                                    zIndex: 100,
                                     padding: "4px",
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "50%",
                                     backgroundColor: hasUserReacted(
                                       msg.reactions,
                                       emoji
@@ -1098,7 +1112,13 @@ export default function Chat() {
                                   ) ? (
                                     <CircularProgress size={16} />
                                   ) : (
-                                    <Typography variant="body2">
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        color: "unset",
+                                        fontFamily: "initial",
+                                      }}
+                                    >
                                       {emoji}
                                     </Typography>
                                   )}
