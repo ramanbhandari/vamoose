@@ -11,8 +11,8 @@ export const getNotificationsForUser = async (
     return await prisma.notification.findMany({
       where: {
         userId,
-        ...(filters?.isRead && { isRead: filters.isRead }),
-        ...(filters?.type && { type: filters.type }),
+        ...(filters && { isRead: filters.isRead }),
+        ...(filters && { type: filters.type }),
       },
       orderBy: { createdAt: 'desc' },
       take: filters?.limit,

@@ -3,12 +3,9 @@ import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import TripInvite from '@/models/invitee.model.js';
 import { getUserByEmail, getUserById } from '@/models/user.model.js';
 import { addTripMember, getTripMember } from '@/models/member.model.js';
-import dotenv from 'dotenv';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import prisma from '@/config/prismaClient.js';
-
-dotenv.config();
 
 export const checkInvite = async (req: Request, res: Response) => {
   try {
@@ -100,8 +97,13 @@ export const createInvite = async (req: Request, res: Response) => {
     const existingInvite = await TripInvite.getExistingInvite(tripId, email);
 
     if (existingInvite) {
-      res.status(400).json({
-        error: 'Invite already exists.',
+      if (existingInvite.status !== 'pending') {
+        await TripInvite.updateInviteStatus(
+          existingInvite.inviteToken,
+          'pending',
+        );
+      }
+      res.status(200).json({
         inviteUrl: `${process.env.FRONTEND_URL}/invite/${existingInvite.inviteToken}`,
       });
       return;
@@ -117,7 +119,7 @@ export const createInvite = async (req: Request, res: Response) => {
     const invite = await TripInvite.createTripInvite(inviteData);
 
     // Return invite URL
-    res.status(200).json({
+    res.status(201).json({
       inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
     });
     return;

@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useTheme } from "@mui/material/styles";
 import { differenceInHours, startOfDay } from "date-fns";
 
 import {
@@ -10,12 +9,11 @@ import {
   ListItemText,
   Typography,
   Paper,
-  TextField,
-  Button,
   IconButton,
   Collapse,
   Grow,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 
 import Message from "@mui/icons-material/Message";
@@ -24,16 +22,14 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import EmojiPicker, {
-  EmojiClickData,
-  Theme as EmojiTheme,
-} from "emoji-picker-react";
+import { useMediaQuery } from "@mui/material";
 
 import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
 import { format } from "date-fns";
 import socketClient from "@/utils/socketClient";
 import DateDivider from "./DateDivider";
+import ChatInput from "./ChatInput";
 
 interface ChatMessage {
   messageId: string;
@@ -45,15 +41,46 @@ interface ChatMessage {
 import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
-  const theme = useTheme();
-  // Automatically set emoji picker theme based on MUI theme mode
-  const currentEmojiTheme =
-    theme.palette.mode === "dark" ? EmojiTheme.DARK : EmojiTheme.LIGHT;
-
   const [isOpen, setIsOpen] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [isMaximized, setIsMaximized] = useState(isMobile);
   const [tripTabOpen, setTripTabOpen] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [inputAreaHeight, setInputAreaHeight] = useState(115);
+
+  // Add a state to track whether the trips bar is open on mobile
+  const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
+
+  // Consolidated menu toggle function that works for both mobile and desktop
+  const toggleMenu = () => {
+    if (isMobile) {
+      setIsTripBarOpenOnMobile((prev) => !prev);
+    } else {
+      setTripTabOpen((prev) => !prev);
+    }
+  };
+
+  // Add this state to track which trip's members are being shown on hover
+  const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to handle mouse enter
+  const handleMouseEnter = (tripId: number) => {
+    if (!isMobile) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredTrip(tripId);
+      }, 500);
+    }
+  };
+
+  // Function to handle mouse leave (clear the timer and hide members)
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredTrip(null);
+  };
 
   const MINIMIZED_TAB_WIDTH = 150;
   const MAX_TAB_MIN_WIDTH = 200;
@@ -76,6 +103,8 @@ export default function Chat() {
   const [openReactionPickerFor, setOpenReactionPickerFor] = useState<
     string | null
   >(null);
+  const reactionPickerRef = useRef<HTMLDivElement>(null);
+  const reactionButtonRef = useRef<HTMLButtonElement>(null);
   const {
     messages,
     loading,
@@ -89,7 +118,6 @@ export default function Chat() {
     cleanupSocketListeners,
   } = useMessageStore();
 
-  const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
 
@@ -97,6 +125,26 @@ export default function Chat() {
   const [processingReactions, setProcessingReactions] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Handle click outside to close reaction picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openReactionPickerFor &&
+        reactionPickerRef.current &&
+        reactionButtonRef.current &&
+        !reactionPickerRef.current.contains(event.target as Node) &&
+        !reactionButtonRef.current.contains(event.target as Node)
+      ) {
+        setOpenReactionPickerFor(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openReactionPickerFor]);
 
   // Initialize socket connection when component mounts
   useEffect(() => {
@@ -142,6 +190,13 @@ export default function Chat() {
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages]);
+
+  // Show latest messages when chat is re-opened
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView();
+    }
+  }, [isOpen]);
 
   // Handle trip selection
   useEffect(() => {
@@ -189,6 +244,31 @@ export default function Chat() {
     };
   }, [isDragging, isMaximized, MAX_TAB_MIN_WIDTH, MAX_TAB_MAX_WIDTH]);
 
+  // Add effect to handle scrolling when input height changes
+  useEffect(() => {
+    // Scroll to bottom when input height changes
+    const messageContainer = document.querySelector(".message-container");
+    if (messageContainer) {
+      const isNearBottom =
+        messageContainer.scrollHeight -
+          messageContainer.scrollTop -
+          messageContainer.clientHeight <
+        100;
+
+      // If user was already near the bottom, scroll to bottom
+      if (isNearBottom) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [inputAreaHeight]);
+
+  // Update isMaximized when isMobile changes
+  useEffect(() => {
+    if (isMobile) {
+      setIsMaximized(true);
+    }
+  }, [isMobile]);
+
   if (!user) return null;
 
   //with delay to play chat open/close animation
@@ -208,21 +288,31 @@ export default function Chat() {
     }
   };
   const toggleMaximize = () => setIsMaximized((prev) => !prev);
-  const toggleTripTab = () => setTripTabOpen((prev) => !prev);
   const selectTrip = (trip: { id: number; name?: string }) => {
     setSelectedTrip(trip);
   };
 
   // Message sending handler
-  const handleSend = async () => {
+  const handleSend = async (messageText: string) => {
     if (messageText.trim() && selectedTrip && user?.id) {
       try {
         await sendMessage(selectedTrip.id.toString(), user.id, messageText);
-        setMessageText("");
       } catch (error) {
         console.error("Failed to send message:", error);
       }
     }
+  };
+
+  // Handle input area height changes
+  const handleInputHeightChange = (height: number) => {
+    // Only scroll if height is increasing
+    if (height > inputAreaHeight) {
+      // Use a small timeout to ensure the DOM has updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
+    setInputAreaHeight(height);
   };
 
   // Format timestamp
@@ -231,25 +321,18 @@ export default function Chat() {
     return format(date, "h:mm a");
   };
 
-  // Handler for emoji selection in the input area.
-  const onEmojiClick = (emojiData: EmojiClickData) => {
-    setMessageText((prev) => prev + emojiData.emoji);
-    setShowEmojiPicker(false);
-  };
+  const chatContainerStyle =
+    isMobile || isMaximized
+      ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
+      : {
+          bottom: 80,
+          width: { xs: "90%", sm: "80%", md: "60%" },
+          maxWidth: 550,
+          height: 650,
+        };
 
-  // When maximized, position from the right (instead of from left)
-  const chatContainerStyle = isMaximized
-    ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
-    : {
-        bottom: 80,
-        width: { xs: "90%", sm: "80%", md: "60%" },
-        maxWidth: 550,
-        height: 650,
-      };
-
-  const tripTabWidth = isMaximized
-    ? maximizedTripTabWidth
-    : MINIMIZED_TAB_WIDTH;
+  const tripTabWidth =
+    isMobile || isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
 
   // Handle adding a reaction to a message
   const handleReaction = async (messageId: string, emoji: string) => {
@@ -414,11 +497,23 @@ export default function Chat() {
               justifyContent: "space-between",
             }}
           >
-            {!isMaximized && (
-              <IconButton onClick={toggleTripTab} sx={{ color: "#fff" }}>
-                <MenuIcon />
-              </IconButton>
-            )}
+            <IconButton
+              onClick={toggleMenu}
+              sx={{
+                color: "#fff",
+                width: 40,
+                height: 40,
+                padding: 0,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                ...(!isMobile && isMaximized && { display: "none" }),
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+
             <Typography
               variant="h6"
               color="#fff"
@@ -427,21 +522,35 @@ export default function Chat() {
                 textAlign: "center",
                 mx: 2,
                 fontFamily: "var(--font-brand), cursive",
+                [theme.breakpoints.down("sm")]: {
+                  fontSize: "1.25rem", // Smaller font size for mobile
+                },
               }}
             >
               {selectedTrip?.name || "Select a Trip"}
             </Typography>
 
-            <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
-              {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            </IconButton>
+            {!isMobile && (
+              <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
+                {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            )}
             <IconButton onClick={toggleChat} sx={{ color: "#fff" }}>
               <CloseIcon />
             </IconButton>
           </Paper>
 
           <Box sx={{ display: "flex", flex: 1 }}>
-            <Collapse in={isMaximized || tripTabOpen} orientation="horizontal">
+            <Collapse
+              in={
+                isMobile
+                  ? isTripBarOpenOnMobile // On mobile, use isTripBarOpenOnMobile
+                  : isMaximized
+                    ? true // On non-mobile, keep trips bar open when maximized
+                    : tripTabOpen // On non-mobile, use tripTabOpen when not maximized
+              }
+              orientation="horizontal"
+            >
               <Box
                 sx={{
                   width: tripTabWidth,
@@ -451,6 +560,9 @@ export default function Chat() {
                   borderRight: "1px solid var(--divider)",
                   position: "relative",
                   p: 1,
+                  [theme.breakpoints.down("sm")]: {
+                    width: "100%", // Full width on mobile
+                  },
                   // Hide scrollbar
                   "&::-webkit-scrollbar": {
                     display: "none",
@@ -493,8 +605,13 @@ export default function Chat() {
                             selectedTrip?.id === trip.id
                               ? "var(--chat)"
                               : "var(--text)",
+                          position: "relative",
                         }}
                         onClick={() => selectTrip(trip)}
+                        {...(!isMobile && {
+                          onMouseEnter: () => handleMouseEnter(trip.id),
+                          onMouseLeave: handleMouseLeave,
+                        })}
                       >
                         <ListItemText
                           primary={
@@ -513,6 +630,45 @@ export default function Chat() {
                             </Typography>
                           }
                         />
+                        {!isMobile && hoveredTrip === trip.id && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "100%", // Position below the trip name
+                              left: 0,
+                              backgroundColor: "var(--background)",
+                              border: "1px solid var(--divider)",
+                              borderRadius: "4px",
+                              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                              zIndex: 1000,
+                              p: 1,
+                              mt: 1,
+                              minWidth: "100%",
+                              color: "var(--text)",
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: "bold", mb: 1 }}
+                            >
+                              Members
+                            </Typography>
+                            <List sx={{ p: 0 }}>
+                              {trip.members?.map((member) => (
+                                <ListItem key={member.userId} sx={{ py: 0.5 }}>
+                                  <ListItemText
+                                    primary={
+                                      <Typography variant="body2">
+                                        {member.user?.fullName ||
+                                          "Unknown User"}
+                                      </Typography>
+                                    }
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        )}
                       </ListItem>
                     ))
                   ) : (
@@ -561,28 +717,57 @@ export default function Chat() {
                 backgroundRepeat: "repeat",
                 backgroundSize: "auto",
                 backgroundPosition: "center",
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.2)"
+                    : "rgba(255, 255, 255, 0.1)",
               }}
             >
               {/* Message Container */}
               <Box
+                className="message-container"
                 sx={{
                   position: "absolute",
                   top: 0,
                   left: 0,
                   right: 0,
-                  bottom: 80, // reserve space for input area
+                  bottom: inputAreaHeight,
                   overflowY: "auto",
                   overscrollBehavior: "contain",
                   p: 2,
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
-                  // Hide scrollbar
+                  transition: "all 0.3s ease",
+                  opacity: selectedTrip ? 1 : 0.7,
+                  transform: selectedTrip
+                    ? "translateY(0)"
+                    : "translateY(10px)",
+                  //Thin scrollbar styling
                   "&::-webkit-scrollbar": {
-                    display: "none",
+                    width: "4px",
                   },
-                  scrollbarWidth: "none", // Firefox
-                  msOverflowStyle: "none", // IE/Edge
+                  "&::-webkit-scrollbar-track": {
+                    background: "transparent",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.3)"
+                        : "rgba(0, 0, 0, 0.2)",
+                    borderRadius: "10px",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    background: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "rgba(255, 255, 255, 0.5)"
+                        : "rgba(0, 0, 0, 0.4)",
+                  },
+                  scrollbarWidth: "thin",
+                  scrollbarColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? "rgba(255, 255, 255, 0.3) transparent"
+                      : "rgba(0, 0, 0, 0.2) transparent",
                 }}
               >
                 {loading ? (
@@ -653,6 +838,12 @@ export default function Chat() {
                           <Typography
                             variant="caption"
                             sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignSelf:
+                                user.id === msg.userId
+                                  ? "flex-end"
+                                  : "flex-start",
                               color:
                                 msg.userId === user.id
                                   ? "grey.500"
@@ -664,7 +855,7 @@ export default function Chat() {
                           </Typography>
                           <Box
                             sx={{
-                              width: "100%",
+                              maxWidth: "70%",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"
@@ -678,6 +869,10 @@ export default function Chat() {
                                 msg.userId === user.id
                                   ? "16px 16px 0 16px"
                                   : "16px 16px 16px 0",
+                              alignSelf:
+                                msg.userId === user.id
+                                  ? "flex-end"
+                                  : "flex-start",
                             }}
                           >
                             <Typography variant="body1">{msg.text}</Typography>
@@ -700,46 +895,112 @@ export default function Chat() {
                                 }}
                               >
                                 {Object.entries(msg.reactions).map(
-                                  ([emoji, users]) => (
-                                    <Box
-                                      key={emoji}
-                                      onClick={() =>
-                                        handleReaction(msg.messageId, emoji)
-                                      }
-                                      sx={{
-                                        backgroundColor: hasUserReacted(
-                                          msg.reactions,
-                                          emoji
-                                        )
-                                          ? "var(--primary-light)"
-                                          : "var(--background-paper)",
-                                        borderRadius: "12px",
-                                        padding: "2px 6px",
-                                        fontSize: "0.8rem",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 0.5,
-                                        border: "1px solid var(--divider)",
-                                        cursor: "pointer",
-                                        "&:hover": {
-                                          backgroundColor:
-                                            "var(--secondary-hover)",
-                                          transform: "scale(1.05)",
-                                        },
-
-                                        transition: "all 0.15s ease-in-out",
-                                      }}
-                                    >
-                                      <span>{emoji}</span>
-                                      <span>{users.length}</span>
-                                    </Box>
-                                  )
+                                  ([emoji, users]) => {
+                                    return (
+                                      <Box
+                                        key={emoji}
+                                        onClick={() =>
+                                          handleReaction(msg.messageId, emoji)
+                                        }
+                                        sx={{
+                                          backgroundColor: hasUserReacted(
+                                            msg.reactions,
+                                            emoji
+                                          )
+                                            ? "var(--primary-light)"
+                                            : "var(--background-paper)",
+                                          borderRadius: "12px",
+                                          padding: "2px 6px",
+                                          fontSize: "0.8rem",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 0.5,
+                                          border: "1px solid var(--divider)",
+                                          cursor: "pointer",
+                                          position: "relative",
+                                          "&:hover": {
+                                            backgroundColor:
+                                              "var(--secondary-hover)",
+                                            transform: "scale(1.05)",
+                                            "& .reaction-tooltip": {
+                                              opacity: 1,
+                                              visibility: "visible",
+                                            },
+                                          },
+                                          transition: "all 0.15s ease-in-out",
+                                        }}
+                                      >
+                                        <span>{emoji}</span>
+                                        <span>{users.length}</span>
+                                        <Box
+                                          className="reaction-tooltip"
+                                          sx={{
+                                            position: "absolute",
+                                            bottom: "calc(100% + 10px)",
+                                            [msg.userId === user.id
+                                              ? "right"
+                                              : "left"]: 0,
+                                            backgroundColor:
+                                              "var(--background-paper)",
+                                            color: "var(--text)",
+                                            padding: "6px 10px",
+                                            borderRadius: "6px",
+                                            boxShadow:
+                                              "0 3px 12px rgba(0,0,0,0.15)",
+                                            border: "1px solid var(--divider)",
+                                            minWidth: "120px",
+                                            maxWidth: "220px",
+                                            opacity: 0,
+                                            visibility: "hidden",
+                                            transition: "all 0.2s ease",
+                                            transform: "translateY(5px)",
+                                            zIndex: 9999,
+                                            "&::after": {
+                                              content: '""',
+                                              position: "absolute",
+                                              top: "100%",
+                                              [msg.userId === user.id
+                                                ? "right"
+                                                : "left"]: "10px",
+                                              border: "8px solid transparent",
+                                              borderTopColor:
+                                                "var(--background-paper)",
+                                            },
+                                            "&:hover": {
+                                              transform: "translateY(0)",
+                                            },
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            sx={{
+                                              fontStyle: "italic",
+                                              whiteSpace: "normal",
+                                              textAlign: "center",
+                                              color: "var(--text-secondary)",
+                                            }}
+                                          >
+                                            {users
+                                              .map((userId) =>
+                                                getUserFullName(userId)
+                                              )
+                                              .join(", ")}
+                                          </Typography>
+                                        </Box>
+                                      </Box>
+                                    );
+                                  }
                                 )}
                               </Box>
                             )}
 
                           {/* Reaction button */}
                           <IconButton
+                            ref={
+                              msg.messageId === openReactionPickerFor
+                                ? reactionButtonRef
+                                : undefined
+                            }
                             onClick={() =>
                               setOpenReactionPickerFor(
                                 openReactionPickerFor === msg.messageId
@@ -772,6 +1033,7 @@ export default function Chat() {
                           {/* Reaction picker for this message */}
                           {openReactionPickerFor === msg.messageId && (
                             <Box
+                              ref={reactionPickerRef}
                               sx={{
                                 position: "absolute",
                                 bottom: "30px",
@@ -809,7 +1071,11 @@ export default function Chat() {
                                     emoji
                                   )}
                                   sx={{
+                                    zIndex: 100,
                                     padding: "4px",
+                                    width: "24px",
+                                    height: "24px",
+                                    borderRadius: "50%",
                                     backgroundColor: hasUserReacted(
                                       msg.reactions,
                                       emoji
@@ -846,7 +1112,13 @@ export default function Chat() {
                                   ) ? (
                                     <CircularProgress size={16} />
                                   ) : (
-                                    <Typography variant="body2">
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        color: "unset",
+                                        fontFamily: "initial",
+                                      }}
+                                    >
                                       {emoji}
                                     </Typography>
                                   )}
@@ -863,129 +1135,13 @@ export default function Chat() {
                 <Box ref={messagesEndRef} />
               </Box>
 
-              {/* Input Area */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 80,
-                  backgroundImage: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? "url('dark-mode.jpg')"
-                      : "url('light-mode.jpg')",
-                  backgroundRepeat: "repeat",
-                  backgroundSize: "auto",
-                  backgroundPosition: "center",
-                  p: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: isMaximized ? "center" : "flex-start",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "var(--background-paper)",
-                    borderRadius: 50,
-                    p: 1.5,
-                    pr: 4,
-                    mb: 2,
-                    width: isMaximized ? "60%" : "100%",
-                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                    position: "relative",
-                  }}
-                >
-                  <TextField
-                    variant="outlined"
-                    placeholder={
-                      selectedTrip
-                        ? "Type your message..."
-                        : "Select a trip to start chatting"
-                    }
-                    fullWidth
-                    size="small"
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    disabled={!selectedTrip}
-                    sx={{
-                      flex: 1,
-                      backgroundColor: "transparent",
-                      border: "none",
-                      outline: "none",
-                      borderRadius: 50,
-                      padding: "10px 12px",
-                      fontSize: "1rem",
-                      "& .MuiInputBase-root": { padding: 0 },
-                      "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                    }}
-                  />
-
-                  {/* Emoji Button */}
-                  <IconButton
-                    onClick={() => setShowEmojiPicker((prev) => !prev)}
-                    sx={{
-                      borderRadius: 3.5,
-                      padding: "8px",
-                    }}
-                  >
-                    <EmojiEmotionsIcon />
-                  </IconButton>
-
-                  {/* Send Button */}
-                  <Button
-                    variant="contained"
-                    onClick={handleSend}
-                    disabled={!selectedTrip || !messageText.trim()}
-                    sx={{
-                      ml: 2,
-                      backgroundColor: "var(--primary)",
-                      borderRadius: 50,
-                      padding: "8px 20px",
-                      "&:hover": { backgroundColor: "var(--primary-hover)" },
-                    }}
-                  >
-                    Send
-                  </Button>
-
-                  {/* Emoji Picker Pop-up */}
-                  {showEmojiPicker && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: "80px",
-                        zIndex: 1000,
-                        ...(isMaximized
-                          ? {
-                              left: "65%",
-                              transform: "translateX(-50%) scale(0.8)",
-                              transformOrigin: "bottom center",
-                            }
-                          : {
-                              right: 0,
-                              transform: "scale(0.7)",
-                              transformOrigin: "bottom center",
-                            }),
-                        backgroundColor: "var(--background-paper)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      <EmojiPicker
-                        onEmojiClick={onEmojiClick}
-                        theme={currentEmojiTheme}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+              {/* Chat Input Component */}
+              <ChatInput
+                selectedTrip={selectedTrip}
+                onSendMessage={handleSend}
+                onHeightChange={handleInputHeightChange}
+                isMaximized={isMaximized}
+              />
             </Box>
           </Box>
         </Box>

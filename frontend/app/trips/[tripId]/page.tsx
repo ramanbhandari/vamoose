@@ -32,6 +32,8 @@ import Expenses from "./sections/Expenses";
 import Dock from "../../../components/blocks/Components/Dock/Dock";
 import { useTripStore } from "@/stores/trip-store";
 import { usePollStore } from "@/stores/polls-store";
+import { useItineraryStore } from "@/stores/itinerary-store";
+
 import { LocationOn } from "@mui/icons-material";
 import Maps from "./sections/Maps";
 
@@ -82,6 +84,8 @@ export default function TripSummaryPage() {
 
   const { tripData, loading, error, fetchTripData } = useTripStore();
   const { activePolls, completedPolls, fetchPolls } = usePollStore();
+  const { itineraryEvents, fetchItineraryEvents } = useItineraryStore();
+
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleSectionChange = (sectionId: string) => {
@@ -93,27 +97,41 @@ export default function TripSummaryPage() {
       fetchTripData(tripId);
       // silently also pull Polls
       fetchPolls(tripId);
+      // silently also pull Itinerary Events
+      fetchItineraryEvents(tripId);
     }
 
-    // Read hash from URL to set the correct section on load and remove #
-    const hashSection = window.location.hash.replace("#", "");
-    if (hashSection) {
-      setActiveSection(hashSection);
-
-      // Remove the hash from the URL without triggering a page reload
-      history.replaceState(null, "", window.location.pathname);
-    }
-
-    // Also listen for hash changes if user manually updates the URL
-    const handleHashChange = () => {
-      setActiveSection(window.location.hash.replace("#", ""));
-
-      // Remove the hash after processing
-      history.replaceState(null, "", window.location.pathname);
+    // update section from hash
+    const updateSectionFromHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash) {
+        setActiveSection(hash);
+        history.replaceState(null, "", window.location.pathname);
+      }
     };
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    updateSectionFromHash();
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", updateSectionFromHash);
+
+    // Listen for our custom event to update section if user was already on that trip page
+    const handleSectionChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail?.section) {
+        setActiveSection(customEvent.detail.section);
+        // giving react some time before removing the hash otherwise it doesnt work
+        setTimeout(() => {
+          history.replaceState(null, "", window.location.pathname);
+        }, 100);
+      }
+    };
+    window.addEventListener("trip-section-change", handleSectionChange);
+
+    return () => {
+      window.removeEventListener("hashchange", updateSectionFromHash);
+      window.removeEventListener("trip-section-change", handleSectionChange);
+    };
   }, [tripId, fetchTripData, fetchPolls]);
 
   //Just a loading screen
@@ -257,6 +275,7 @@ export default function TripSummaryPage() {
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
+            itineraryEvents={itineraryEvents}
           />
         )}
         {activeSection === "packing" && tripData && (

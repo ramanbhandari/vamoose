@@ -32,7 +32,6 @@ jest.mock('@/config/prismaClient.js', () => ({
     },
   },
 }));
-
 describe('Expense API - Add Expense', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
