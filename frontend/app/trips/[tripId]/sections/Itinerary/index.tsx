@@ -1,4 +1,12 @@
-import { Box, Typography, useTheme, Container, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Container,
+  Button,
+  IconButton,
+  alpha,
+} from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
 import { useState } from "react";
 import { CreateItineraryEvent, CreateNote, ItineraryEvent } from "./types";
@@ -8,6 +16,8 @@ import apiClient from "@/utils/apiClient";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useItineraryStore } from "@/stores/itinerary-store";
 import ListView from "./ListView/ListView";
+import { CalendarMonth, ViewList } from "@mui/icons-material";
+import CalendarView from "./CalendarView/CalendarView";
 
 interface ItineraryProps {
   tripId: number;
@@ -27,6 +37,8 @@ export default function Itinerary({
 
   const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -256,21 +268,85 @@ export default function Itinerary({
         </Container>
       </GradientHeader>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ListView
-          loading={loading}
-          error={error}
-          members={tripData?.members}
-          tripStart={tripData?.startDate}
-          tripEnd={tripData?.endDate}
-          onAdd={handleSaveEvent}
-          onUpdate={handleUpdateItineraryEvent}
-          onDelete={handleDeleteItineraryEvent}
-          onAddNote={handleAddItineraryEventNote}
-          onUpdateNote={handleUpdateItineraryEventNote}
-          onDeleteNote={handleDeleteItineraryEventNote}
-          onAssignMembers={handleAssignMembers}
-          onUnAssignMembers={handleDeleteAssignedMembers}
-        />
+        <Box
+          sx={{
+            // display: "flex",
+            alignItems: "center",
+            borderRadius: "8px",
+            position: "relative",
+            maxWidth: 800,
+            mx: "auto",
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.8)}`,
+          }}
+        >
+          <IconButton
+            onClick={() => setViewMode("list")}
+            sx={{
+              color:
+                viewMode === "list"
+                  ? "primary.main"
+                  : alpha(theme.palette.secondary.main, 0.7),
+              backgroundColor:
+                viewMode === "list"
+                  ? alpha(theme.palette.primary.light, 0.3)
+                  : "transparent",
+              transition: "all 0.2s",
+            }}
+          >
+            <ViewList />
+          </IconButton>
+
+          <IconButton
+            onClick={() => setViewMode("calendar")}
+            sx={{
+              color:
+                viewMode === "calendar"
+                  ? "primary.main"
+                  : alpha(theme.palette.secondary.main, 0.7),
+              backgroundColor:
+                viewMode === "calendar"
+                  ? alpha(theme.palette.primary.light, 0.3)
+                  : "transparent",
+              transition: "all 0.2s",
+            }}
+          >
+            <CalendarMonth />
+          </IconButton>
+        </Box>
+
+        {viewMode === "list" ? (
+          <ListView
+            loading={loading}
+            error={error}
+            members={tripData?.members}
+            tripStart={tripData?.startDate}
+            tripEnd={tripData?.endDate}
+            onAdd={handleSaveEvent}
+            onUpdate={handleUpdateItineraryEvent}
+            onDelete={handleDeleteItineraryEvent}
+            onAddNote={handleAddItineraryEventNote}
+            onUpdateNote={handleUpdateItineraryEventNote}
+            onDeleteNote={handleDeleteItineraryEventNote}
+            onAssignMembers={handleAssignMembers}
+            onUnAssignMembers={handleDeleteAssignedMembers}
+          />
+        ) : (
+          <CalendarView
+            loading={loading}
+            error={error}
+            members={tripData?.members}
+            tripStart={tripData?.startDate}
+            tripEnd={tripData?.endDate}
+            onAdd={handleSaveEvent}
+            onUpdate={handleUpdateItineraryEvent}
+            onDelete={handleDeleteItineraryEvent}
+            onAddNote={handleAddItineraryEventNote}
+            onUpdateNote={handleUpdateItineraryEventNote}
+            onDeleteNote={handleDeleteItineraryEventNote}
+            onAssignMembers={handleAssignMembers}
+            onUnAssignMembers={handleDeleteAssignedMembers}
+          />
+        )}
       </Container>
 
       <CreateEventModal
