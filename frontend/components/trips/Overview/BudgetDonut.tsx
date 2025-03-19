@@ -106,10 +106,13 @@ export default function BudgetDonut({
   const budgetRatio = budget ? usedBudget / budget : 0;
   const isNearLimit = budgetRatio >= 0.8 && usedBudget <= budget;
   const isOverBudget = usedBudget > budget;
+  const allBudgetUsed = usedBudget == budget;
 
   const alertMessage =
     isNearLimit && !isOverBudget
-      ? `Nearing budget, $${(budget - usedBudget).toLocaleString()} remaining`
+      ? allBudgetUsed
+        ? `All budget used, $${(budget - usedBudget).toLocaleString()} remaining`
+        : `Nearing budget, $${(budget - usedBudget).toLocaleString()} remaining`
       : `You've exceeded your budget by $${(usedBudget - budget).toLocaleString()}!`;
 
   return (

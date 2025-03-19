@@ -34,6 +34,7 @@ import {
   ItineraryEvent,
 } from "./types";
 import {
+  formatDateTime,
   formatDateTimeForAPI,
   parseLocalDateWithTime,
 } from "@/utils/dateFormatter";
@@ -67,6 +68,9 @@ interface CreateEventDialogProps {
   tripStart: string;
   tripEnd: string;
 }
+
+const MIN_START_BUFFER_MINUTES = 5; // If today, start time must be at least now + 5 minutes
+const MIN_DURATION_MINUTES = 30; // End must be at least 30 minutes after start
 
 export default function CreateEventDialog({
   open,
@@ -105,6 +109,14 @@ export default function CreateEventDialog({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
     event?.assignedUsers?.map((u) => u.user.id) || []
   );
+
+  const tripStartDate = new Date(tripStart);
+  const tripEndDate = new Date(tripEnd);
+  const now = new Date();
+  const allowedMinStart =
+    now > tripStartDate
+      ? new Date(now.getTime() + MIN_START_BUFFER_MINUTES * 60000)
+      : tripStartDate;
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
@@ -154,8 +166,35 @@ export default function CreateEventDialog({
       setNotification("Please select an end time", "error");
       return false;
     }
-    if (new Date(startTime) >= new Date(endTime)) {
-      setNotification("End time must be after start time", "error");
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+
+    // Ensure start is within allowed bounds
+    if (startDate < allowedMinStart) {
+      setNotification(
+        `Start time cannot be before ${formatDateTime(formatDateTimeForAPI(allowedMinStart))}`,
+        "error"
+      );
+      return false;
+    }
+    if (startDate > tripEndDate) {
+      setNotification("Start time cannot be after the trip ends", "error");
+      return false;
+    }
+
+    if (endDate > tripEndDate) {
+      setNotification("End time cannot be after the trip ends", "error");
+      return false;
+    }
+    // End time must be at least MIN_DURATION_MINUTES after start
+    if (
+      endDate.getTime() - startDate.getTime() <
+      MIN_DURATION_MINUTES * 60000
+    ) {
+      setNotification(
+        `End time must be at least ${MIN_DURATION_MINUTES} minutes after start time`,
+        "error"
+      );
       return false;
     }
     if (!category.trim()) {
@@ -192,6 +231,7 @@ export default function CreateEventDialog({
   };
 
   const handleSave = () => {
+    if (!validateForm()) return;
     if (event && onUpdate) {
       onUpdate({
         title,
@@ -220,8 +260,38 @@ export default function CreateEventDialog({
     setHasScrolledToBottom(false);
   };
 
+  const roundUpToNearestFive = (date: Date): Date => {
+    const ms = date.getTime();
+    const minutes = date.getMinutes();
+    const remainder = minutes % 5;
+    const diff = remainder === 0 ? 0 : 5 - remainder;
+    return new Date(ms + diff * 60000);
+  };
+
   const handleStartTimeChange = (newValue: Date | null) => {
     if (newValue) {
+      const now = new Date();
+      // If the selected date is today, enforce a minimum start time (now + buffer)
+      if (
+        formatDateTimeForAPI(newValue).slice(0, 10) ===
+        formatDateTimeForAPI(now).slice(0, 10)
+      ) {
+        const minStart = new Date(
+          now.getTime() + MIN_START_BUFFER_MINUTES * 60000
+        );
+        if (newValue < minStart) {
+          newValue = roundUpToNearestFive(minStart);
+          setNotification(
+            `Start time adjusted to ${newValue.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })} (at least ${MIN_START_BUFFER_MINUTES} minutes from now)`,
+            "info"
+          );
+        }
+      }
+      // Clear the end time since start has changed
+      setEndTime("");
       const formatted = formatDateTimeForAPI(newValue);
       setStartTime(formatted);
     }
@@ -229,6 +299,32 @@ export default function CreateEventDialog({
 
   const handleEndTimeChange = (newValue: Date | null) => {
     if (newValue) {
+      if (!startTime) {
+        setNotification("Please select a start time first", "error");
+        return;
+      }
+      const startDate = new Date(startTime);
+      const minEnd = new Date(
+        startDate.getTime() + MIN_DURATION_MINUTES * 60000
+      );
+
+      if (newValue > tripEndDate) {
+        setNotification("End date cannot be after trip end date", "error");
+        setEndTime("");
+        return;
+      }
+
+      if (newValue < minEnd) {
+        newValue = minEnd;
+        setNotification(
+          `End time adjusted to ${newValue.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} (at least ${MIN_DURATION_MINUTES} minutes after start)`,
+          "info"
+        );
+      }
+
       const formatted = formatDateTimeForAPI(newValue);
       setEndTime(formatted);
     }
