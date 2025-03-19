@@ -130,7 +130,7 @@ export const updateMarkedLocationNotesHandler = async (
       return;
     }
 
-    // Check if the user is a member of the trip and get their role
+    // Check if the user is a member of the trip
     const requestingMember = await getTripMember(tripId, userId);
     if (!requestingMember) {
       res.status(403).json({
