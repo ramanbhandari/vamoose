@@ -1,33 +1,15 @@
 import React, { useMemo, useState } from "react";
-import {
-  Box,
-  Typography,
-  IconButton,
-  useTheme,
-  alpha,
-  CircularProgress,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Checkbox,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Box, useTheme, alpha, CircularProgress } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreateItineraryEvent, CreateNote, ItineraryEvent } from "../types";
 import { useItineraryStore } from "@/stores/itinerary-store";
 import { useNotificationStore } from "@/stores/notification-store";
-import { FloatingDialogSmall } from "../../Polls/styled";
 import EventModal from "../EventModal";
 import { Member } from "@/types";
 import { TimelineDot } from "./styled";
 import { DateHeader } from "./DateHeader";
 import EventCard from "./EventCard";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 interface ListViewProps {
   selectedDate?: Date;
@@ -67,43 +49,7 @@ const ListView: React.FC<ListViewProps> = ({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [editingEvent, setEditingEvent] = useState<ItineraryEvent | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<ItineraryEvent | null>(
-    null
-  );
-
-  const [editingMembersEventId, setEditingMembersEventId] = useState<
-    number | null
-  >(null);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
-
-  const handleMemberToggle = (memberId: string) => () => {
-    setSelectedMemberIds((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
-    );
-  };
-
-  const handleSaveMembers = () => {
-    if (!editingMembersEventId) return;
-
-    const event = events.find((e) => e.id === editingMembersEventId);
-    if (!event) return;
-
-    const currentAssignedIds = event.assignedUsers.map((u) => u.user.id);
-    const added = selectedMemberIds.filter(
-      (id) => !currentAssignedIds.includes(id)
-    );
-    const removed = currentAssignedIds.filter(
-      (id) => !selectedMemberIds.includes(id)
-    );
-
-    if (added.length > 0) onAssignMembers(editingMembersEventId, added);
-    if (removed.length > 0) onUnAssignMembers(editingMembersEventId, removed);
-
-    setEditingMembersEventId(null);
-    setSelectedMemberIds([]);
-  };
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
 
   const eventsByDate = useMemo(() => {
     const groups: Record<string, ItineraryEvent[]> = {};
@@ -137,10 +83,17 @@ const ListView: React.FC<ListViewProps> = ({
     return null;
   }
 
-  const handleDeleteEvent = (eventId: number) => {
-    onDelete(eventId);
-    setConfirmOpen(false);
-    setPendingDelete(null);
+  const handleDeleteEventRequest = (eventId: number) => {
+    setConfirmOpen(true);
+    setPendingDelete(eventId);
+  };
+
+  const handleDeleteEvent = () => {
+    if (pendingDelete !== null) {
+      onDelete(pendingDelete);
+      setConfirmOpen(false);
+      setPendingDelete(null);
+    }
   };
 
   return (
@@ -175,7 +128,7 @@ const ListView: React.FC<ListViewProps> = ({
                     event={evt}
                     expanded={false}
                     onEdit={setEditingEvent}
-                    onDelete={onDelete}
+                    onDelete={handleDeleteEventRequest}
                     onClose={() => {}}
                     onAddNote={onAddNote}
                     onUpdateNote={onUpdateNote}
@@ -191,148 +144,11 @@ const ListView: React.FC<ListViewProps> = ({
         ))}
       </AnimatePresence>
 
-      <FloatingDialogSmall
+      <DeleteConfirmationDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-      >
-        <DialogTitle
-          sx={{ p: 0, backgroundColor: theme.palette.background.default }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              p: 3,
-              pb: 2,
-            }}
-          >
-            <Typography variant="h5" fontWeight={600} color="text.primary">
-              Delete Event
-            </Typography>
-            <IconButton onClick={() => setConfirmOpen(false)} size="small">
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            px: 3,
-            py: 0,
-            pt: 2,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Typography variant="body1">
-            Are you sure you want to delete this event?
-          </Typography>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            p: 3,
-            pt: 2,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Button onClick={() => setConfirmOpen(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => pendingDelete && handleDeleteEvent(pendingDelete.id)}
-            sx={{ px: 3, borderRadius: "8px", fontWeight: 600 }}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </FloatingDialogSmall>
-
-      <FloatingDialogSmall
-        open={!!editingMembersEventId}
-        onClose={() => setEditingMembersEventId(null)}
-      >
-        <DialogTitle
-          sx={{ p: 0, backgroundColor: theme.palette.background.default }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              p: 3,
-              pb: 2,
-            }}
-          >
-            <Typography variant="h5" fontWeight={600} color="text.primary">
-              Manage Participants
-            </Typography>
-            <IconButton
-              onClick={() => setEditingMembersEventId(null)}
-              size="small"
-            >
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            px: 3,
-            py: 0,
-            pt: 2,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <List sx={{ width: "100%", maxWidth: 360 }}>
-            {members.map((member) => (
-              <ListItem key={member.userId} disablePadding>
-                <ListItemButton
-                  role={undefined}
-                  onClick={handleMemberToggle(member.userId)}
-                  dense
-                >
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={selectedMemberIds.includes(member.userId)}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={member.user.fullName || member.user.email}
-                    primaryTypographyProps={{
-                      variant: "body1",
-                      color: "text.primary",
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            p: 3,
-            pt: 2,
-            backgroundColor: theme.palette.background.default,
-            justifyContent: "space-between",
-          }}
-        >
-          <Button
-            onClick={() => setEditingMembersEventId(null)}
-            color="inherit"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveMembers}
-            sx={{ px: 3, borderRadius: "8px", fontWeight: 600 }}
-          >
-            Save Changes
-          </Button>
-        </DialogActions>
-      </FloatingDialogSmall>
+        onConfirm={handleDeleteEvent}
+      />
 
       {editingEvent && (
         <EventModal
