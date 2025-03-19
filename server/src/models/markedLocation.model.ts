@@ -1,6 +1,6 @@
 import prisma from '@/config/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { NotFoundError, ForbiddenError } from '@/utils/errors.js';
+import { NotFoundError } from '@/utils/errors.js';
 import { CreateMarkedLocationInput } from '@/interfaces/interfaces.js';
 
 // Create a Marked Location
