@@ -183,6 +183,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const { setNotification } = useNotificationStore();
 
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState<
+    "month" | "week" | "day" | "work_week" | "agenda"
+  >(Views.MONTH);
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(
     null
   );
@@ -318,6 +321,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           date={currentDate}
           onNavigate={(newDate) => {
             setCurrentDate(newDate);
+          }}
+          view={currentView}
+          onView={(view) => {
+            setCurrentView(view);
           }}
           defaultView={Views.MONTH}
           views={[Views.MONTH, Views.WEEK, Views.DAY]}
