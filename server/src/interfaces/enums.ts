@@ -21,3 +21,12 @@ export enum EventCategory {
   FREE_TIME = 'FREE_TIME',
   OTHER = 'OTHER',
 }
+
+export enum LocationType {
+  ACCOMMODATION = 'ACCOMMODATION',
+  RESTAURANT = 'RESTAURANT',
+  CAFE = 'CAFE',
+  SHOPPING = 'SHOPPING',
+  GAS_STATION = 'GAS_STATION',
+  OTHER = 'OTHER',
+}

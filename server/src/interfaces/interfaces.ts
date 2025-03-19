@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { EventCategory } from './enums';
+import { EventCategory, LocationType } from './enums';
 
 export interface AuthenticatedRequest extends Request {
   userId: string;
@@ -95,4 +95,16 @@ export interface NotificationFilterOptions {
   isRead?: boolean;
   type?: string;
   limit?: number;
+}
+
+export interface CreateMarkedLocationInput {
+  tripId: number;
+  name: string;
+  type: LocationType;
+  coordinates: { latitude: number; longitude: number };
+  address?: string;
+  createdById: string;
+  notes?: string;
+  website?: string;
+  phoneNumber?: string;
 }
