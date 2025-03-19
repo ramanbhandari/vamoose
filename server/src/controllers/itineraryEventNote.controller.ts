@@ -54,6 +54,21 @@ export const addNoteToItineraryEventHandler = async (
     }
 
     const note = await addNoteToItineraryEvent(eventId, userId, content);
+
+    // Notify assigned users
+    const trip = await fetchSingleTrip(userId, tripId);
+    const assignedUsers = event.assignedUsers.map(
+      (assignedUser) => assignedUser.user.id,
+    );
+
+    await notifySpecificTripMembers(tripId, assignedUsers, {
+      type: NotificationType.EVENT_NOTE_ADDED,
+      relatedId: eventId,
+      title: 'New Note Added to Your Assigned Event',
+      message: `A new note was added to "${event.title}" in "${trip.name}". Check it out!`,
+      channel: 'IN_APP',
+    });
+
     res.status(201).json({ message: 'Note added successfully', note });
   } catch (error) {
     handleControllerError(error, res, 'Error adding note to event:');
@@ -117,22 +132,7 @@ export const updateItineraryEventNoteHandler = async (
     }
 
     const updatedNote = await updateItineraryEventNote(noteId, content);
-
     res.status(200).json({ message: 'Note updated successfully', updatedNote });
-
-    // Notify assigned users
-    const trip = await fetchSingleTrip(userId, tripId);
-    const assignedUsers = event.assignedUsers.map(
-      (assignedUser) => assignedUser.user.id,
-    );
-
-    await notifySpecificTripMembers(tripId, assignedUsers, {
-      type: NotificationType.EVENT_NOTE_ADDED,
-      relatedId: eventId,
-      title: 'New Note Added to Your Assigned Event',
-      message: `A new note was added to "${event.title}" in "${trip.name}". Check it out!`,
-      channel: 'IN_APP',
-    });
   } catch (error) {
     handleControllerError(error, res, 'Error updating note:');
   }

@@ -123,11 +123,6 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
       splitAmongUserIds,
     });
 
-    res.status(201).json({
-      message: 'Expense added successfully',
-      expense,
-    });
-
     // Notify the members of the trip of the new expense
     const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembersExceptInitiator(tripId, userId, {
@@ -148,6 +143,11 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
       title: `You’ve Been Added to an Expense for trip "${trip.name}"`,
       message: `You have been included in a shared expense of $${amount} for the trip. Check your balances in the Expenses tab.`,
       channel: 'IN_APP',
+    });
+
+    res.status(201).json({
+      message: 'Expense added successfully',
+      expense,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error adding expense:');

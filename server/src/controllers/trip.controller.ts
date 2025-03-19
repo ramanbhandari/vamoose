@@ -233,9 +233,6 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     }
 
     const deletedTrip = await deleteTrip(userId, tripId);
-    res
-      .status(200)
-      .json({ message: 'Trip deleted successfully', trip: deletedTrip });
 
     // Notify trip members that the trip was deleted
     await notifyTripMembers(tripId, {
@@ -245,6 +242,10 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
       message: `The trip "${trip.name}" has been deleted.`,
       channel: 'IN_APP',
     });
+
+    res
+      .status(200)
+      .json({ message: 'Trip deleted successfully', trip: deletedTrip });
   } catch (error) {
     handleControllerError(error, res, 'Error deleting trip:');
   }
@@ -340,9 +341,6 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     }
 
     const updatedTrip = await updateTrip(tripId, tripData);
-    res
-      .status(200)
-      .json({ message: 'Trip updated successfully', trip: updatedTrip });
 
     // Notify all trip members about the update
     await notifyTripMembersExceptInitiator(tripId, userId, {
@@ -352,6 +350,10 @@ export const updateTripHandler = async (req: Request, res: Response) => {
       message: `The trip "${updatedTrip.name}" has been updated.`,
       channel: 'IN_APP',
     });
+
+    res
+      .status(200)
+      .json({ message: 'Trip updated successfully', trip: updatedTrip });
   } catch (error) {
     handleControllerError(error, res, 'Error updating trip:');
   }

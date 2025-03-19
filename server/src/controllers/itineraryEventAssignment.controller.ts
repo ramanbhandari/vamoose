@@ -105,14 +105,6 @@ export const assignUsersToItineraryEventHandler = async (
 
     await assignUsersToItineraryEvent(eventId, usersToAssign);
 
-    res.status(200).json({
-      message: 'Users assigned successfully',
-      assignedUsers: usersToAssign,
-      ignoredUsers:
-        alreadyAssignedIds.length > 0 ? alreadyAssignedIds : undefined,
-      nonMembers: nonMemberIds.length > 0 ? nonMemberIds : undefined,
-    });
-
     // Notify assigned users
     const trip = await fetchSingleTrip(userId, tripId);
     const usersToNotify = usersToAssign.filter((id) => id !== userId);
@@ -122,6 +114,14 @@ export const assignUsersToItineraryEventHandler = async (
       title: "You're now assigned to an event!",
       message: `You have been assigned as a planner for "${event.title}" in "${trip.name}".`,
       channel: 'IN_APP',
+    });
+
+    res.status(200).json({
+      message: 'Users assigned successfully',
+      assignedUsers: usersToAssign,
+      ignoredUsers:
+        alreadyAssignedIds.length > 0 ? alreadyAssignedIds : undefined,
+      nonMembers: nonMemberIds.length > 0 ? nonMemberIds : undefined,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error assigning users to event:');
@@ -199,12 +199,6 @@ export const unassignUserFromItineraryEventHandler = async (
 
     await unassignUserFromItineraryEvent(eventId, validUserIds);
 
-    res.status(200).json({
-      message: 'Users unassigned successfully',
-      unassignedUsers: validUserIds,
-      ignoredUsers: invalidUserIds.length > 0 ? invalidUserIds : undefined,
-    });
-
     // Notify unassigned users
     const usersToNotify = validUserIds.filter((id) => id !== userId);
     await notifySpecificTripMembers(tripId, usersToNotify, {
@@ -213,6 +207,12 @@ export const unassignUserFromItineraryEventHandler = async (
       title: 'You’ve been removed as a planner',
       message: `You are no longer assigned to plan the itinerary event "${event.title}".`,
       channel: 'IN_APP',
+    });
+
+    res.status(200).json({
+      message: 'Users unassigned successfully',
+      unassignedUsers: validUserIds,
+      ignoredUsers: invalidUserIds.length > 0 ? invalidUserIds : undefined,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error unassigning users from event:');

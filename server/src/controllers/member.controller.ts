@@ -80,11 +80,6 @@ export const updateTripMemberHandler = async (req: Request, res: Response) => {
       role,
     });
 
-    res.status(200).json({
-      message: `Member role updated successfully`,
-      member: updatedMember,
-    });
-
     // Notify the member whose role was changed
     const trip = await fetchSingleTrip(userId, tripId);
 
@@ -94,6 +89,11 @@ export const updateTripMemberHandler = async (req: Request, res: Response) => {
       title: 'Your Role Has Been Updated',
       message: `Your role in the trip "${trip.name}" has been changed to ${role}.`,
       channel: 'IN_APP',
+    });
+
+    res.status(200).json({
+      message: `Member role updated successfully`,
+      member: updatedMember,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error updating trip member:');
@@ -179,6 +179,7 @@ export const leaveTripHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req as AuthenticatedRequest;
     const tripId = Number(req.params.tripId);
+    const trip = await fetchSingleTrip(userId, tripId);
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized Request' });
@@ -208,10 +209,7 @@ export const leaveTripHandler = async (req: Request, res: Response) => {
     // Proceed with removal
     await deleteTripMember(tripId, userId);
 
-    res.status(200).json({ message: 'You have left the trip successfully' });
-
     // Notify the trip members that a member left
-    const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembers(tripId, {
       type: NotificationType.MEMBER_LEFT,
       relatedId: tripId,
@@ -219,6 +217,8 @@ export const leaveTripHandler = async (req: Request, res: Response) => {
       message: `${member.user.fullName} has left the trip "${trip.name}".`,
       channel: 'IN_APP',
     });
+
+    res.status(200).json({ message: 'You have left the trip successfully' });
   } catch (error) {
     handleControllerError(error, res, 'Error leaving trip:');
   }
@@ -307,8 +307,6 @@ export const removeTripMemberHandler = async (req: Request, res: Response) => {
     // Proceed with removal
     await deleteTripMember(tripId, memberUserId);
 
-    res.status(200).json({ message: 'Member removed successfully' });
-
     // Notify trip members that a member was kicked
     const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembersExceptInitiator(tripId, userId, {
@@ -327,6 +325,8 @@ export const removeTripMemberHandler = async (req: Request, res: Response) => {
       message: `You have been removed from the trip "${trip.name}" by an admin.`,
       channel: 'IN_APP',
     });
+
+    res.status(200).json({ message: 'Member removed successfully' });
   } catch (error) {
     handleControllerError(error, res, 'Error removing trip member:');
   }
@@ -442,12 +442,6 @@ export const batchRemoveTripMembersHandler = async (
     // Proceed with removal for valid members only
     await deleteManyTripMembers(tripId, validMemberIds);
 
-    res.status(200).json({
-      message: 'Batch removal completed',
-      removedMembers: validMemberIds,
-      ignoredMembers: ignoredMemberIds,
-    });
-
     // Notify trip members that some members were kicked
     const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembers(tripId, {
@@ -465,6 +459,12 @@ export const batchRemoveTripMembersHandler = async (
       title: 'You Have Been Removed from the Trip',
       message: `You have been removed from the trip "${trip.name}" by an admin.`,
       channel: 'IN_APP',
+    });
+
+    res.status(200).json({
+      message: 'Batch removal completed',
+      removedMembers: validMemberIds,
+      ignoredMembers: ignoredMemberIds,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error removing trip members:');

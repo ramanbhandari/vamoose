@@ -53,17 +53,17 @@ export const createPollHandler = async (req: Request, res: Response) => {
       options,
     });
 
-    res.status(201).json({ message: 'Poll created successfully', poll });
-
     // send notification to everyone except creator of the Poll
     const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.POLL_CREATED,
       relatedId: poll.id,
       title: `New Poll in trip "${trip.name}"`,
-      message: `A new poll was created by ${requestingMember.user.email}.`,
+      message: `A new poll was created by ${requestingMember.user.fullName}.`,
       channel: 'IN_APP',
     });
+
+    res.status(201).json({ message: 'Poll created successfully', poll });
   } catch (error) {
     handleControllerError(error, res, 'Error creating poll:');
   }
@@ -350,14 +350,6 @@ export const completePollHandler = async (req: Request, res: Response) => {
     // Update the poll status and winner
     const updatedPoll = await markPollAsCompleted(pollId, status, winnerId);
 
-    res.status(200).json({
-      message: 'Poll marked as completed successfully',
-      poll: updatedPoll,
-      status,
-      winnerId,
-      tiedOptions,
-    });
-
     await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.POLL_COMPLETE,
       relatedId: poll.id,
@@ -367,6 +359,14 @@ export const completePollHandler = async (req: Request, res: Response) => {
           ? `Poll "${poll.question}" ended in a tie among the top options: ${tiedOptions.map((opt) => opt.option).join(', ')}.`
           : `Poll "${poll.question}" has been completed. The winning option is "${poll.options.find((option) => option.id === winnerId)?.option}".`,
       channel: 'IN_APP',
+    });
+
+    res.status(200).json({
+      message: 'Poll marked as completed successfully',
+      poll: updatedPoll,
+      status,
+      winnerId,
+      tiedOptions,
     });
   } catch (error) {
     handleControllerError(error, res, 'Error marking polls as completed:');

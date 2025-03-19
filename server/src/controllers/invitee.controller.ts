@@ -128,7 +128,6 @@ export const createInvite = async (req: Request, res: Response) => {
     res.status(201).json({
       inviteUrl: `${process.env.FRONTEND_URL}/invite/${invite.inviteToken}`,
     });
-    return;
   } catch (error) {
     handleControllerError(error, res, 'Error sending invite:');
   }
@@ -221,8 +220,6 @@ export const acceptInvite = async (req: Request, res: Response) => {
       TripInvite.updateInviteStatus(token, 'accepted', true),
     ]);
 
-    res.status(200).json({ message: 'Invite accepted' });
-
     // Notify other trip members
     if (user?.id) {
       await notifyTripMembersExceptInitiator(invite.tripId, user.id, {
@@ -243,6 +240,8 @@ export const acceptInvite = async (req: Request, res: Response) => {
         channel: 'IN_APP',
       });
     }
+
+    res.status(200).json({ message: 'Invite accepted' });
   } catch (error) {
     handleControllerError(error, res, 'Error accepting invite:');
   }
@@ -286,8 +285,6 @@ export const rejectInvite = async (req: Request, res: Response) => {
     // Update invite status to "rejected"
     await TripInvite.updateInviteStatus(invite.inviteToken, 'rejected');
 
-    res.status(200).json({ message: 'Invite rejected.' });
-
     // Notify trip creator and admins
     await notifyTripAdmins(invite.tripId, {
       type: NotificationType.INVITE_REJECTED,
@@ -296,6 +293,8 @@ export const rejectInvite = async (req: Request, res: Response) => {
       message: `${user?.fullName || 'An invitee'} has rejected the trip invitation.`,
       channel: 'IN_APP',
     });
+
+    res.status(200).json({ message: 'Invite rejected.' });
   } catch (error) {
     handleControllerError(error, res, 'Error rejecting invite:');
   }

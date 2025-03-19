@@ -136,11 +136,7 @@ export const createItineraryEventHandler = async (
       notes: notes ?? [],
     });
 
-    res.status(201).json({
-      message: 'Itinerary event created successfully',
-      itineraryEvent,
-    });
-
+    // Notify the trip members of the new event and schedule reminders
     const trip = await fetchSingleTrip(userId, tripId);
     await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.EVENT_CREATED,
@@ -177,6 +173,11 @@ export const createItineraryEventHandler = async (
         });
       }
     }
+
+    res.status(201).json({
+      message: 'Itinerary event created successfully',
+      itineraryEvent,
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error creating itinerary event:');
   }
