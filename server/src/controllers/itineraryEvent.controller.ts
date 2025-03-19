@@ -175,16 +175,18 @@ export const createItineraryEventHandler = async (
       }
 
       // Notify the assigned users
-      const assignedUsersToNotify = assignedUserIds.filter(
-        (id: string) => id !== userId,
-      );
-      await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
-        type: NotificationType.EVENT_ASSIGNMENT,
-        relatedId: itineraryEvent.id,
-        title: "You're now assigned to an event!",
-        message: `You have been assigned as a planner for event "${itineraryEvent.title}" in trip "${trip.name}".`,
-        channel: 'IN_APP',
-      });
+      if (assignedUserIds && assignedUserIds.length > 0) {
+        const assignedUsersToNotify = assignedUserIds.filter(
+          (id: string) => id !== userId,
+        );
+        await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
+          type: NotificationType.EVENT_ASSIGNMENT,
+          relatedId: itineraryEvent.id,
+          title: "You're now assigned to an event!",
+          message: `You have been assigned as a planner for event "${itineraryEvent.title}" in trip "${trip.name}".`,
+          channel: 'IN_APP',
+        });
+      }
     }
 
     res.status(201).json({
