@@ -5,7 +5,6 @@ import {
   settleExpenseSharesHandler,
 } from '@/controllers/expenseShare.controller.js';
 import prisma from '@/config/prismaClient.js';
-import { getUserById } from '../../../models/user.model';
 
 // Mock the specific Prisma client methods
 jest.mock('@/config/prismaClient.js', () => ({
