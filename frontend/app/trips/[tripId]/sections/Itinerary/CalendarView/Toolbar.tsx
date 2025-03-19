@@ -1,6 +1,13 @@
 import React from "react";
-import { ToolbarProps, Navigate } from "react-big-calendar";
-import { Box, Typography, IconButton, Button } from "@mui/material";
+import { ToolbarProps, Navigate, Views } from "react-big-calendar";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { ItineraryEvent } from "../types";
 
@@ -15,29 +22,19 @@ export interface CalendarEvent {
 const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
   props
 ) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { label, onNavigate, onView, view } = props;
-
-  const handleNavigate = (action: "PREV" | "NEXT" | "TODAY") => {
-    switch (action) {
-      case "PREV":
-        onNavigate(Navigate.PREVIOUS);
-        break;
-      case "NEXT":
-        onNavigate(Navigate.NEXT);
-        break;
-      case "TODAY":
-        onNavigate(Navigate.TODAY);
-        break;
-    }
-  };
 
   return (
     <Box
       sx={{
         display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: isMobile ? 1 : 2,
         justifyContent: "space-between",
         alignItems: "center",
-        mb: 3,
+        mb: 2,
         p: 2,
         background: "var(--background-paper)",
         borderRadius: "12px",
@@ -46,21 +43,32 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         "&:hover": { boxShadow: "0 6px 24px rgba(0,0,0,0.12)" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          order: isMobile ? 2 : 1,
+        }}
+      >
         <IconButton
-          onClick={() => handleNavigate("PREV")}
+          onClick={() => onNavigate(Navigate.PREVIOUS)}
+          size={isMobile ? "small" : "medium"}
           sx={{
             color: "var(--primary)",
+            px: 2,
             "&:hover": { background: "var(--primary-light)" },
           }}
         >
           <ArrowBackIos fontSize="small" />
         </IconButton>
         <Button
-          onClick={() => handleNavigate("TODAY")}
+          onClick={() => onNavigate(Navigate.TODAY)}
+          size={isMobile ? "small" : "medium"}
           variant="outlined"
           sx={{
             textTransform: "none",
+            px: 2,
             borderColor: "var(--primary)",
             color: "var(--primary)",
             "&:hover": { borderColor: "var(--primary-hover)" },
@@ -69,9 +77,11 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
           Today
         </Button>
         <IconButton
-          onClick={() => handleNavigate("NEXT")}
+          onClick={() => onNavigate(Navigate.NEXT)}
+          size={isMobile ? "small" : "medium"}
           sx={{
             color: "var(--primary)",
+            px: 2,
             "&:hover": { background: "var(--primary-light)" },
           }}
         >
@@ -83,28 +93,43 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         variant="h6"
         sx={{
           fontWeight: 700,
+          order: isMobile ? 1 : 2,
+          textAlign: "center",
           background:
             "linear-gradient(45deg, var(--primary), var(--secondary))",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          color: "transparent",
         }}
       >
         {label}
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          order: 3,
+          width: isMobile ? "100%" : "auto",
+          justifyContent: isMobile ? "center" : "flex-end",
+        }}
+      >
         <Button
-          onClick={() => onView("month")}
-          variant={view === "month" ? "contained" : "outlined"}
+          onClick={() => onView(Views.MONTH)}
+          variant={view === Views.MONTH ? "contained" : "outlined"}
           sx={{
             textTransform: "capitalize",
+            minWidth: isMobile ? 60 : 80,
             borderRadius: "8px",
-            bgcolor: view === "month" ? "var(--primary)" : "transparent",
-            color: view === "month" ? "white" : "var(--text)",
+            bgcolor: view === Views.MONTH ? "var(--primary)" : "transparent",
+            color: view === Views.MONTH ? "white" : "var(--text)",
             borderColor: "var(--divider)",
             "&:hover": {
               bgcolor:
-                view === "month" ? "var(--primary-hover)" : "var(--background)",
+                view === Views.MONTH
+                  ? "var(--primary-hover)"
+                  : "var(--background)",
             },
           }}
         >
@@ -112,17 +137,20 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         </Button>
 
         <Button
-          onClick={() => onView("week")}
-          variant={view === "week" ? "contained" : "outlined"}
+          onClick={() => onView(Views.WEEK)}
+          variant={view === Views.WEEK ? "contained" : "outlined"}
           sx={{
             textTransform: "capitalize",
+            minWidth: isMobile ? 60 : 80,
             borderRadius: "8px",
-            bgcolor: view === "week" ? "var(--primary)" : "transparent",
-            color: view === "week" ? "white" : "var(--text)",
+            bgcolor: view === Views.WEEK ? "var(--primary)" : "transparent",
+            color: view === Views.WEEK ? "white" : "var(--text)",
             borderColor: "var(--divider)",
             "&:hover": {
               bgcolor:
-                view === "week" ? "var(--primary-hover)" : "var(--background)",
+                view === Views.WEEK
+                  ? "var(--primary-hover)"
+                  : "var(--background)",
             },
           }}
         >
@@ -130,17 +158,20 @@ const CustomToolbar: React.FC<ToolbarProps<CalendarEvent, object>> = (
         </Button>
 
         <Button
-          onClick={() => onView("day")}
-          variant={view === "day" ? "contained" : "outlined"}
+          onClick={() => onView(Views.DAY)}
+          variant={view === Views.DAY ? "contained" : "outlined"}
           sx={{
             textTransform: "capitalize",
+            minWidth: isMobile ? 60 : 80,
             borderRadius: "8px",
-            bgcolor: view === "day" ? "var(--primary)" : "transparent",
-            color: view === "day" ? "white" : "var(--text)",
+            bgcolor: view === Views.DAY ? "var(--primary)" : "transparent",
+            color: view === Views.DAY ? "white" : "var(--text)",
             borderColor: "var(--divider)",
             "&:hover": {
               bgcolor:
-                view === "day" ? "var(--primary-hover)" : "var(--background)",
+                view === Views.DAY
+                  ? "var(--primary-hover)"
+                  : "var(--background)",
             },
           }}
         >

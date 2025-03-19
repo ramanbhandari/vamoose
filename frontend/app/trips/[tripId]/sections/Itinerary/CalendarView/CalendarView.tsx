@@ -5,6 +5,7 @@ import {
   DateLocalizer,
   SlotInfo,
   stringOrDate,
+  Views,
 } from "react-big-calendar";
 
 import withDragAndDrop, {
@@ -306,8 +307,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           onNavigate={(newDate) => {
             setCurrentDate(newDate);
           }}
-          defaultView="month"
-          views={["month", "week", "day"]}
+          defaultView={Views.MONTH}
+          views={[Views.MONTH, Views.WEEK, Views.DAY]}
           startAccessor="start"
           endAccessor="end"
           style={{ height: "100%" }}
