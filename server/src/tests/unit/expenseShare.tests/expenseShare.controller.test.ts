@@ -5,6 +5,7 @@ import {
   settleExpenseSharesHandler,
 } from '@/controllers/expenseShare.controller.js';
 import prisma from '@/config/prismaClient.js';
+import { getUserById } from '../../../models/user.model';
 
 // Mock the specific Prisma client methods
 jest.mock('@/config/prismaClient.js', () => ({
@@ -23,6 +24,9 @@ jest.mock('@/config/prismaClient.js', () => ({
 // Mock out the stuff needed for notifications
 jest.mock('@/models/trip.model.js', () => ({
   fetchSingleTrip: jest.fn().mockResolvedValue({ name: 'tripName' }),
+}));
+jest.mock('@/models/user.model.js', () => ({
+  getUserById: jest.fn().mockResolvedValue({ fullName: 'A trip member' }),
 }));
 jest.mock('@/utils/notificationHandlers.js', () => ({
   notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),

@@ -674,6 +674,7 @@ describe('Delete Itinerary Event Controller', () => {
       id: 1,
       tripId: 1,
       createdById: 'test-user-id',
+      assignedUsers: [],
     });
     (prisma.itineraryEvent.delete as jest.Mock).mockResolvedValue({ id: 1 });
 

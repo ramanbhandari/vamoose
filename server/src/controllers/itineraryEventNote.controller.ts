@@ -57,9 +57,9 @@ export const addNoteToItineraryEventHandler = async (
 
     // Notify assigned users
     const trip = await fetchSingleTrip(userId, tripId);
-    const assignedUsers = event.assignedUsers.map(
-      (assignedUser) => assignedUser.user.id,
-    );
+    const assignedUsers = event.assignedUsers
+      .map((assignedUser) => assignedUser.user.id)
+      .filter((id: string) => id !== userId);
 
     await notifySpecificTripMembers(tripId, assignedUsers, {
       type: NotificationType.EVENT_NOTE_ADDED,

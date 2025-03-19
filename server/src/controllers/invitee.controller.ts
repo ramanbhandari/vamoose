@@ -236,7 +236,7 @@ export const acceptInvite = async (req: Request, res: Response) => {
         type: NotificationType.MEMBER_JOINED,
         relatedId: invite.tripId,
         title: 'Welcome to the Trip!',
-        message: `You have successfully joined ${trip.name}. Start planning with your trip members!`,
+        message: `You have successfully joined trip "${trip.name}". Start planning with your trip members!`,
         channel: 'IN_APP',
       });
     }

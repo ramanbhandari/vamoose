@@ -17,6 +17,7 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 import { EventCategory } from '@/interfaces/enums.js';
 import {
+  notifySpecificTripMembers,
   notifyTripMembers,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
@@ -172,6 +173,18 @@ export const createItineraryEventHandler = async (
           sendAt: eventStart.minus({ minutes: 30 }).toJSDate(),
         });
       }
+
+      // Notify the assigned users
+      const assignedUsersToNotify = assignedUserIds.filter(
+        (id: string) => id !== userId,
+      );
+      await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
+        type: NotificationType.EVENT_ASSIGNMENT,
+        relatedId: itineraryEvent.id,
+        title: "You're now assigned to an event!",
+        message: `You have been assigned as a planner for event "${itineraryEvent.title}" in trip "${trip.name}".`,
+        channel: 'IN_APP',
+      });
     }
 
     res.status(201).json({
@@ -459,6 +472,19 @@ export const deleteItineraryEventHandler = async (
 
     // Delete the itinerary event
     await deleteItineraryEvent(tripId, eventId);
+
+    // Notify the assigned users that the trip event they were assigned to plan was deleted
+    const assignedUsersToNotify = itineraryEvent.assignedUsers
+      .map((assignedUser) => assignedUser.user.id)
+      .filter((id: string) => id !== userId);
+
+    await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
+      type: NotificationType.EVENT_DELETED,
+      relatedId: itineraryEvent.id,
+      title: 'An event you were assigned to has been deleted!',
+      message: `The event '${itineraryEvent.title}' has been removed from the itinerary.`,
+      channel: 'IN_APP',
+    });
 
     res.status(200).json({ message: 'Itinerary event deleted successfully' });
   } catch (error) {

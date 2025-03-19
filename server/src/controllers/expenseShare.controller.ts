@@ -11,6 +11,7 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { TripDebtDetail } from '@/interfaces/interfaces.js';
 import { notifyIndividual } from '@/utils/notificationHandlers.js';
 import { NotificationType } from '@/interfaces/enums.js';
+import { getUserById } from '@/models/user.model.js';
 
 /**
  * Get a detailed summary of all debts within a trip
@@ -299,24 +300,40 @@ export const settleExpenseSharesHandler = async (
       tripId,
     );
 
-    // Notify the debtor or creditor about the expense setllement
+    // Notify the debtor or creditor about the expense settlement
     for (const pair of authorizedExpenseSharePairs) {
+      const share = matchingExpenseShares.find(
+        (share) =>
+          share.expenseId === pair.expenseId &&
+          share.userId === pair.debtorUserId,
+      );
+
+      const debtorUser = share?.userId
+        ? await getUserById(share.userId)
+        : { fullName: 'A trip member' };
+      const debtorName = debtorUser?.fullName;
+      const amountPaid = share ? share.share : 0;
+
+      const creditorUser = share?.expense?.paidById
+        ? await getUserById(share.expense.paidById)
+        : { fullName: 'A trip member' };
+      const creditorName = creditorUser?.fullName;
+
       // If the debtor is not the one settling (i.e. current user), notify them.
       if (pair.debtorUserId !== userId) {
         await notifyIndividual(pair.debtorUserId, tripId, {
           type: NotificationType.EXPENSE_SHARE_SETTLED,
           relatedId: pair.expenseId,
-          title: 'Expense Share Settled',
-          message: 'Your expense share has been settled.',
+          title: `Payment Completed: ${creditorName} Got Paid`,
+          message: `You have successfully settled your share of $${amountPaid} for an expense covered by ${creditorName}.`,
           channel: 'IN_APP',
         });
       } else if (pair.creditorUserId && pair.creditorUserId !== userId) {
         await notifyIndividual(pair.creditorUserId, tripId, {
           type: NotificationType.EXPENSE_SHARE_SETTLED,
           relatedId: pair.expenseId,
-          title: 'Expense Share Settled',
-          message:
-            'A trip member has paid their share of an expense you covered. Check the trip expenses for details.',
+          title: `Expense Share Received from ${debtorName}`,
+          message: `${debtorName} has paid their share of $${amountPaid} for an expense you covered.`,
           channel: 'IN_APP',
         });
       }
