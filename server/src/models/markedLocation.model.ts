@@ -47,21 +47,8 @@ export const getAllMarkedLocationsForTrip = async (tripId: number) => {
 export const getMarkedLocationById = async (
   tripId: number,
   locationId: string,
-  userId: string,
 ) => {
   try {
-    // Check if user is a member of the trip
-    const member = await prisma.tripMember.findFirst({
-      where: {
-        tripId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new ForbiddenError('You are not a member of this trip');
-    }
-
     const location = await prisma.markedLocation.findUnique({
       where: {
         id: locationId,
@@ -110,36 +97,8 @@ export const updateMarkedLocationNotes = async (
 };
 
 // Delete a Marked Location
-export const deleteMarkedLocation = async (
-  tripId: number,
-  locationId: string,
-  userId: string,
-) => {
+export const deleteMarkedLocation = async (locationId: string) => {
   try {
-    // Check if the location exists and belongs to the specified trip
-    const location = await prisma.markedLocation.findUnique({
-      where: {
-        id: locationId,
-        tripId,
-      },
-    });
-
-    if (!location) {
-      throw new NotFoundError('Marked location not found');
-    }
-
-    // Check if user is a member of the trip
-    const member = await prisma.tripMember.findFirst({
-      where: {
-        tripId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new ForbiddenError('You are not a member of this trip');
-    }
-
     return await prisma.markedLocation.delete({
       where: {
         id: locationId,

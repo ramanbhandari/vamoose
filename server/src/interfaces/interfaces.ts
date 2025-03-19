@@ -1,6 +1,5 @@
 import { Request } from 'express';
-import { EventCategory } from './enums';
-import { LocationType } from '@prisma/client';
+import { EventCategory, LocationType } from './enums';
 
 export interface AuthenticatedRequest extends Request {
   userId: string;

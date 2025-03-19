@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { LocationType } from '@prisma/client';
+import { LocationType } from '@/interfaces/enums.js';
 import {
   createMarkedLocation,
   getAllMarkedLocationsForTrip,
@@ -140,7 +140,7 @@ export const updateMarkedLocationNotesHandler = async (
     }
 
     // Check if the location exists and belongs to the specified trip
-    const location = await getMarkedLocationById(tripId, locationId, userId);
+    const location = await getMarkedLocationById(tripId, locationId);
     if (!location) {
       res.status(404).json({ error: 'Marked location not found' });
       return;
@@ -199,8 +199,8 @@ export const deleteMarkedLocationHandler = async (
       return;
     }
 
-    // Check if the location exists first
-    const location = await getMarkedLocationById(tripId, locationId, userId);
+    // Check if the location exists and belongs to the specified trip
+    const location = await getMarkedLocationById(tripId, locationId);
     if (!location) {
       res.status(404).json({ error: 'Marked location not found' });
       return;
@@ -219,11 +219,7 @@ export const deleteMarkedLocationHandler = async (
     }
 
     // Delete the location
-    const deletedLocation = await deleteMarkedLocation(
-      tripId,
-      locationId,
-      userId,
-    );
+    const deletedLocation = await deleteMarkedLocation(locationId);
 
     res.status(200).json({
       message: 'Marked location deleted successfully',
