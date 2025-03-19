@@ -39,6 +39,7 @@ import { Member } from "@/types";
 import CustomToolbar, { CalendarEvent } from "./Toolbar";
 import EventCard from "../ListView/EventCard";
 import CreateEventModal from "../EventModal";
+import { useNotificationStore } from "@/stores/notification-store";
 
 interface ConfirmationDialogProps {
   open: boolean;
@@ -179,6 +180,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onUnAssignMembers,
 }) => {
   const { itineraryEvents } = useItineraryStore();
+  const { setNotification } = useNotificationStore();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<ItineraryEvent | null>(
@@ -289,6 +291,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     setCreateEnd(null);
   };
 
+  const isWithinTripDates = (date: Date) => {
+    const tripStartDate = new Date(tripStart);
+    const tripEndDate = new Date(tripEnd);
+    return date >= tripStartDate && date <= tripEndDate;
+  };
+
+  const isRangeWithinTripDates = (start: Date, end: Date) => {
+    return isWithinTripDates(start) && isWithinTripDates(end);
+  };
+
   return (
     <>
       <Box
@@ -313,11 +325,35 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           endAccessor="end"
           style={{ height: "100%" }}
           selectable
-          onSelectSlot={handleSelectSlot}
+          onSelectSlot={(slotInfo: SlotInfo) => {
+            if (!isRangeWithinTripDates(slotInfo.start, slotInfo.end)) {
+              setNotification(
+                "Cannot create events outside trip dates",
+                "error"
+              );
+              return;
+            }
+            handleSelectSlot(slotInfo);
+          }}
           onSelectEvent={handleSelectEvent}
           resizable
-          onEventDrop={handleEventDrop}
-          onEventResize={handleEventResize}
+          onEventDrop={(args: EventInteractionArgs<CalendarEvent>) => {
+            if (!isRangeWithinTripDates(asDate(args.start), asDate(args.end))) {
+              setNotification("Cannot move events outside trip dates", "error");
+              return;
+            }
+            handleEventDrop(args);
+          }}
+          onEventResize={(args: EventInteractionArgs<CalendarEvent>) => {
+            if (!isRangeWithinTripDates(asDate(args.start), asDate(args.end))) {
+              setNotification(
+                "Cannot resize events outside trip dates",
+                "error"
+              );
+              return;
+            }
+            handleEventResize(args);
+          }}
           components={{
             toolbar: CustomToolbar,
           }}
