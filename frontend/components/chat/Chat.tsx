@@ -850,15 +850,12 @@ export default function Chat() {
                                   : "grey.600",
                             }}
                           >
-                            {getUserFullName(msg.userId)}•{" "}
+                            {getUserFullName(msg.userId)} •{" "}
                             {formatTimestamp(msg.createdAt)}
                           </Typography>
                           <Box
                             sx={{
                               maxWidth: "70%",
-                              wordWrap: "break-word",
-                              whiteSpace: "normal",
-                              overflow: "hidden",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"

@@ -8,7 +8,6 @@ import messageRouter from '@/routes/message.routes.js';
 import pollRouter from '@/routes/poll.routes.js';
 import itineraryEventRouter from '@/routes/itineraryEvent.routes.js';
 import notificationRouter from '@/routes/notification.routes.js';
-import markedLocationRouter from '@/routes/markedLocation.routes.js';
 import { authMiddleware } from '@/middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -33,6 +32,5 @@ router.use('/trips/:tripId/members', memberRouter);
 router.use('/trips/:tripId/messages', messageRouter);
 router.use('/trips/:tripId/polls', pollRouter);
 router.use('/trips/:tripId/itinerary-events', itineraryEventRouter);
-router.use('/trips/:tripId/marked-locations', markedLocationRouter);
 
 export default router;
