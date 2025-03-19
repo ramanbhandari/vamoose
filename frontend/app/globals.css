@@ -116,10 +116,12 @@ body {
 
 .rbc-event {
   background: var(--primary) !important;
-  border: none !important;
+  border: 1.5px solid var(--secondary) !important;
   border-radius: 6px !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-right: 0 !important;
+  padding: 2px 4px;
 }
 
 .rbc-event:hover {
