@@ -157,13 +157,7 @@ export default function Chat() {
         leaveTripChat();
       }
     };
-  }, [
-    cleanupSocketListeners,
-    initializeSocket,
-    initializeSocketListeners,
-    leaveTripChat,
-    selectedTrip,
-  ]);
+  }, []);
 
   useEffect(() => {
     const fetchTrips = async () => {
