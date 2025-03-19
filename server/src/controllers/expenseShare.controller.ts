@@ -269,6 +269,7 @@ export const settleExpenseSharesHandler = async (
       )
       .map((share) => ({
         expenseId: share.expenseId,
+        creditorUserId: share.expense.paidById,
         debtorUserId: share.userId,
       }));
 
@@ -307,6 +308,7 @@ export const settleExpenseSharesHandler = async (
       unauthorizedExpenseSharePairs,
     });
 
+    // Notify the debtor or creditor about the expense setllement
     for (const pair of authorizedExpenseSharePairs) {
       // If the debtor is not the one settling (i.e. current user), notify them.
       if (pair.debtorUserId !== userId) {
@@ -315,6 +317,15 @@ export const settleExpenseSharesHandler = async (
           relatedId: pair.expenseId,
           title: 'Expense Share Settled',
           message: 'Your expense share has been settled.',
+          channel: 'IN_APP',
+        });
+      } else if (pair.creditorUserId && pair.creditorUserId !== userId) {
+        await notifyIndividual(pair.creditorUserId, tripId, {
+          type: NotificationType.EXPENSE_SHARE_SETTLED,
+          relatedId: pair.expenseId,
+          title: 'Expense Share Settled',
+          message:
+            'A trip member has paid their share of an expense you covered. Check the trip expenses for details.',
           channel: 'IN_APP',
         });
       }

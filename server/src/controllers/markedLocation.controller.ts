@@ -10,6 +10,9 @@ import {
   getMarkedLocationById,
 } from '@/models/markedLocation.model.js';
 import { getTripMember } from '@/models/member.model.js';
+import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 // Create a new marked location
 export const createMarkedLocationHandler = async (
@@ -64,6 +67,15 @@ export const createMarkedLocationHandler = async (
     res.status(201).json({
       message: 'Marked location created successfully',
       markedLocation,
+    });
+
+    // Notify the trip members except the user who marked
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.LOCATION_MARKED,
+      title: 'New Location Marked',
+      message: `"${markedLocation.name}" has been marked in trip "${trip.name}".`,
+      channel: 'IN_APP',
     });
   } catch (error) {
     handleControllerError(error, res, 'Error creating marked location:');

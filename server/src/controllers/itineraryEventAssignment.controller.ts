@@ -11,6 +11,9 @@ import {
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getItineraryEventById } from '@/models/itineraryEvent.model.js';
+import { notifySpecificTripMembers } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 export const assignUsersToItineraryEventHandler = async (
   req: Request,
@@ -109,6 +112,17 @@ export const assignUsersToItineraryEventHandler = async (
         alreadyAssignedIds.length > 0 ? alreadyAssignedIds : undefined,
       nonMembers: nonMemberIds.length > 0 ? nonMemberIds : undefined,
     });
+
+    // Notify assigned users
+    const trip = await fetchSingleTrip(userId, tripId);
+    const usersToNotify = usersToAssign.filter((id) => id !== userId);
+    await notifySpecificTripMembers(tripId, usersToNotify, {
+      type: NotificationType.EVENT_ASSIGNMENT,
+      relatedId: eventId,
+      title: "You're now assigned to an event!",
+      message: `You have been assigned as a planner for "${event.title}" in "${trip.name}".`,
+      channel: 'IN_APP',
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error assigning users to event:');
   }
@@ -189,6 +203,16 @@ export const unassignUserFromItineraryEventHandler = async (
       message: 'Users unassigned successfully',
       unassignedUsers: validUserIds,
       ignoredUsers: invalidUserIds.length > 0 ? invalidUserIds : undefined,
+    });
+
+    // Notify unassigned users
+    const usersToNotify = validUserIds.filter((id) => id !== userId);
+    await notifySpecificTripMembers(tripId, usersToNotify, {
+      type: NotificationType.EVENT_ASSIGNMENT,
+      relatedId: eventId,
+      title: 'You’ve been removed as a planner',
+      message: `You are no longer assigned to plan the itinerary event "${event.title}".`,
+      channel: 'IN_APP',
     });
   } catch (error) {
     handleControllerError(error, res, 'Error unassigning users from event:');

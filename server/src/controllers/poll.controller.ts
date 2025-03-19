@@ -12,7 +12,8 @@ import { NotificationType, PollStatus } from '@/interfaces/enums.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
-import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
+import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 export const createPollHandler = async (req: Request, res: Response) => {
   try {
@@ -55,10 +56,11 @@ export const createPollHandler = async (req: Request, res: Response) => {
     res.status(201).json({ message: 'Poll created successfully', poll });
 
     // send notification to everyone except creator of the Poll
-    await notifyTripMembersExceptCreator(tripId, userId, {
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.POLL_CREATED,
       relatedId: poll.id,
-      title: 'New Poll',
+      title: `New Poll in trip "${trip.name}"`,
       message: `A new poll was created by ${requestingMember.user.email}.`,
       channel: 'IN_APP',
     });
@@ -356,7 +358,7 @@ export const completePollHandler = async (req: Request, res: Response) => {
       tiedOptions,
     });
 
-    await notifyTripMembersExceptCreator(tripId, userId, {
+    await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.POLL_COMPLETE,
       relatedId: poll.id,
       title: 'Poll Completed',

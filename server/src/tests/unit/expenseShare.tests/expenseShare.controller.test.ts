@@ -244,8 +244,8 @@ describe('Settle Expenses Controller', () => {
       message: 'Expense shares settled successfully',
       settledCount: 2,
       settledExpenseShares: [
-        { expenseId: 1, debtorUserId: 'debtor1' },
-        { expenseId: 2, debtorUserId: 'debtor2' },
+        { expenseId: 1, debtorUserId: 'debtor1', creditorUserId: 'creditor1' },
+        { expenseId: 2, debtorUserId: 'debtor2', creditorUserId: 'creditor1' },
       ],
       poorlyFormattedExpenseShares: [],
       nonExistentExpenseSharePairs: [

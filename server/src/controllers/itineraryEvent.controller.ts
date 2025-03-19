@@ -16,6 +16,11 @@ import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 import { EventCategory } from '@/interfaces/enums.js';
+import {
+  notifyTripMembers,
+  notifyTripMembersExceptInitiator,
+} from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 export const createItineraryEventHandler = async (
   req: Request,
@@ -135,6 +140,43 @@ export const createItineraryEventHandler = async (
       message: 'Itinerary event created successfully',
       itineraryEvent,
     });
+
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.EVENT_CREATED,
+      relatedId: itineraryEvent.id,
+      title: `New Itinerary Event Added for trip "${trip.name}"!`,
+      message: `"${title}” has been added to the trip itinerary. Check the schedule for details!`,
+      channel: 'IN_APP',
+    });
+
+    if (startTimeUtc) {
+      const now = DateTime.now().toUTC();
+      const eventStart = DateTime.fromJSDate(startTimeUtc);
+      //Schedule a notification for 1 hour from the event start time
+      if (eventStart.diff(now, 'hours').hours >= 1) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${trip.name}"!`,
+          message: `"${title}" starts in an hour. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ hours: 1 }).toJSDate(),
+        });
+      }
+
+      //Schedule a notification for 30 minutes from the event start time
+      if (eventStart.diff(now, 'minutes').minutes >= 30) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${trip.name}"!`,
+          message: `"${title}" starts in 30 minutes. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ minutes: 30 }).toJSDate(),
+        });
+      }
+    }
   } catch (error) {
     handleControllerError(error, res, 'Error creating itinerary event:');
   }

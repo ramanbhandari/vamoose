@@ -16,8 +16,12 @@ import {
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { AuthenticatedRequest } from '@/interfaces/interfaces';
 import { ForbiddenError, NotFoundError } from '@/utils/errors.js';
-import { notifyTripMembersExceptCreator } from '@/utils/notificationHandlers.js';
+import {
+  notifySpecificTripMembers,
+  notifyTripMembersExceptInitiator,
+} from '@/utils/notificationHandlers.js';
 import { NotificationType } from '@/interfaces/enums.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 /**
  * Add an expense to a trip
@@ -124,11 +128,25 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
       expense,
     });
 
-    await notifyTripMembersExceptCreator(tripId, userId, {
+    // Notify the members of the trip of the new expense
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.EXPENSE_CREATED,
       relatedId: expense.id,
-      title: 'Expense Added',
-      message: `A new expense of $${amount} has been added to the trip.`,
+      title: `Expense Added to trip "${trip.name}"`,
+      message: `A new expense of $${amount} has been added the trip.`,
+      channel: 'IN_APP',
+    });
+
+    // Notify people part of the expense split
+    const splitMembersToNotify = splitAmongUserIds.filter(
+      (id) => id !== userId && id !== paidByUserId,
+    );
+    await notifySpecificTripMembers(tripId, splitMembersToNotify, {
+      type: NotificationType.EXPENSE_SHARE_ADDED,
+      relatedId: expense.id,
+      title: `You’ve Been Added to an Expense for trip "${trip.name}"`,
+      message: `You have been included in a shared expense of $${amount} for the trip. Check your balances in the Expenses tab.`,
       channel: 'IN_APP',
     });
   } catch (error) {

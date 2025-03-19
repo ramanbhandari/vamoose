@@ -5,6 +5,12 @@ import { getUserByEmail, getUserById } from '@/models/user.model.js';
 import { addTripMember, getTripMember } from '@/models/member.model.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
+import {
+  notifyIndividual,
+  notifyTripAdmins,
+  notifyTripMembersExceptInitiator,
+} from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 import prisma from '@/config/prismaClient.js';
 
 export const checkInvite = async (req: Request, res: Response) => {
@@ -216,7 +222,27 @@ export const acceptInvite = async (req: Request, res: Response) => {
     ]);
 
     res.status(200).json({ message: 'Invite accepted' });
-    return;
+
+    // Notify other trip members
+    if (user?.id) {
+      await notifyTripMembersExceptInitiator(invite.tripId, user.id, {
+        type: NotificationType.MEMBER_JOINED,
+        relatedId: invite.tripId,
+        title: 'New Trip Member',
+        message: `${user?.fullName || 'A new member'} has joined the trip!`,
+        channel: 'IN_APP',
+      });
+
+      // Notify the new member
+      const trip = await fetchSingleTrip(userId, invite.tripId);
+      await notifyIndividual(userId, invite.tripId, {
+        type: NotificationType.MEMBER_JOINED,
+        relatedId: invite.tripId,
+        title: 'Welcome to the Trip!',
+        message: `You have successfully joined ${trip.name}. Start planning with your trip members!`,
+        channel: 'IN_APP',
+      });
+    }
   } catch (error) {
     handleControllerError(error, res, 'Error accepting invite:');
   }
@@ -261,7 +287,15 @@ export const rejectInvite = async (req: Request, res: Response) => {
     await TripInvite.updateInviteStatus(invite.inviteToken, 'rejected');
 
     res.status(200).json({ message: 'Invite rejected.' });
-    return;
+
+    // Notify trip creator and admins
+    await notifyTripAdmins(invite.tripId, {
+      type: NotificationType.INVITE_REJECTED,
+      relatedId: invite.tripId,
+      title: 'Invitation Rejected',
+      message: `${user?.fullName || 'An invitee'} has rejected the trip invitation.`,
+      channel: 'IN_APP',
+    });
   } catch (error) {
     handleControllerError(error, res, 'Error rejecting invite:');
   }
