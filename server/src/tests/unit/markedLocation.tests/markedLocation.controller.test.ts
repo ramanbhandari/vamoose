@@ -346,7 +346,7 @@ describe('MarkedLocation API - Update Location Notes', () => {
     ...overrides,
   });
 
-  it('should update location notes successfully as marker creator', async () => {
+  it('should update location notes successfully as a trip member', async () => {
     mockReq = setupRequest();
     const fakeLocation = {
       id: '550e8400-e29b-41d4-a716-446655440000',
@@ -381,114 +381,6 @@ describe('MarkedLocation API - Update Location Notes', () => {
     expect(jsonMock).toHaveBeenCalledWith({
       message: 'Marked location notes updated successfully',
       updatedLocation,
-    });
-  });
-
-  it('should update location notes successfully as trip admin', async () => {
-    mockReq = setupRequest();
-    const fakeLocation = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'Great Restaurant',
-      type: LocationType.RESTAURANT,
-      coordinates: { latitude: 37.7749, longitude: -122.4194 },
-      notes: 'Original notes',
-      createdById: 'other-user-id',
-      tripId: 1,
-    };
-
-    const updatedLocation = {
-      ...fakeLocation,
-      notes: 'Updated notes for the location',
-    };
-
-    (getTripMember as jest.Mock).mockResolvedValue({
-      userId: 'test-user-id',
-      tripId: 1,
-      role: 'admin', // Admin can update any marker
-    });
-
-    (getMarkedLocationById as jest.Mock).mockResolvedValue(fakeLocation);
-    (updateMarkedLocationNotes as jest.Mock).mockResolvedValue(updatedLocation);
-
-    await updateMarkedLocationNotesHandler(
-      mockReq as Request,
-      mockRes as Response,
-    );
-
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Marked location notes updated successfully',
-      updatedLocation,
-    });
-  });
-
-  it('should update location notes successfully as trip creator', async () => {
-    mockReq = setupRequest();
-    const fakeLocation = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'Great Restaurant',
-      type: LocationType.RESTAURANT,
-      coordinates: { latitude: 37.7749, longitude: -122.4194 },
-      notes: 'Original notes',
-      createdById: 'other-user-id',
-      tripId: 1,
-    };
-
-    const updatedLocation = {
-      ...fakeLocation,
-      notes: 'Updated notes for the location',
-    };
-
-    (getTripMember as jest.Mock).mockResolvedValue({
-      userId: 'test-user-id',
-      tripId: 1,
-      role: 'creator',
-    });
-
-    (getMarkedLocationById as jest.Mock).mockResolvedValue(fakeLocation);
-    (updateMarkedLocationNotes as jest.Mock).mockResolvedValue(updatedLocation);
-
-    await updateMarkedLocationNotesHandler(
-      mockReq as Request,
-      mockRes as Response,
-    );
-
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Marked location notes updated successfully',
-      updatedLocation,
-    });
-  });
-
-  it('should return 403 if user is not marker creator, admin, or trip creator', async () => {
-    mockReq = setupRequest();
-    const fakeLocation = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'Great Restaurant',
-      type: LocationType.RESTAURANT,
-      coordinates: { latitude: 37.7749, longitude: -122.4194 },
-      notes: 'Original notes',
-      createdById: 'other-user-id', // Different from userId in request
-      tripId: 1,
-    };
-
-    (getTripMember as jest.Mock).mockResolvedValue({
-      userId: 'test-user-id',
-      tripId: 1,
-      role: 'member', // Regular member, not creator or admin
-    });
-
-    (getMarkedLocationById as jest.Mock).mockResolvedValue(fakeLocation);
-
-    await updateMarkedLocationNotesHandler(
-      mockReq as Request,
-      mockRes as Response,
-    );
-
-    expect(statusMock).toHaveBeenCalledWith(403);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error:
-        'Only the marker creator, trip admins, and trip creators can update marked locations',
     });
   });
 

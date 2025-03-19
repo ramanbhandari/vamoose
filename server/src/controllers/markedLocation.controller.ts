@@ -146,18 +146,6 @@ export const updateMarkedLocationNotesHandler = async (
       return;
     }
 
-    const isMarkerCreator = location.createdById === userId;
-    const isTripAdminOrCreator =
-      requestingMember.role === 'admin' || requestingMember.role === 'creator';
-
-    if (!isMarkerCreator && !isTripAdminOrCreator) {
-      res.status(403).json({
-        error:
-          'Only the marker creator, trip admins, and trip creators can update marked locations',
-      });
-      return;
-    }
-
     // Update the notes
     const updatedLocation = await updateMarkedLocationNotes(locationId, notes);
 
