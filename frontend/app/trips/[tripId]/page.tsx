@@ -21,8 +21,6 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 
 // Section Components
 import Overview from "./sections/Overview/index";
-import Stays from "./sections/Stays/index";
-import Activities from "./sections/Activities/index";
 import Polls from "./sections/Polls/index";
 import Itinerary from "./sections/Itinerary/index";
 import PackingList from "./sections/PackingList/index";
@@ -43,27 +41,16 @@ const sections = [
     label: "Overview",
     icon: <DashboardIcon fontSize="medium" />,
   },
-  { id: "stays", label: "Stays", icon: <HotelIcon fontSize="medium" /> },
-  {
-    id: "expenses",
-    label: "Expenses",
-    icon: <CalculateIcon fontSize="medium" />,
-  },
-  {
-    id: "activities",
-    label: "Activities",
-    icon: <DirectionsRunIcon fontSize="medium" />,
-  },
-  { id: "polls", label: "Polls", icon: <PollIcon fontSize="medium" /> },
   {
     id: "itinerary",
     label: "Itinerary",
     icon: <CalendarTodayIcon fontSize="medium" />,
   },
+  { id: "polls", label: "Polls", icon: <PollIcon fontSize="medium" /> },
   {
-    id: "packing",
-    label: "Packing List",
-    icon: <WorkIcon fontSize="medium" />,
+    id: "expenses",
+    label: "Expenses",
+    icon: <CalculateIcon fontSize="medium" />,
   },
   {
     id: "members",
@@ -74,6 +61,11 @@ const sections = [
     id: "maps",
     label: "Maps",
     icon: <LocationOn fontSize="medium" />,
+  },
+  {
+    id: "packing",
+    label: "Packing List",
+    icon: <WorkIcon fontSize="medium" />,
   },
 ];
 
@@ -233,11 +225,22 @@ export default function TripSummaryPage() {
         {activeSection === "overview" && (
           <Overview tripData={tripData} onSectionChange={handleSectionChange} />
         )}
-        {activeSection === "stays" && tripData && (
-          <Stays
+        {activeSection === "itinerary" && tripData && (
+          <Itinerary
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
+            itineraryEvents={itineraryEvents}
+          />
+        )}
+        {activeSection === "polls" && tripData && (
+          <Polls
+            tripId={tripData.id}
+            tripName={tripData.name}
+            imageUrl={tripData.imageUrl ?? null}
+            activePolls={activePolls}
+            completedPolls={completedPolls}
+            members={tripData.members}
           />
         )}
         {activeSection === "expenses" && tripData && (
@@ -252,42 +255,17 @@ export default function TripSummaryPage() {
             expenseSummary={tripData.expenseSummary}
           />
         )}
+        {activeSection === "members" && <TripMembers tripData={tripData} />}
 
-        {activeSection === "activities" && tripData && (
-          <Activities
+        {activeSection === "maps" && tripData && (
+          <Maps
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}
-          />
-        )}
-        {activeSection === "polls" && tripData && (
-          <Polls
-            tripId={tripData.id}
-            tripName={tripData.name}
-            imageUrl={tripData.imageUrl ?? null}
-            activePolls={activePolls}
-            completedPolls={completedPolls}
-            members={tripData.members}
-          />
-        )}
-        {activeSection === "itinerary" && tripData && (
-          <Itinerary
-            tripId={tripData.id}
-            tripName={tripData.name}
-            imageUrl={tripData.imageUrl ?? null}
-            itineraryEvents={itineraryEvents}
           />
         )}
         {activeSection === "packing" && tripData && (
           <PackingList
-            tripId={tripData.id}
-            tripName={tripData.name}
-            imageUrl={tripData.imageUrl ?? null}
-          />
-        )}
-        {activeSection === "members" && <TripMembers tripData={tripData} />}
-        {activeSection === "maps" && tripData && (
-          <Maps
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}

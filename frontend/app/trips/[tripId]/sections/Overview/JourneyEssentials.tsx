@@ -1,6 +1,6 @@
 "use client";
 
-import { DateRange, Explore, Hotel, Luggage, Work } from "@mui/icons-material";
+import { DateRange, Luggage, Work } from "@mui/icons-material";
 import {
   Box,
   Chip,
@@ -84,18 +84,6 @@ export default function JourneyEssentials({
 }: JourneyEssentialsProps) {
   const theme = useTheme();
   const items = [
-    {
-      id: "stays",
-      icon: <Hotel fontSize="large" />,
-      title: "Stays",
-      status: `3 Booked`,
-    },
-    {
-      id: "activities",
-      icon: <Explore fontSize="large" />,
-      title: "Activities",
-      status: "5 Planned",
-    },
     {
       id: "packing",
       icon: <Luggage fontSize="large" />,
