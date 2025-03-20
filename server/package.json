@@ -14,8 +14,10 @@
     "test:unit": "dotenv -e .env.test -- jest --config=jest.unit.config.js",
     "pretest:integration": "command -v docker >/dev/null 2>&1 && npm run testdb:restart || echo 'Docker not available, skipping pretest steps'",
     "test:integration": "dotenv -e .env.test -- jest -i --no-cache --config=jest.integration.config.js",
-    "posttest:integration": "command -v docker >/dev/null 2>&1 &&  docker rm -f integration-tests-prisma || echo 'Docker not available, skipping posttest steps'",
-    "testdb:restart": "docker rm -f integration-tests-prisma || true && docker build -t test-db -f Dockerfile.testdb . && docker run -d --name integration-tests-prisma -p 5433:5432 test-db && sleep 2"
+    "posttest:integration": "command -v docker >/dev/null 2>&1 && docker rm -f integration-tests-prisma integration-tests-mongo || echo 'Docker not available, skipping posttest steps'",
+    "testdb:restart": "npm run testdb:restart:postgres && npm run testdb:restart:mongo",
+    "testdb:restart:postgres": "docker rm -f integration-tests-prisma || true && docker build -t test-db -f Dockerfile.testdb.postgres . && docker run -d --name integration-tests-prisma -p 5433:5432 test-db && sleep 2",
+    "testdb:restart:mongo": "docker rm -f integration-tests-mongo || true && docker build -t test-db-mongo -f Dockerfile.testdb.mongo . && docker run -d --name integration-tests-mongo -p 27018:27017 test-db-mongo && sleep 2"
   },
   "author": "",
   "license": "ISC",
