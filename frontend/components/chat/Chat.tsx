@@ -115,7 +115,6 @@ export default function Chat() {
     sendMessage,
     fetchMessages,
     initializeSocketListeners,
-    cleanupSocketListeners,
   } = useMessageStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -148,16 +147,18 @@ export default function Chat() {
 
   // Initialize socket connection when component mounts
   useEffect(() => {
-    initializeSocket();
-    initializeSocketListeners();
-
+    // Only initialize and set up the socket if the user is authenticated, saves the unnecessary initilization on login screen
+    if (user) {
+      initializeSocket();
+      initializeSocketListeners();
+    }
+    // don't disconnect from the socket, just leave the trip chat, we will disconnect socket on logout
     return () => {
-      cleanupSocketListeners();
-      if (selectedTrip) {
+      if (user && selectedTrip) {
         leaveTripChat();
       }
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -170,8 +171,8 @@ export default function Chat() {
         ]);
       }
     };
-
-    fetchTrips();
+    // don't make API calls on login screen, only do if user is authenticated
+    if (user) fetchTrips();
   }, [fetchUserTrips, getAllTrips]);
 
   // Get combined trips for chat

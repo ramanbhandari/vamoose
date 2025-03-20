@@ -171,19 +171,14 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   // Join a trip's chat room
   joinTripChat: (tripId) => {
     if (!socketClient.isConnected()) {
-      console.warn("Trying to join chat without active connection");
-      // Initialize and wait for connection to be established
+      console.warn("Socket not connected; waiting for connect event...");
+      // Initialize the socket; this will attach a listener for CONNECT
       get().initializeSocket();
-      // Small delay to ensure socket connection is established
-      setTimeout(() => {
-        if (socketClient.isConnected()) {
-          socketClient.joinTripChat(tripId);
-          set({ currentTripId: tripId });
-        } else {
-          console.error("Failed to establish socket connection");
-          set({ error: "Failed to connect to chat server" });
-        }
-      }, 300);
+      // Instead of a timeout, wait for the connect event once:
+      socketClient.getSocket().once(SocketEvent.CONNECT, () => {
+        socketClient.joinTripChat(tripId);
+        set({ currentTripId: tripId });
+      });
     } else {
       socketClient.joinTripChat(tripId);
       set({ currentTripId: tripId });
