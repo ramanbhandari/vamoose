@@ -819,6 +819,7 @@ export default function Chat() {
                       >
                         <Box
                           sx={{
+                            maxWidth: "75%",
                             position: "relative",
                             display: "flex",
                             flexDirection: "column",
@@ -850,10 +851,9 @@ export default function Chat() {
                           </Typography>
                           <Box
                             sx={{
-                              maxWidth: "70%",
-                              wordWrap: "break-word",
+                              maxWidth: "100%",
                               whiteSpace: "normal",
-                              overflow: "hidden",
+                              display: "inline-block",
                               backgroundColor:
                                 msg.userId === user.id
                                   ? "var(--primary-hover)"
@@ -873,7 +873,17 @@ export default function Chat() {
                                   : "flex-start",
                             }}
                           >
-                            <Typography variant="body1">{msg.text}</Typography>
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                                whiteSpace: "pre-line",
+                                width: "100%",
+                              }}
+                            >
+                              {msg.text}
+                            </Typography>
                           </Box>
 
                           {/* Display reactions if any */}
