@@ -301,7 +301,7 @@ export default function MemberOwedCard({
                   : memberSummary.debtorEmail}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Total Amount Owed: ${memberSummary.totalOwed.toFixed(2)}
+                Still Owes: ${memberSummary.totalOwed.toFixed(2)}
               </Typography>
             </Box>
 
