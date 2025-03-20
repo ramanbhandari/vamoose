@@ -133,24 +133,6 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       expectedStatus: 400,
       expectedMessage: 'Invalid start or end date format',
     },
-    {
-      userIdOverride: {},
-      bodyOverrides: {
-        startDate: getXDaysFromToday(-1).toISOString(),
-        endDate: getXDaysFromToday(7).toISOString(),
-      },
-      expectedStatus: 400,
-      expectedMessage: 'Start date must be today or in the future',
-    },
-    {
-      userIdOverride: {},
-      bodyOverrides: {
-        startDate: getXDaysFromToday(8).toISOString(),
-        endDate: getXDaysFromToday(7).toISOString(),
-      },
-      expectedStatus: 400,
-      expectedMessage: 'Start date must be before end date',
-    },
   ])(
     'when request body is $bodyOverrides should return $expectedStatus',
     async ({

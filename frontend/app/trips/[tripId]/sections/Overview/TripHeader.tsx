@@ -219,10 +219,16 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
     const start = parseLocalDate(tripDetails.startDate);
     const end = parseLocalDate(tripDetails.endDate);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const now = parseLocalDate(today.toISOString());
+
     if (!start || !end) {
       errors.push("Something went wrong, please try again!", "error");
     } else if (start >= end) {
       errors.push("End date must be after start date");
+    } else if (now && start.getTime() < now.getTime()) {
+      errors.push("Start date of the trip cannot be in past");
     }
 
     // If there are any validation errors, stack em up
@@ -266,6 +272,7 @@ export default function TripHeader({ tripData }: TripHeaderProps) {
       }
     } finally {
       setLoading(false);
+      handleReset();
     }
   };
 
