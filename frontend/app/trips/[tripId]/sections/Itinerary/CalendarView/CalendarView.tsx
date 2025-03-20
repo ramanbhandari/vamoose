@@ -216,8 +216,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       );
       if (updatedEvent) {
         setSelectedEvent(updatedEvent);
-      } else {
-        setSelectedEvent(null);
       }
     }
   }, [itineraryEvents, selectedEvent]);
@@ -225,8 +223,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const handleDeleteEvent = async () => {
     if (pendingDelete !== null) {
       try {
-        onDelete(pendingDelete);
-
+        await onDelete(pendingDelete);
+        setSelectedEvent(null);
         setDeleteConfirmOpen(false);
         setPendingDelete(null);
       } catch (error) {
