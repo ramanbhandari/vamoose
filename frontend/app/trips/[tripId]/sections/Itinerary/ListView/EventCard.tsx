@@ -295,6 +295,14 @@ const EventCard: React.FC<EventCardProps> = ({
                     >
                       <Check fontSize="small" />
                     </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => setEditingNote(null)}
+                      color="inherit"
+                    >
+                      <Close fontSize="small" />
+                    </IconButton>
                   </>
                 ) : (
                   <>
