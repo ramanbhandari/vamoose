@@ -35,6 +35,7 @@ import {
 } from "@/stores/expense-share-store";
 import { useUserStore } from "@/stores/user-store";
 import ConfirmationDialog from "@/components/ConfirmationDialog"; // Import the ConfirmationDialog component
+import { getUserInfo } from "@/utils/userHelper";
 
 // Category colors
 const categories = [
@@ -74,6 +75,7 @@ export default function MemberOwedCard({
   isLastCard,
   tripId,
 }: MemberOwedCardProps) {
+  const theme = useTheme();
   const [filterEmail, setFilterEmail] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCreditor, setSelectedCreditor] = useState<string | null>(null);
@@ -88,7 +90,9 @@ export default function MemberOwedCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const { user } = useUserStore();
   const { settleExpenses } = useExpenseShareStore();
-  const theme = useTheme();
+
+  const userInfo = getUserInfo(user);
+  const currUserEmail = userInfo?.email;
 
   const canSettle = (creditor: string) => {
     return (
@@ -292,10 +296,12 @@ export default function MemberOwedCard({
             {/* Member Details */}
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="h6" fontWeight="bold">
-                {memberSummary.debtorEmail}
+                {memberSummary.debtorEmail === currUserEmail
+                  ? "Me"
+                  : memberSummary.debtorEmail}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Total Amount Owed: ${memberSummary.totalOwed.toFixed(2)}
+                Still Owes: ${memberSummary.totalOwed.toFixed(2)}
               </Typography>
             </Box>
 

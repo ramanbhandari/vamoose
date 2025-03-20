@@ -9,7 +9,6 @@ import {
   Button,
   Avatar,
   AvatarGroup,
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -17,6 +16,10 @@ import {
   Checkbox,
   useMediaQuery,
   useTheme,
+  ListItemButton,
+  ListItem,
+  List,
+  ListItemIcon,
 } from "@mui/material";
 import {
   Add,
@@ -37,6 +40,7 @@ import { alpha } from "@mui/material/styles";
 import { ItineraryEvent, CreateNote } from "../types";
 import { Member } from "@/types";
 import { StyledEventCard } from "./styled";
+import { FloatingDialogSmall } from "../../Polls/styled";
 
 const CategoryIcon = {
   MEAL: <Restaurant fontSize="small" />,
@@ -291,6 +295,14 @@ const EventCard: React.FC<EventCardProps> = ({
                     >
                       <Check fontSize="small" />
                     </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => setEditingNote(null)}
+                      color="inherit"
+                    >
+                      <Close fontSize="small" />
+                    </IconButton>
                   </>
                 ) : (
                   <>
@@ -447,41 +459,86 @@ const EventCard: React.FC<EventCardProps> = ({
       </Collapse>
 
       {editingMembers && (
-        <Dialog
+        <FloatingDialogSmall
           open={editingMembers}
           onClose={() => setEditingMembers(false)}
-          fullWidth
-          maxWidth="sm"
         >
-          <DialogTitle>Manage Participants</DialogTitle>
-          <DialogContent>
-            <Box>
-              {members.map((member) => (
-                <Box
-                  key={member.userId}
-                  sx={{ display: "flex", alignItems: "center" }}
-                >
-                  <IconButton onClick={() => handleToggleMember(member.userId)}>
-                    <Checkbox
-                      checked={selectedMemberIds.includes(member.userId)}
-                    />
-                  </IconButton>
-                  <ListItemText
-                    primary={member.user.fullName || member.user.email}
-                  />
-                </Box>
-              ))}
+          <DialogTitle
+            sx={{ p: 0, backgroundColor: theme.palette.background.default }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                p: 3,
+                pb: 2,
+              }}
+            >
+              <Typography variant="h5" fontWeight={600} color="text.primary">
+                Manage Participants
+              </Typography>
+              <IconButton onClick={() => setEditingMembers(false)} size="small">
+                <Close />
+              </IconButton>
             </Box>
+          </DialogTitle>
+          <DialogContent
+            sx={{
+              px: 3,
+              py: 0,
+              pt: 2,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <List sx={{ width: "100%", maxWidth: 360 }}>
+              {members.map((member) => (
+                <ListItem key={member.userId} disablePadding>
+                  <ListItemButton
+                    role={undefined}
+                    onClick={() => handleToggleMember(member.userId)}
+                    dense
+                  >
+                    <ListItemIcon>
+                      <Checkbox
+                        edge="start"
+                        checked={selectedMemberIds.includes(member.userId)}
+                        tabIndex={-1}
+                        disableRipple
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={member.user.fullName || member.user.email}
+                      primaryTypographyProps={{
+                        variant: "body1",
+                        color: "text.primary",
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
           </DialogContent>
-          <DialogActions sx={{ justifyContent: "space-between" }}>
+          <DialogActions
+            sx={{
+              p: 3,
+              pt: 2,
+              backgroundColor: theme.palette.background.default,
+              justifyContent: "space-between",
+            }}
+          >
             <Button onClick={() => setEditingMembers(false)} color="inherit">
               Cancel
             </Button>
-            <Button variant="contained" onClick={handleSaveMembers}>
+            <Button
+              variant="contained"
+              onClick={handleSaveMembers}
+              sx={{ px: 3, borderRadius: "8px", fontWeight: 600 }}
+            >
               Save Changes
             </Button>
           </DialogActions>
-        </Dialog>
+        </FloatingDialogSmall>
       )}
     </StyledEventCard>
   );

@@ -1,10 +1,7 @@
 "use client";
 import { create } from "zustand";
 import apiClient from "@/utils/apiClient";
-import socketClient, {
-  initializeSocket,
-  SocketEvent,
-} from "@/utils/socketClient";
+import socketClient, { SocketEvent } from "@/utils/socketClient";
 
 export interface Message {
   messageId: string;
@@ -154,15 +151,43 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     socketClient.disconnectSocket();
   },
 
+  // Initialize socket connection
+  initializeSocket: () => {
+    if (!socketClient.isConnected()) {
+      const socket = socketClient.initializeSocket();
+      set({ isConnected: true });
+
+      socket.on(SocketEvent.CONNECT, () => {
+        set({ isConnected: true });
+        const { currentTripId } = get();
+        if (currentTripId) {
+          socketClient.joinTripChat(currentTripId);
+        }
+      });
+    }
+    return socketClient.isConnected();
+  },
+
   // Join a trip's chat room
   joinTripChat: (tripId) => {
     if (!socketClient.isConnected()) {
       console.warn("Trying to join chat without active connection");
-      initializeSocket();
+      // Initialize and wait for connection to be established
+      get().initializeSocket();
+      // Small delay to ensure socket connection is established
+      setTimeout(() => {
+        if (socketClient.isConnected()) {
+          socketClient.joinTripChat(tripId);
+          set({ currentTripId: tripId });
+        } else {
+          console.error("Failed to establish socket connection");
+          set({ error: "Failed to connect to chat server" });
+        }
+      }, 300);
+    } else {
+      socketClient.joinTripChat(tripId);
+      set({ currentTripId: tripId });
     }
-
-    socketClient.joinTripChat(tripId);
-    set({ currentTripId: tripId });
   },
 
   // Leave the current trip's chat room
@@ -178,7 +203,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   sendMessage: async (tripId, userId, text) => {
     if (!socketClient.isConnected()) {
       set({ error: "Connection lost. Reconnecting..." });
-      initializeSocket();
+      get().initializeSocket();
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
@@ -234,19 +259,6 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   // Set connection state
   setIsConnected: (isConnected) => {
     set({ isConnected });
-  },
-
-  initializeSocket: () => {
-    if (!socketClient.isConnected()) {
-      const socket = socketClient.initializeSocket();
-
-      socket.on(SocketEvent.CONNECT, () => {
-        const { currentTripId } = get();
-        if (currentTripId) {
-          socketClient.joinTripChat(currentTripId);
-        }
-      });
-    }
   },
 
   disconnectSocket: () => {
@@ -313,7 +325,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   reconnect: async () => {
     if (!socketClient.isConnected()) {
-      initializeSocket();
+      get().initializeSocket();
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return socketClient.isConnected();
     }
