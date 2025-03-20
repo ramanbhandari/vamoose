@@ -2,7 +2,7 @@ import { body, checkExact, param, query } from 'express-validator';
 import { DateTime } from 'luxon';
 
 // Helper function to get today's date
-const getTodayDate = () => DateTime.now().toUTC().startOf('day');
+const getTodayDate = () => DateTime.now().startOf('day').toUTC().startOf('day');
 
 // Validation for Creating a Trip
 export const validateCreateTripInput = checkExact([

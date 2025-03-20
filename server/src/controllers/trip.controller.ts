@@ -46,22 +46,9 @@ export const createTripHandler = async (req: Request, res: Response) => {
     // Parse dates
     const startDate = DateTime.fromISO(start).toUTC().startOf('day');
     const endDate = DateTime.fromISO(end).toUTC().endOf('day');
-    const today = DateTime.now().toUTC().startOf('day');
 
     if (!startDate.isValid || !endDate.isValid) {
       res.status(400).json({ error: 'Invalid start or end date format' });
-      return;
-    }
-
-    if (startDate < today) {
-      res
-        .status(400)
-        .json({ error: 'Start date must be today or in the future' });
-      return;
-    }
-
-    if (startDate >= endDate) {
-      res.status(400).json({ error: 'Start date must be before end date' });
       return;
     }
 
@@ -139,7 +126,7 @@ export const fetchTripsWithFiltersHandler = async (
     }
 
     const filters: TripFilters = {};
-    const today = DateTime.now().toUTC().startOf('day');
+    const today = DateTime.now().startOf('day').toUTC().startOf('day');
 
     // Handle destination filtering
     if (destination) {
