@@ -35,14 +35,18 @@ interface MessageData {
  * @returns Socket.io instance
  */
 export const initializeSocket = (): ReturnType<typeof io> => {
-  // If socket already exists and is connected, return it
-  if (socket && socket.connected) {
+  // If socket already exists, doesn't matter connected or not, return it since we dont want to initialize a duplicate socket, we want to just keep one
+  if (socket) {
     return socket;
   }
 
-  // Create new socket connection
+  // Create new socket connection - we force it to use websocket and allow reconnections
   socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000", {
     autoConnect: true,
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 500,
   });
 
   // Set up event listeners
