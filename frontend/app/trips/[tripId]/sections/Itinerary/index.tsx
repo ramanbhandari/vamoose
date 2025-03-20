@@ -15,8 +15,9 @@ import apiClient from "@/utils/apiClient";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useItineraryStore } from "@/stores/itinerary-store";
 import ListView from "./ListView/ListView";
-import { CalendarMonth, ViewList } from "@mui/icons-material";
+import { Add, CalendarMonth, ViewList } from "@mui/icons-material";
 import CalendarView from "./CalendarView/CalendarView";
+import { HeaderButton } from "../Polls/styled";
 
 interface ItineraryProps {
   tripId: number;
@@ -256,13 +257,20 @@ export default function Itinerary({
             <Typography variant="h4" fontWeight="bold">
               {tripName}
             </Typography>
-            <Button
+            <HeaderButton
               variant="contained"
-              color="secondary"
+              startIcon={<Add />}
               onClick={handleOpenModal}
+              sx={{
+                ml: "auto",
+                [theme.breakpoints.down("sm")]: {
+                  ml: 0,
+                  order: 1,
+                },
+              }}
             >
-              Create Event
-            </Button>
+              Create New Event
+            </HeaderButton>
           </Box>
         </Container>
       </GradientHeader>

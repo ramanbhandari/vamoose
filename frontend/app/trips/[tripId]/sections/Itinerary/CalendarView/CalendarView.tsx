@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calendar,
   dateFnsLocalizer,
@@ -40,6 +40,8 @@ import CustomToolbar, { CalendarEvent } from "./Toolbar";
 import EventCard from "../ListView/EventCard";
 import CreateEventModal from "../EventModal";
 import { useNotificationStore } from "@/stores/notification-store";
+import DeleteConfirmationDialog from "../ListView/DeleteConfirmationDialog";
+import { FloatingDialogSmall } from "../../Polls/styled";
 
 interface ConfirmationDialogProps {
   open: boolean;
@@ -62,7 +64,7 @@ const ConfirmationDialog = ({
   newEnd,
   actionType,
 }: ConfirmationDialogProps) => (
-  <Dialog open={open} onClose={() => onClose(false)} maxWidth="xs" fullWidth>
+  <FloatingDialogSmall open={open} onClose={() => onClose(false)}>
     <Box
       sx={{
         background: "var(--background-paper)",
@@ -134,7 +136,7 @@ const ConfirmationDialog = ({
         </Button>
       </DialogActions>
     </Box>
-  </Dialog>
+  </FloatingDialogSmall>
 );
 
 const locales = { "en-US": enUS };
@@ -192,7 +194,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createStart, setCreateStart] = useState<Date | null>(null);
   const [createEnd, setCreateEnd] = useState<Date | null>(null);
+
   const [editingEvent, setEditingEvent] = useState<ItineraryEvent | null>(null);
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [pendingChange, setPendingChange] = useState<{
@@ -202,22 +208,35 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     action: "move" | "resize";
   } | null>(null);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  if (error) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="body1" color="error">
-          {error}
-        </Typography>
-      </Box>
-    );
-  }
+  // if itineraryEvents change and event is selected, replace with updated event
+  useEffect(() => {
+    if (selectedEvent) {
+      const updatedEvent = itineraryEvents.find(
+        (e) => e.id === selectedEvent.id
+      );
+      if (updatedEvent) {
+        setSelectedEvent(updatedEvent);
+      }
+    }
+  }, [itineraryEvents, selectedEvent]);
+
+  const handleDeleteEvent = async () => {
+    if (pendingDelete !== null) {
+      try {
+        await onDelete(pendingDelete);
+        setSelectedEvent(null);
+        setDeleteConfirmOpen(false);
+        setPendingDelete(null);
+      } catch (error) {
+        console.error("Error deleting Itinerary Event:", error);
+      }
+    }
+  };
+
+  const handleDeleteEventRequest = (eventId: number) => {
+    setDeleteConfirmOpen(true);
+    setPendingDelete(eventId);
+  };
 
   const calendarEvents: CalendarEvent[] = itineraryEvents.map((evt) => ({
     title: evt.title,
@@ -243,7 +262,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleEventDrop = (args: EventInteractionArgs<CalendarEvent>) => {
     const { event, start, end } = args;
-    if (!event.resource) return;
+    if (
+      !event.resource ||
+      (asDate(start).getTime() === event.start.getTime() &&
+        asDate(end).getTime() === event.end.getTime())
+    )
+      return;
 
     const itineraryEvent = event.resource;
     const startDate = asDate(start);
@@ -260,7 +284,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleEventResize = (args: EventInteractionArgs<CalendarEvent>) => {
     const { event, start, end } = args;
-    if (!event.resource) return;
+    if (
+      !event.resource ||
+      (asDate(start).getTime() === event.start.getTime() &&
+        asDate(end).getTime() === event.end.getTime())
+    )
+      return;
 
     const itineraryEvent = event.resource;
     const startDate = asDate(start);
@@ -303,6 +332,24 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const isRangeWithinTripDates = (start: Date, end: Date) => {
     return isWithinTripDates(start) && isWithinTripDates(end);
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography variant="body1" color="error">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -377,7 +424,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           <EventCard
             event={selectedEvent}
             onEdit={setEditingEvent}
-            onDelete={onDelete}
+            onDelete={handleDeleteEventRequest}
             onClose={() => setSelectedEvent(null)}
             onAddNote={onAddNote}
             onUpdateNote={onUpdateNote}
@@ -424,6 +471,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         newStart={pendingChange?.start || new Date()}
         newEnd={pendingChange?.end || new Date()}
         actionType={pendingChange?.action || "move"}
+      />
+
+      <DeleteConfirmationDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteEvent}
       />
     </>
   );
