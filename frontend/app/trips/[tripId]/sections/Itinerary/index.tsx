@@ -1,4 +1,11 @@
-import { Box, Typography, useTheme, Container, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  useTheme,
+  Container,
+  Button,
+  alpha,
+} from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
 import { useState } from "react";
 import { CreateItineraryEvent, CreateNote, ItineraryEvent } from "./types";
@@ -8,6 +15,8 @@ import apiClient from "@/utils/apiClient";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useItineraryStore } from "@/stores/itinerary-store";
 import ListView from "./ListView/ListView";
+import { CalendarMonth, ViewList } from "@mui/icons-material";
+import CalendarView from "./CalendarView/CalendarView";
 
 interface ItineraryProps {
   tripId: number;
@@ -27,6 +36,8 @@ export default function Itinerary({
 
   const { setNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -256,21 +267,111 @@ export default function Itinerary({
         </Container>
       </GradientHeader>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <ListView
-          loading={loading}
-          error={error}
-          members={tripData?.members}
-          tripStart={tripData?.startDate}
-          tripEnd={tripData?.endDate}
-          onAdd={handleSaveEvent}
-          onUpdate={handleUpdateItineraryEvent}
-          onDelete={handleDeleteItineraryEvent}
-          onAddNote={handleAddItineraryEventNote}
-          onUpdateNote={handleUpdateItineraryEventNote}
-          onDeleteNote={handleDeleteItineraryEventNote}
-          onAssignMembers={handleAssignMembers}
-          onUnAssignMembers={handleDeleteAssignedMembers}
-        />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            position: "relative",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              bgcolor: alpha(theme.palette.background.paper, 0.4),
+              borderRadius: "12px",
+              p: 0.5,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              boxShadow: theme.shadows[1],
+            }}
+          >
+            <Button
+              onClick={() => setViewMode("list")}
+              variant={viewMode === "list" ? "contained" : "text"}
+              sx={{
+                minWidth: 120,
+                borderRadius: "8px",
+                textTransform: "none",
+                color:
+                  viewMode === "list"
+                    ? theme.palette.primary.contrastText
+                    : "text.secondary",
+                bgcolor:
+                  viewMode === "list"
+                    ? theme.palette.primary.main
+                    : "transparent",
+                "&:hover": {
+                  bgcolor:
+                    viewMode === "list"
+                      ? theme.palette.primary.dark
+                      : alpha(theme.palette.primary.light, 0.1),
+                },
+              }}
+              startIcon={<ViewList />}
+            >
+              List View
+            </Button>
+            <Button
+              onClick={() => setViewMode("calendar")}
+              variant={viewMode === "calendar" ? "contained" : "text"}
+              sx={{
+                minWidth: 120,
+                borderRadius: "8px",
+                textTransform: "none",
+                color:
+                  viewMode === "calendar"
+                    ? theme.palette.primary.contrastText
+                    : "text.secondary",
+                bgcolor:
+                  viewMode === "calendar"
+                    ? theme.palette.primary.main
+                    : "transparent",
+                "&:hover": {
+                  bgcolor:
+                    viewMode === "calendar"
+                      ? theme.palette.primary.dark
+                      : alpha(theme.palette.primary.light, 0.1),
+                },
+              }}
+              startIcon={<CalendarMonth />}
+            >
+              Calendar
+            </Button>
+          </Box>
+        </Box>
+
+        {viewMode === "list" ? (
+          <ListView
+            loading={loading}
+            error={error}
+            members={tripData?.members}
+            tripStart={tripData?.startDate}
+            tripEnd={tripData?.endDate}
+            onAdd={handleSaveEvent}
+            onUpdate={handleUpdateItineraryEvent}
+            onDelete={handleDeleteItineraryEvent}
+            onAddNote={handleAddItineraryEventNote}
+            onUpdateNote={handleUpdateItineraryEventNote}
+            onDeleteNote={handleDeleteItineraryEventNote}
+            onAssignMembers={handleAssignMembers}
+            onUnAssignMembers={handleDeleteAssignedMembers}
+          />
+        ) : (
+          <CalendarView
+            loading={loading}
+            error={error}
+            members={tripData?.members}
+            tripStart={tripData?.startDate}
+            tripEnd={tripData?.endDate}
+            onAdd={handleSaveEvent}
+            onUpdate={handleUpdateItineraryEvent}
+            onDelete={handleDeleteItineraryEvent}
+            onAddNote={handleAddItineraryEventNote}
+            onUpdateNote={handleUpdateItineraryEventNote}
+            onDeleteNote={handleDeleteItineraryEventNote}
+            onAssignMembers={handleAssignMembers}
+            onUnAssignMembers={handleDeleteAssignedMembers}
+          />
+        )}
       </Container>
 
       <CreateEventModal

@@ -67,6 +67,8 @@ interface CreateEventDialogProps {
   members: Member[];
   tripStart: string;
   tripEnd: string;
+  initialStartTime?: Date;
+  initialEndTime?: Date;
 }
 
 const MIN_START_BUFFER_MINUTES = 5; // If today, start time must be at least now + 5 minutes
@@ -81,6 +83,8 @@ export default function CreateEventDialog({
   members,
   tripStart,
   tripEnd,
+  initialStartTime,
+  initialEndTime,
 }: CreateEventDialogProps) {
   const theme = useTheme();
   const { setNotification } = useNotificationStore();
@@ -94,12 +98,22 @@ export default function CreateEventDialog({
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
   const [location, setLocation] = useState(event?.location || "");
+
   const [startTime, setStartTime] = useState(
-    event ? formatDateTimeForAPI(new Date(event.startTime)) : ""
+    event
+      ? formatDateTimeForAPI(new Date(event.startTime))
+      : initialStartTime
+        ? formatDateTimeForAPI(initialStartTime)
+        : ""
   );
   const [endTime, setEndTime] = useState(
-    event ? formatDateTimeForAPI(new Date(event.endTime)) : ""
+    event
+      ? formatDateTimeForAPI(new Date(event.endTime))
+      : initialEndTime
+        ? formatDateTimeForAPI(initialEndTime)
+        : ""
   );
+
   const [category, setCategory] = useState<EventCategory>(
     event?.category ?? "GENERAL"
   );
@@ -117,6 +131,15 @@ export default function CreateEventDialog({
     now > tripStartDate
       ? new Date(now.getTime() + MIN_START_BUFFER_MINUTES * 60000)
       : tripStartDate;
+
+  useEffect(() => {
+    if (!event && open) {
+      setStartTime(
+        initialStartTime ? formatDateTimeForAPI(initialStartTime) : ""
+      );
+      setEndTime(initialEndTime ? formatDateTimeForAPI(initialEndTime) : "");
+    }
+  }, [event, initialStartTime, initialEndTime, open]);
 
   useEffect(() => {
     if (notes.length > prevNotesLength.current) {
