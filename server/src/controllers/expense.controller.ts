@@ -129,7 +129,7 @@ export const addExpenseHandler = async (req: Request, res: Response) => {
       type: NotificationType.EXPENSE_CREATED,
       relatedId: expense.id,
       title: `Expense Added to trip "${trip.name}"`,
-      message: `A new expense of $${amount} has been added the trip.`,
+      message: `A new expense of $${amount} has been added to the trip.`,
       channel: 'IN_APP',
     });
 
