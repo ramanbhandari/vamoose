@@ -1,5 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Box, useTheme, alpha, CircularProgress } from "@mui/material";
+import {
+  Box,
+  useTheme,
+  alpha,
+  CircularProgress,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreateItineraryEvent, CreateNote, ItineraryEvent } from "../types";
 import { useItineraryStore } from "@/stores/itinerary-store";
@@ -10,6 +17,7 @@ import { TimelineDot } from "./styled";
 import { DateHeader } from "./DateHeader";
 import EventCard from "./EventCard";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import { Event } from "@mui/icons-material";
 
 interface ListViewProps {
   selectedDate?: Date;
@@ -97,52 +105,84 @@ const ListView: React.FC<ListViewProps> = ({
   };
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        maxWidth: 800,
-        mx: "auto",
-        p: 3,
-      }}
-    >
-      <AnimatePresence>
-        {eventsByDate.map((group) => (
-          <Box key={group.date} sx={{ mb: 4 }}>
-            <DateHeader date={group.date} />
-            <Box
-              sx={{
-                position: "relative",
-                pl: 3,
-                borderLeft: `2px dashed ${alpha(theme.palette.primary.main, 0.2)}`,
-              }}
-            >
-              {group.events.map((evt, index) => (
-                <motion.div
-                  key={evt.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.4 }}
+    <>
+      {events.length > 0 ? (
+        <Box
+          sx={{
+            position: "relative",
+            maxWidth: 800,
+            mx: "auto",
+            p: 3,
+          }}
+        >
+          <AnimatePresence>
+            {eventsByDate.map((group) => (
+              <Box key={group.date} sx={{ mb: 4 }}>
+                <DateHeader date={group.date} />
+                <Box
+                  sx={{
+                    position: "relative",
+                    pl: 3,
+                    borderLeft: `2px dashed ${alpha(theme.palette.primary.main, 0.2)}`,
+                  }}
                 >
-                  <TimelineDot />
-                  <EventCard
-                    event={evt}
-                    expanded={false}
-                    onEdit={setEditingEvent}
-                    onDelete={handleDeleteEventRequest}
-                    onClose={() => {}}
-                    onAddNote={onAddNote}
-                    onUpdateNote={onUpdateNote}
-                    onDeleteNote={onDeleteNote}
-                    members={members}
-                    onAssignMembers={onAssignMembers}
-                    onUnAssignMembers={onUnAssignMembers}
-                  />
-                </motion.div>
-              ))}
-            </Box>
-          </Box>
-        ))}
-      </AnimatePresence>
+                  {group.events.map((evt, index) => (
+                    <motion.div
+                      key={evt.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.4 }}
+                    >
+                      <TimelineDot />
+                      <EventCard
+                        event={evt}
+                        expanded={false}
+                        onEdit={setEditingEvent}
+                        onDelete={handleDeleteEventRequest}
+                        onClose={() => {}}
+                        onAddNote={onAddNote}
+                        onUpdateNote={onUpdateNote}
+                        onDeleteNote={onDeleteNote}
+                        members={members}
+                        onAssignMembers={onAssignMembers}
+                        onUnAssignMembers={onUnAssignMembers}
+                      />
+                    </motion.div>
+                  ))}
+                </Box>
+              </Box>
+            ))}
+          </AnimatePresence>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            position: "relative",
+            mx: "auto",
+            pt: 3,
+          }}
+        >
+          <Paper
+            sx={{
+              p: 8,
+              textAlign: "center",
+              background: `linear-gradient(45deg, ${theme.palette.background.default} 30%, ${theme.palette.action.hover} 90%)`,
+              borderRadius: 6,
+            }}
+          >
+            <Event
+              sx={{
+                fontSize: 80,
+                color: theme.palette.text.secondary,
+                mb: 2,
+              }}
+            />
+            <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+              {"No Scheduled Events Yet!"}
+            </Typography>
+          </Paper>
+        </Box>
+      )}
 
       <DeleteConfirmationDialog
         open={confirmOpen}
@@ -162,7 +202,7 @@ const ListView: React.FC<ListViewProps> = ({
           tripEnd={tripEnd}
         />
       )}
-    </Box>
+    </>
   );
 };
 
