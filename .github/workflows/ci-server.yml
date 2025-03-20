@@ -27,21 +27,27 @@ jobs:
       - name: Create Docker network for CI
         run: docker network create ci-network
 
-      - name: Run Test Database Container
+      - name: Build and Run PostgreSQL Test Database
         run: |
-          docker build -t test-db -f server/Dockerfile.testdb ./server
+          docker build -t test-db -f server/Dockerfile.testdb.postgres ./server
           docker run -d --name integration-tests-prisma --network ci-network -p 5433:5432 test-db
+
+      - name: Build and Run MongoDB Test Database
+        run: |
+          docker build -t test-db-mongo -f server/Dockerfile.testdb.mongo ./server
+          docker run -d --name integration-tests-mongo --network ci-network -p 27018:27017 test-db-mongo
 
       - name: Run Integration Tests in Docker
         run: | 
           docker run --rm --network ci-network \
           -e DATABASE_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
           -e DIRECT_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
+          -e MONGO_URL="mongodb://mongo:mongo@integration-tests-mongo:27017/tests?authSource=admin&directConnection=true" \
           -e SUPABASE_JWT_SECRET="Super-secret-key" \
           server-ci npm run test:integration
 
-      - name: Cleanup Test Database Container
-        run: docker rm -f integration-tests-prisma
+      - name: Cleanup Test Database Containers
+        run: docker rm -f integration-tests-prisma integration-tests-mongo
 
       - name: Remove Docker network
         run: docker network rm ci-network
