@@ -1,4 +1,7 @@
-import { createNotification } from '@/services/notificationService.js';
+import {
+  createNotification,
+  removeScheduledNotifications,
+} from '@/services/notificationService.js';
 import { getAllTripMembers } from '@/models/member.model.js';
 import { NotificationType } from '@/interfaces/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
@@ -248,6 +251,32 @@ export async function notifyTripAdmins(
   } catch (error) {
     console.error(
       '[NotificationUtils] Error notifying trip creator and admins:',
+      error,
+    );
+  }
+}
+
+/**
+ * Abstracts the removal of scheduled notifications.
+ *
+ * @param relatedId - The ID of the related entity (e.g., itinerary event, trip).
+ * @param types - Optional list of notification types to remove.
+ */
+export async function cancelScheduledNotifications(
+  relatedId: number,
+  types?: NotificationType | NotificationType[],
+): Promise<void> {
+  try {
+    const typesArray = Array.isArray(types)
+      ? types.filter((type): type is NotificationType => type !== undefined)
+      : types !== undefined
+        ? [types]
+        : [];
+
+    await removeScheduledNotifications(relatedId, typesArray);
+  } catch (error) {
+    console.error(
+      `[NotificationHandler] Error canceling scheduled notifications for relatedId ${relatedId}:`,
       error,
     );
   }

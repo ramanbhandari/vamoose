@@ -17,6 +17,7 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 import { EventCategory } from '@/interfaces/enums.js';
 import {
+  cancelScheduledNotifications,
   notifySpecificTripMembers,
   notifyTripMembers,
   notifyTripMembersExceptInitiator,
@@ -305,6 +306,53 @@ export const updateItineraryEventHandler = async (
       endTime: endTimeUtc,
       category: categoryEnum,
     });
+
+    // Notify trip members (except initiator) about the update
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.EVENT_UPDATED,
+      relatedId: itineraryEvent.id,
+      title: `An Itinerary Event has been updated in trip "${tripDetails.name}"!`,
+      message: `The event "${title}" has been modified. Check the itinerary for details.`,
+      channel: 'IN_APP',
+    });
+
+    // Check if the start time changed
+    if (
+      startTimeUtc &&
+      (!event.startTime || startTimeUtc.getTime() !== event.startTime.getTime())
+    ) {
+      // Remove old scheduled notifications
+      await cancelScheduledNotifications(
+        itineraryEvent.id,
+        NotificationType.EVENT_REMINDER,
+      );
+
+      const now = DateTime.now().toUTC();
+      const eventStart = DateTime.fromJSDate(startTimeUtc);
+
+      // Schedule new reminders
+      if (eventStart.diff(now, 'hours').hours >= 1) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${tripDetails.name}"!`,
+          message: `"${title}" starts in an hour. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ hours: 1 }).toJSDate(),
+        });
+      }
+
+      if (eventStart.diff(now, 'minutes').minutes >= 30) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${tripDetails.name}"!`,
+          message: `"${title}" starts in 30 minutes. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ minutes: 30 }).toJSDate(),
+        });
+      }
+    }
 
     res.status(201).json({
       message: 'Itinerary event updated successfully',

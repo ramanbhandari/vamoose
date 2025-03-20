@@ -41,6 +41,7 @@ jest.mock('@/utils/notificationHandlers.js', () => ({
   notifyIndividuals: jest.fn().mockResolvedValue(undefined),
   notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
   notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+  cancelScheduledNotifications: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('Create Itinerary Event Controller', () => {

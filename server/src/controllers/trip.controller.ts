@@ -12,10 +12,7 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
-import {
-  notifyTripMembers,
-  notifyTripMembersExceptInitiator,
-} from '@/utils/notificationHandlers.js';
+import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
 import { NotificationType } from '@/interfaces/enums.js';
 
 /**
@@ -235,7 +232,7 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     const deletedTrip = await deleteTrip(userId, tripId);
 
     // Notify trip members that the trip was deleted
-    await notifyTripMembers(tripId, {
+    await notifyTripMembersExceptInitiator(tripId, userId, {
       type: NotificationType.TRIP_DELETED,
       relatedId: tripId,
       title: 'Trip Deleted',
