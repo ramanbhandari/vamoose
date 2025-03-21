@@ -164,6 +164,7 @@ interface CalendarViewProps {
   tripEnd: string;
   loading?: boolean;
   error?: string | null;
+  isAdminOrCreator: boolean;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -180,6 +181,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onDeleteNote,
   onAssignMembers,
   onUnAssignMembers,
+  isAdminOrCreator,
 }) => {
   const { itineraryEvents } = useItineraryStore();
   const { setNotification } = useNotificationStore();
@@ -432,6 +434,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             members={members}
             onAssignMembers={onAssignMembers}
             onUnAssignMembers={onUnAssignMembers}
+            isAdminOrCreator={isAdminOrCreator}
             expanded
             calendarMode
           />

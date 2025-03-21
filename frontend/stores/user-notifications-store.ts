@@ -53,6 +53,18 @@ export const notificationSectionMapping: Record<
   EXPENSE_CREATED: { section: "expenses", category: "expenses" },
   EXPENSE_SHARE_SETTLED: { section: "expenses", category: "expenses" },
   MEMBER_JOINED: { section: "members", category: "members" },
+  EVENT_CREATED: { section: "itinerary", category: "itinerary" },
+  EVENT_REMINDER: { section: "itinerary", category: "itinerary" },
+  EVENT_ASSIGNMENT: { section: "itinerary", category: "itinerary" },
+  EVENT_UNASSIGNMENT: { section: "itinerary", category: "itinerary" },
+  EVENT_NOTE_ADDED: { section: "itinerary", category: "itinerary" },
+  EXPENSE_SHARE_ADDED: { section: "expenses", category: "expenses" },
+  INVITE_REJECTED: { section: "members", category: "members" },
+  MEMBER_LEFT: { section: "members", category: "members" },
+  MEMBER_REMOVED: { section: "members", category: "members" },
+  MEMBERS_REMOVED: { section: "members", category: "members" },
+  MEMBER_ROLE_UPDATED: { section: "members", category: "members" },
+  TRIP_UPDATED: { section: "overview", category: "default" },
 };
 
 export const getNotificationCategory = (type: string) => {

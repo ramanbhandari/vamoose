@@ -12,6 +12,8 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
+import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 /**
  * Create a Trip
@@ -215,6 +217,16 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     }
 
     const deletedTrip = await deleteTrip(userId, tripId);
+
+    // Notify trip members that the trip was deleted
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.TRIP_DELETED,
+      relatedId: tripId,
+      title: 'Trip Deleted',
+      message: `The trip "${trip.name}" has been deleted.`,
+      channel: 'IN_APP',
+    });
+
     res
       .status(200)
       .json({ message: 'Trip deleted successfully', trip: deletedTrip });
@@ -313,6 +325,16 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     }
 
     const updatedTrip = await updateTrip(tripId, tripData);
+
+    // Notify all trip members about the update
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.TRIP_UPDATED,
+      relatedId: tripId,
+      title: 'Trip Updated',
+      message: `The trip "${updatedTrip.name}" has been updated.`,
+      channel: 'IN_APP',
+    });
+
     res
       .status(200)
       .json({ message: 'Trip updated successfully', trip: updatedTrip });

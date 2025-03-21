@@ -2,7 +2,7 @@ import {
   notifyTripMembers,
   notifyTripMembersExcept,
   notifyIndividual,
-  notifyTripMembersExceptCreator,
+  notifyTripMembersExceptInitiator,
   NotificationOptions,
 } from '@/utils/notificationHandlers.js';
 import { createNotification } from '@/services/notificationService.js';
@@ -115,7 +115,7 @@ describe('Notification Utils', () => {
     });
   });
 
-  describe('notifyTripMembersExceptCreator', () => {
+  describe('notifyTripMembersExceptInitiator', () => {
     it('should notify all trip members except the creator', async () => {
       const options: NotificationOptions = {
         type: NotificationType.EXPENSE_SHARE_SETTLED,
@@ -127,7 +127,7 @@ describe('Notification Utils', () => {
       const creatorUserId = 'user1';
 
       // This should call notifyTripMembersExcept with [creatorUserId] as exclusion
-      await notifyTripMembersExceptCreator(tripId, creatorUserId, options);
+      await notifyTripMembersExceptInitiator(tripId, creatorUserId, options);
 
       expect(getAllTripMembers).toHaveBeenCalledWith(tripId);
       expect(createNotification).toHaveBeenCalledWith({

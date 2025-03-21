@@ -41,6 +41,7 @@ import { ItineraryEvent, CreateNote } from "../types";
 import { Member } from "@/types";
 import { StyledEventCard } from "./styled";
 import { FloatingDialogSmall } from "../../Polls/styled";
+import { useUserStore } from "@/stores/user-store";
 
 const CategoryIcon = {
   MEAL: <Restaurant fontSize="small" />,
@@ -64,6 +65,7 @@ interface EventCardProps {
   members: Member[];
   onAssignMembers: (eventId: number, userIds: string[]) => void;
   onUnAssignMembers: (eventId: number, userIds: string[]) => void;
+  isAdminOrCreator: boolean;
   expanded?: boolean; // true = show full details; if false, show condensed version with an expand button
   calendarMode?: boolean;
 }
@@ -79,11 +81,15 @@ const EventCard: React.FC<EventCardProps> = ({
   members,
   onAssignMembers,
   onUnAssignMembers,
+  isAdminOrCreator,
   expanded = true,
   calendarMode = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useUserStore();
+  const isEventCreator = user?.id === event.createdById;
+
   const [editingNote, setEditingNote] = useState<{
     id: number;
     content: string;
@@ -189,26 +195,32 @@ const EventCard: React.FC<EventCardProps> = ({
               />
             </IconButton>
           )}
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(event);
-            }}
-            sx={{ color: "text.secondary" }}
-          >
-            <Edit fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(event.id);
-            }}
-            sx={{ color: "error.main" }}
-          >
-            <DeleteOutline />
-          </IconButton>
+
+          {(isAdminOrCreator || isEventCreator) && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(event);
+              }}
+              sx={{ color: "text.secondary" }}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          )}
+
+          {(isAdminOrCreator || isEventCreator) && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(event.id);
+              }}
+              sx={{ color: "error.main" }}
+            >
+              <DeleteOutline />
+            </IconButton>
+          )}
 
           {calendarMode && (
             <IconButton
@@ -335,24 +347,29 @@ const EventCard: React.FC<EventCardProps> = ({
                       </Box>
                       <Typography variant="body2">{note.content}</Typography>
                     </Box>
-                    <Box sx={{ display: isMobile ? "flex" : undefined }}>
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setEditingNote({ id: note.id, content: note.content })
-                        }
-                        sx={{ color: "text.secondary" }}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => onDeleteNote(event.id, note.id)}
-                        sx={{ color: "error.main" }}
-                      >
-                        <DeleteOutline fontSize="small" />
-                      </IconButton>
-                    </Box>
+                    {note.user.id === user?.id && (
+                      <Box sx={{ display: isMobile ? "flex" : undefined }}>
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setEditingNote({
+                              id: note.id,
+                              content: note.content,
+                            })
+                          }
+                          sx={{ color: "text.secondary" }}
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => onDeleteNote(event.id, note.id)}
+                          sx={{ color: "error.main" }}
+                        >
+                          <DeleteOutline fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    )}
                   </>
                 )}
               </Box>
@@ -447,13 +464,16 @@ const EventCard: React.FC<EventCardProps> = ({
               {event.assignedUsers.length} participant
               {event.assignedUsers.length !== 1 && "s"}
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setEditingMembers(true)}
-              sx={{ ml: "auto", color: "text.secondary" }}
-            >
-              <Edit fontSize="small" />
-            </IconButton>
+
+            {(isAdminOrCreator || isEventCreator) && (
+              <IconButton
+                size="small"
+                onClick={() => setEditingMembers(true)}
+                sx={{ ml: "auto", color: "text.secondary" }}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            )}
           </Box>
         </Box>
       </Collapse>
