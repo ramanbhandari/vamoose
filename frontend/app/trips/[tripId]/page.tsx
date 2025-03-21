@@ -11,8 +11,6 @@ import {
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import HotelIcon from "@mui/icons-material/Hotel";
-import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import PollIcon from "@mui/icons-material/Poll";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import WorkIcon from "@mui/icons-material/Work";
