@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
-import { SvgIconProps } from "@mui/material";
+import { SvgIconProps, useTheme } from "@mui/material";
 import ReactDOMServer from "react-dom/server";
 
 interface MarkerProps {
@@ -27,6 +27,8 @@ export default function Marker({
   isSaved = false,
 }: MarkerProps) {
   const [marker, setMarker] = useState<maplibre.Marker | null>(null);
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
 
   useEffect(() => {
     if (!map) return;
@@ -42,10 +44,17 @@ export default function Marker({
     el.style.backgroundColor = color;
     el.style.borderRadius = "50%";
 
-    // Add a different border style for saved locations
+    // Add a different border style for saved locations based on theme
     if (isSaved) {
-      el.style.border = "3px solid gold";
-      el.style.boxShadow = "0 2px 6px rgba(255, 215, 0, 0.6)";
+      if (isDarkMode) {
+        // Gold for dark mode
+        el.style.border = "3px solid gold";
+        el.style.boxShadow = "0 2px 6px rgba(255, 215, 0, 0.6)";
+      } else {
+        // Blue for light mode
+        el.style.border = "3px solid #1976d2";
+        el.style.boxShadow = "0 2px 6px rgba(25, 118, 210, 0.6)";
+      }
     } else {
       el.style.border = "2px solid white";
       el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
@@ -108,6 +117,7 @@ export default function Marker({
     position,
     icon,
     isSaved,
+    isDarkMode,
   ]);
 
   // Update marker position on change
