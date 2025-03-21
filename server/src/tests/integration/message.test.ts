@@ -92,6 +92,58 @@ describe('Chat Message API Integration Tests', () => {
   });
 
   // ==========================
+  // GET ALL MESSAGES TEST
+  // ==========================
+  it('should get all messages with correct ordering and structure', async () => {
+    // Create multiple messages with different timestamps
+    const message1 = await Message.create({
+      messageId: uuidv4(),
+      userId,
+      tripId,
+      text: 'First message',
+      createdAt: new Date(Date.now() - 3000), // 3 seconds ago
+    });
+
+    const message2 = await Message.create({
+      messageId: uuidv4(),
+      userId,
+      tripId,
+      text: 'Second message',
+      createdAt: new Date(Date.now() - 2000), // 2 seconds ago
+    });
+
+    const message3 = await Message.create({
+      messageId: uuidv4(),
+      userId,
+      tripId,
+      text: 'Third message',
+      reactions: { '👍': [userId] },
+      createdAt: new Date(Date.now() - 1000), // 1 second ago
+    });
+
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/messages`)
+      .set('Authorization', authToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body.messages.length).toBe(3);
+
+    // Check chronological ordering (oldest first)
+    expect(response.body.messages[0].text).toBe('First message');
+    expect(response.body.messages[1].text).toBe('Second message');
+    expect(response.body.messages[2].text).toBe('Third message');
+
+    // Verify message structure and content
+    const lastMessage = response.body.messages[2];
+    expect(lastMessage).toHaveProperty('messageId');
+    expect(lastMessage).toHaveProperty('tripId', String(tripId));
+    expect(lastMessage).toHaveProperty('userId', userId);
+    expect(lastMessage).toHaveProperty('text', 'Third message');
+    expect(lastMessage).toHaveProperty('reactions');
+    expect(lastMessage.reactions).toHaveProperty('👍');
+    expect(lastMessage.reactions['👍']).toContain(userId);
+  });
+  // ==========================
   // ADD REACTION TEST
   // ==========================
   it('should add a reaction to a message', async () => {
