@@ -1,10 +1,18 @@
 "use client";
 
-import { Grid, Typography, Box, useTheme, Paper } from "@mui/material";
+import {
+  Typography,
+  Box,
+  useTheme,
+  Paper,
+  Button,
+  useMediaQuery,
+} from "@mui/material";
 import PollIcon from "@mui/icons-material/Poll";
 import { motion } from "framer-motion";
 import { SectionContainer } from "./styled";
 import { Poll } from "@/app/trips/[tripId]/sections/Polls/types";
+import Masonry from "@mui/lab/Masonry";
 
 interface PollsSectionProps {
   polls: Poll[];
@@ -37,7 +45,15 @@ function PollPreviewCard({ question, votes, onClick }: PollProps) {
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <PollIcon color="primary" />
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                wordBreak: "break-word",
+                overflowWrap: "break-word",
+                whiteSpace: "pre-line",
+              }}
+            >
               {question}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -55,39 +71,95 @@ export default function PollsSection({
   onSectionChange,
 }: PollsSectionProps) {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const MAX_ACTIVE_POLLS = 6;
+
   return (
     <SectionContainer theme={theme}>
-      <Box mb={3}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          <PollIcon fontSize="large" />
-          Active Polls
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {polls.length} ongoing decisions
-        </Typography>
+      <Box
+        mb={3}
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            <PollIcon fontSize="large" />
+            Active Polls
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {polls.length} ongoing decision(s)
+          </Typography>
+        </Box>
+
+        {!isMobile && (
+          <Box>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                sx={{
+                  borderRadius: 3,
+                  py: 1.5,
+                  fontSize: "1.1rem",
+                }}
+                onClick={() => onSectionChange("polls")}
+              >
+                View All Polls
+              </Button>
+            </motion.div>
+          </Box>
+        )}
       </Box>
 
-      <Grid container spacing={3}>
-        {polls.map((poll, index) => (
-          <Grid item xs={12} md={6} key={index}>
-            <PollPreviewCard
-              id={poll.id}
-              question={poll.question}
-              votes={poll.totalVotes}
-              onClick={() => onSectionChange("polls")}
-            />
-          </Grid>
+      <Masonry columns={isMobile ? 1 : 2} spacing={2}>
+        {polls.slice(0, MAX_ACTIVE_POLLS).map((poll) => (
+          <PollPreviewCard
+            key={poll.id}
+            id={poll.id}
+            question={poll.question}
+            votes={poll.totalVotes}
+            onClick={() => onSectionChange("polls")}
+          />
         ))}
-      </Grid>
+      </Masonry>
+
+      {isMobile && (
+        <Box
+          sx={{
+            mt: 3,
+            mx: "auto",
+          }}
+        >
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="secondary"
+              sx={{
+                borderRadius: 3,
+                py: 1.5,
+                fontSize: "1.1rem",
+              }}
+              onClick={() => onSectionChange("polls")}
+            >
+              {polls.length > 0 ? "View All Polls" : "Go to Polls"}
+            </Button>
+          </motion.div>
+        </Box>
+      )}
     </SectionContainer>
   );
 }
