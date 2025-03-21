@@ -34,6 +34,7 @@ interface ListViewProps {
   tripEnd: string;
   loading?: boolean;
   error?: string | null;
+  isAdminOrCreator: boolean;
 }
 
 const ListView: React.FC<ListViewProps> = ({
@@ -50,6 +51,7 @@ const ListView: React.FC<ListViewProps> = ({
   onDeleteNote,
   onAssignMembers,
   onUnAssignMembers,
+  isAdminOrCreator,
 }) => {
   const theme = useTheme();
   const { setNotification } = useNotificationStore();
@@ -146,6 +148,7 @@ const ListView: React.FC<ListViewProps> = ({
                         members={members}
                         onAssignMembers={onAssignMembers}
                         onUnAssignMembers={onUnAssignMembers}
+                        isAdminOrCreator={isAdminOrCreator}
                       />
                     </motion.div>
                   ))}

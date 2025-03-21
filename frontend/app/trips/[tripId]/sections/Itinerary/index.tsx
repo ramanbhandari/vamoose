@@ -18,6 +18,8 @@ import ListView from "./ListView/ListView";
 import { Add, CalendarMonth, ViewList } from "@mui/icons-material";
 import CalendarView from "./CalendarView/CalendarView";
 import { HeaderButton } from "../Polls/styled";
+import { useUserStore } from "@/stores/user-store";
+import { getUserInfo } from "@/utils/userHelper";
 
 interface ItineraryProps {
   tripId: number;
@@ -32,6 +34,8 @@ export default function Itinerary({
   imageUrl,
 }: ItineraryProps) {
   const theme = useTheme();
+
+  const { user } = useUserStore();
   const { tripData } = useTripStore();
   const { loading, error, fetchItineraryEvents } = useItineraryStore();
 
@@ -47,6 +51,11 @@ export default function Itinerary({
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  const userInfo = getUserInfo(user);
+  const isAdminOrCreator = userInfo
+    ? userInfo?.isCreator(tripData) || userInfo?.isAdmin(tripData)
+    : false;
 
   const handleSaveEvent = async (eventData: CreateItineraryEvent) => {
     try {
@@ -362,6 +371,7 @@ export default function Itinerary({
             onDeleteNote={handleDeleteItineraryEventNote}
             onAssignMembers={handleAssignMembers}
             onUnAssignMembers={handleDeleteAssignedMembers}
+            isAdminOrCreator={isAdminOrCreator}
           />
         ) : (
           <CalendarView
@@ -378,6 +388,7 @@ export default function Itinerary({
             onDeleteNote={handleDeleteItineraryEventNote}
             onAssignMembers={handleAssignMembers}
             onUnAssignMembers={handleDeleteAssignedMembers}
+            isAdminOrCreator={isAdminOrCreator}
           />
         )}
       </Container>
