@@ -225,12 +225,7 @@ export default function MapComponent({
     };
 
     fetchPOIs();
-  }, [
-    currentLocation,
-    selectedLocationTypes,
-    searchRadius,
-    setNotification,
-  ]);
+  }, [currentLocation, selectedLocationTypes, searchRadius, setNotification]);
 
   // Update user location{ center map, add marker and circle, and save location}
   const updateUserLocation = useCallback(
@@ -560,7 +555,6 @@ export default function MapComponent({
   };
 
   const handleDeletePOI = (deletedId: string) => {
-
     // Get the POI being deleted to find its coordinates and name for matching
     const deletedPOI = pois.find((poi) => poi.id === deletedId);
     if (!deletedPOI) {

@@ -395,17 +395,6 @@ export default function MarkerCard({
                   />
                 </Box>
               )}
-
-              {/* Creator info if available */}
-              {isSaved && createdBy && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: "block", mt: 1 }}
-                >
-                  Saved by {createdBy.fullName}
-                </Typography>
-              )}
             </Box>
 
             {/* Website links section */}
