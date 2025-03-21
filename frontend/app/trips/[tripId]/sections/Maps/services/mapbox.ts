@@ -1,7 +1,6 @@
 import * as turf from "@turf/turf";
 import { v4 as uuidv4 } from "uuid";
 
-// Consistent search radius in kilometers
 export const SEARCH_RADIUS_KM = 1;
 
 export interface POI {
@@ -112,7 +111,7 @@ export function resetSessionToken() {
  */
 export async function searchLocation(
   query: string,
-  limit: number = 5,
+  limit: number = 10,
   proximity?: [number, number]
 ): Promise<SearchResult[]> {
   if (!query.trim()) {
@@ -227,7 +226,7 @@ export async function fetchPOIsByType(
   locationType: LocationType,
   center: [number, number],
   radiusKm: number = SEARCH_RADIUS_KM,
-  limit: number = 3
+  limit: number = 15
 ): Promise<POI[]> {
   // Access the token from the environment variable
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;

@@ -17,13 +17,7 @@ import {
   Divider,
   CircularProgress,
 } from "@mui/material";
-import {
-  Search,
-  Clear,
-  FilterList,
-  LocationOn,
-  MyLocation,
-} from "@mui/icons-material";
+import { Search, Clear, FilterList, LocationOn } from "@mui/icons-material";
 import {
   LocationType,
   searchLocation,
@@ -61,10 +55,6 @@ export default function MapSearchFilter({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(
-    null
-  );
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Reset session token when component mounts
@@ -83,11 +73,7 @@ export default function MapSearchFilter({
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchLocation(
-          searchQuery,
-          5,
-          userLocation || undefined
-        );
+        const results = await searchLocation(searchQuery, 5, undefined);
         setSearchResults(results);
         setShowSearchResults(results.length > 0);
       } catch (error) {
@@ -98,7 +84,7 @@ export default function MapSearchFilter({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [searchQuery, userLocation]);
+  }, [searchQuery]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -152,44 +138,6 @@ export default function MapSearchFilter({
       setIsSearching(false);
       setShowSearchResults(false);
     }
-  };
-
-  // Get user's current location
-  const getUserLocation = () => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by your browser");
-      return;
-    }
-
-    setIsLoadingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // Mapbox expects coordinates as [longitude, latitude]
-        const coordinates: [number, number] = [
-          position.coords.longitude,
-          position.coords.latitude,
-        ];
-        setUserLocation(coordinates);
-        setIsLoadingLocation(false);
-
-        // Refresh search results with new location
-        if (searchQuery.trim()) {
-          searchLocation(searchQuery, 5, coordinates)
-            .then((results) => {
-              setSearchResults(results);
-              setShowSearchResults(results.length > 0);
-            })
-            .catch((error) => {
-              console.error("Error searching with new location:", error);
-            });
-        }
-      },
-      (error) => {
-        console.error("Error getting user location:", error);
-        setIsLoadingLocation(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
   };
 
   // Close search results when clicking outside
