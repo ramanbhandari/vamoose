@@ -63,22 +63,26 @@ interface Filters {
   paidByEmail: string;
 }
 
-const ExpenseCard = styled(Paper)(({ theme }: { theme: Theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[1],
+const ExpenseCard = styled(Paper)<{ theme?: Theme }>(({ theme }) => ({
+  padding: theme?.spacing(3),
+  borderRadius: theme?.shape.borderRadius * 2,
+  boxShadow: theme?.shadows[1],
   display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
+  flexDirection: "column",
   transition: "transform 0.1s, box-shadow 0.1s",
-  background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
+  background: `linear-gradient(145deg, ${theme?.palette.background.paper} 0%, ${theme?.palette.action.hover} 100%)`,
   "&:hover": {
     transform: "translateY(-1px)",
-    boxShadow: theme.shadows[8],
+    boxShadow: theme?.shadows[8],
+  },
+  [theme!.breakpoints.up("sm")]: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 }));
 
-const categories = [
+export const categories = [
   { label: "Food", value: "food", icon: <Restaurant />, color: "#F59E0B" },
   {
     label: "Transportation",
@@ -112,6 +116,7 @@ export default function Expenses({
   members,
 }: ExpensesProps) {
   const theme = useTheme();
+
   // fetch tripData from our store if it exists, else use the props
   const { tripData, addExpense, fetchTripData, deleteExpense, error } =
     useTripStore();
@@ -470,6 +475,10 @@ export default function Expenses({
                           label={expense.category}
                           size="small"
                           sx={{
+                            maxWidth: "100%",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                             bgcolor:
                               categories.find(
                                 (c) => c.value === expense.category
@@ -501,6 +510,7 @@ export default function Expenses({
                       </Box>
                     </Box>
                   </Box>
+
                   <IconButton
                     color="error"
                     onClick={() => handleRequestSingleDelete(expense.id)}

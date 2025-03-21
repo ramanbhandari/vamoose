@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
-import { SvgIconProps } from "@mui/material";
+import { SvgIconProps, useTheme } from "@mui/material";
 import ReactDOMServer from "react-dom/server";
 
 interface MarkerProps {
@@ -12,19 +12,23 @@ interface MarkerProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   icon: React.ReactElement<SvgIconProps>;
+  isSaved?: boolean;
 }
 
 export default function Marker({
   map,
   position,
   color = "red",
-  size = 32,
+  size = 45,
   onClick,
   onMouseEnter,
   onMouseLeave,
   icon,
+  isSaved = false,
 }: MarkerProps) {
   const [marker, setMarker] = useState<maplibre.Marker | null>(null);
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
 
   useEffect(() => {
     if (!map) return;
@@ -38,9 +42,24 @@ export default function Marker({
     el.style.alignItems = "center";
     el.style.justifyContent = "center";
     el.style.backgroundColor = color;
-    el.style.borderRadius = "50%";
-    el.style.border = "2px solid white";
-    el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+    el.style.borderRadius = "20%";
+
+    // Add a different border style for saved locations based on theme
+    if (isSaved) {
+      if (isDarkMode) {
+        // Gold for dark mode
+        el.style.border = "3px solid gold";
+        el.style.boxShadow = "0 2px 6px rgba(255, 215, 0, 0.6)";
+      } else {
+        // Blue for light mode
+        el.style.border = "3px solid #1976d2";
+        el.style.boxShadow = "0 2px 6px rgba(25, 118, 210, 0.6)";
+      }
+    } else {
+      el.style.border = "2px solid white";
+      el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+    }
+
     el.style.cursor = "pointer";
 
     // container for the icon
@@ -88,7 +107,18 @@ export default function Marker({
       }
       newMarker.remove();
     };
-  }, [map, color, size, onClick, onMouseEnter, onMouseLeave, position, icon]);
+  }, [
+    map,
+    color,
+    size,
+    onClick,
+    onMouseEnter,
+    onMouseLeave,
+    position,
+    icon,
+    isSaved,
+    isDarkMode,
+  ]);
 
   // Update marker position on change
   useEffect(() => {
