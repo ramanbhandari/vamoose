@@ -166,7 +166,7 @@ export default function MapComponent({
           currentPois.filter((poi) => "isSaved" in poi && poi.isSaved)
         );
 
-        // Get current saved POIs for duplicate checking
+        // Get current saved POIs
         const savedPois = pois.filter((poi) => "isSaved" in poi && poi.isSaved);
 
         // Fetch POIs for each selected location type
@@ -189,30 +189,32 @@ export default function MapComponent({
           return distance <= searchRadius;
         });
 
-        // Filter out POIs that match saved locations
-        const newPois = filteredPois.filter((newPoi) => {
-          // Check if there's a saved POI that matches this one
-          return !savedPois.some((savedPoi) => {
-            //threshold for coordinate matching (about 10 meters)
+        const unsavedPois = filteredPois.map((poi) => {
+          // Check if this POI has a saved version
+          const hasSavedVersion = savedPois.some((savedPoi) => {
             const coordinateTolerance = 0.0001;
-
-            // Check if coordinates are close and same name
             return (
-              Math.abs(savedPoi.coordinates[0] - newPoi.coordinates[0]) <
+              Math.abs(savedPoi.coordinates[0] - poi.coordinates[0]) <
                 coordinateTolerance &&
-              Math.abs(savedPoi.coordinates[1] - newPoi.coordinates[1]) <
+              Math.abs(savedPoi.coordinates[1] - poi.coordinates[1]) <
                 coordinateTolerance &&
-              savedPoi.name.toLowerCase() === newPoi.name.toLowerCase()
+              savedPoi.name.toLowerCase() === poi.name.toLowerCase()
             );
           });
+
+          // Add a property to track if this has a saved version
+          return {
+            ...poi,
+            hasSavedVersion,
+          };
         });
 
-        // Add new fetched POIs to existing saved POIs
+        // Add all POIs to the state
         setPois((currentPois) => {
           const savedPois = currentPois.filter(
             (poi) => "isSaved" in poi && poi.isSaved
           );
-          return [...savedPois, ...newPois];
+          return [...savedPois, ...unsavedPois];
         });
       } catch (error) {
         console.error("Error fetching POIs:", error);
@@ -223,7 +225,12 @@ export default function MapComponent({
     };
 
     fetchPOIs();
-  }, [currentLocation, selectedLocationTypes, searchRadius, setNotification]);
+  }, [
+    currentLocation,
+    selectedLocationTypes,
+    searchRadius,
+    setNotification,
+  ]);
 
   // Update user location{ center map, add marker and circle, and save location}
   const updateUserLocation = useCallback(
@@ -553,12 +560,78 @@ export default function MapComponent({
   };
 
   const handleDeletePOI = (deletedId: string) => {
+
+    // Get the POI being deleted to find its coordinates and name for matching
+    const deletedPOI = pois.find((poi) => poi.id === deletedId);
+    if (!deletedPOI) {
+      console.error("Could not find POI with ID:", deletedId);
+      return;
+    }
+
     // Remove the deleted POI from the state
-    setPois((currentPois) => currentPois.filter((poi) => poi.id !== deletedId));
+    setPois((currentPois) => {
+      const filteredPois = currentPois.filter((poi) => poi.id !== deletedId);
+
+      // If there was a hidden unsaved version, make it visible by removing hasSavedVersion flag
+      const updatedPois = filteredPois.map((poi) => {
+        if (
+          !("isSaved" in poi) &&
+          "hasSavedVersion" in poi &&
+          poi.hasSavedVersion
+        ) {
+          // Check if this is the same location as the deleted one
+          const coordinateTolerance = 0.0001;
+          const isSameLocation =
+            Math.abs(deletedPOI.coordinates[0] - poi.coordinates[0]) <
+              coordinateTolerance &&
+            Math.abs(deletedPOI.coordinates[1] - poi.coordinates[1]) <
+              coordinateTolerance &&
+            deletedPOI.name.toLowerCase() === poi.name.toLowerCase();
+
+          if (isSameLocation) {
+            // This is the unsaved version of what we just deleted - make it visible
+            console.log("Making hidden unsaved POI visible:", poi.name);
+            return { ...poi, hasSavedVersion: false };
+          }
+        }
+        return poi;
+      });
+
+      console.log(
+        "POIs before:",
+        currentPois.length,
+        "POIs after:",
+        updatedPois.length
+      ); // Debug log
+      return updatedPois;
+    });
+
     // Clear the selected POI if it was the one that was deleted
     if (selectedPOI && selectedPOI.id === deletedId) {
       setSelectedPOI(null);
     }
+
+    // After deleting, refetch the saved locations to ensure sync with server
+    const refetchSavedLocations = async () => {
+      try {
+        const savedLocations = await getSavedLocations(tripId);
+        const savedPois = savedLocations.map(markedLocationToPOI);
+
+        // Update only saved POIs, keeping unsaved ones
+        setPois((currentPois) => {
+          // Keep only unsaved POIs
+          const unsavedPois = currentPois.filter(
+            (poi) => !("isSaved" in poi) || !poi.isSaved
+          );
+          return [...unsavedPois, ...savedPois];
+        });
+      } catch (error) {
+        console.error("Error refetching saved locations after delete:", error);
+      }
+    };
+
+    // Delay the refetch slightly to allow the server to process the delete
+    setTimeout(refetchSavedLocations, 500);
   };
 
   const calculateZoomForRadius = (radiusKm: number): number => {
@@ -626,6 +699,15 @@ export default function MapComponent({
         {/* Render POI markers */}
         {map &&
           pois.map((poi) => {
+            // Skip rendering unsaved POIs that have a saved version
+            if (
+              !("isSaved" in poi) &&
+              "hasSavedVersion" in poi &&
+              poi.hasSavedVersion
+            ) {
+              return null;
+            }
+
             const config = locationConfig[poi.locationType];
             return (
               <Marker

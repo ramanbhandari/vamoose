@@ -106,9 +106,16 @@ export async function deleteLocation(
   locationId: string
 ): Promise<MarkedLocation> {
   try {
+    console.log(`Deleting location with ID ${locationId} from trip ${tripId}`);
     const response = await apiClient.delete(
       `/trips/${tripId}/marked-locations/${locationId}`
     );
+    console.log("Delete response:", response.data);
+
+    if (!response.data || !response.data.deletedLocation) {
+      throw new Error("Server did not return the deleted location data");
+    }
+
     return response.data.deletedLocation;
   } catch (error) {
     console.error("Error deleting location:", error);

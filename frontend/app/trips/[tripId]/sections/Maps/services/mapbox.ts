@@ -12,6 +12,7 @@ export interface POI {
   coordinates: [number, number]; // [longitude, latitude]
   properties?: Record<string, unknown>;
   notes?: string;
+  hasSavedVersion?: boolean;
 }
 
 export interface SearchResult {
