@@ -133,10 +133,9 @@ export function mapServerTypeToClientType(serverType: string): LocationType {
     CAFE: LocationType.CoffeeShops,
     SHOPPING: LocationType.Shopping,
     GAS_STATION: LocationType.GasStations,
-    OTHER: LocationType.Other,
   };
 
-  return typeMap[serverType] || LocationType.Other;
+  return typeMap[serverType];
 }
 
 // Map client-side LocationType to server's LocationType enum
@@ -147,10 +146,9 @@ export function mapClientTypeToServerType(clientType: LocationType): string {
     [LocationType.CoffeeShops]: "CAFE",
     [LocationType.Shopping]: "SHOPPING",
     [LocationType.GasStations]: "GAS_STATION",
-    [LocationType.Other]: "OTHER",
   };
 
-  return typeMap[clientType] || "OTHER";
+  return typeMap[clientType];
 }
 
 // Convert MarkedLocation to POI

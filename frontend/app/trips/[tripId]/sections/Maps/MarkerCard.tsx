@@ -180,7 +180,7 @@ export default function MarkerCard({
           locationType: locationType,
           coordinates: coordinates,
           isSaved: true,
-          notes: notesText, // Use the updated notes text
+          notes: notesText,
           createdBy: updatedLocation.createdBy,
         };
 

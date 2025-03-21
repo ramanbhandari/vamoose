@@ -28,7 +28,6 @@ export enum LocationType {
   CoffeeShops = "coffee",
   Shopping = "shopping",
   GasStations = "gas_station",
-  Other = "other",
 }
 
 // Define a type for the Mapbox API response

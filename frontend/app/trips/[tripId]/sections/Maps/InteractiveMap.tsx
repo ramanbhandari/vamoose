@@ -15,7 +15,6 @@ import {
   Hotel,
   LocalGasStation,
   ShoppingBag,
-  Help,
   Place,
 } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
@@ -48,7 +47,6 @@ const locationConfig: Record<
   [LocationType.CoffeeShops]: { icon: <LocalCafe />, color: "#8D6E63" },
   [LocationType.Shopping]: { icon: <ShoppingBag />, color: "#EC407A" },
   [LocationType.GasStations]: { icon: <LocalGasStation />, color: "#66BB6A" },
-  [LocationType.Other]: { icon: <Help />, color: "#757575" },
 };
 
 interface MapComponentProps {

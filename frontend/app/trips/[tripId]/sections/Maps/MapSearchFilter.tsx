@@ -33,7 +33,6 @@ const LOCATION_TYPES: Record<LocationType, string> = {
   [LocationType.CoffeeShops]: "Coffee Shops",
   [LocationType.Shopping]: "Shopping",
   [LocationType.GasStations]: "Gas Stations",
-  [LocationType.Other]: "Other",
 };
 
 export default function MapSearchFilter({
