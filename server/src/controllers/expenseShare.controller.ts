@@ -11,6 +11,7 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { TripDebtDetail } from '@/interfaces/interfaces.js';
 import { notifyIndividual } from '@/utils/notificationHandlers.js';
 import { NotificationType } from '@/interfaces/enums.js';
+import { getUserById } from '@/models/user.model.js';
 
 /**
  * Get a detailed summary of all debts within a trip
@@ -201,7 +202,7 @@ export const settleExpenseSharesHandler = async (
     }
 
     // Validate the format of expensesToSettle
-    const wellFormattedExpenseSahres = expenseSharesToSettle.filter(
+    const wellFormattedExpenseShares = expenseSharesToSettle.filter(
       (item: any) =>
         item &&
         typeof item.expenseId === 'number' &&
@@ -210,11 +211,11 @@ export const settleExpenseSharesHandler = async (
     );
 
     const poorlyFormattedExpenseShares = expenseSharesToSettle.filter(
-      (item) => !wellFormattedExpenseSahres.includes(item),
+      (item) => !wellFormattedExpenseShares.includes(item),
     );
 
     // Proceed with only well-formatted expenses
-    if (wellFormattedExpenseSahres.length === 0) {
+    if (wellFormattedExpenseShares.length === 0) {
       res.status(400).json({
         error: 'No well-formatted expense share objects provided',
         poorlyFormattedExpenseShares,
@@ -233,7 +234,7 @@ export const settleExpenseSharesHandler = async (
 
     // Fetch the expense shares using (expenseId, debtorUserId) pairs
     const matchingExpenseShares = await fetchExpenseShares(
-      wellFormattedExpenseSahres,
+      wellFormattedExpenseShares,
       tripId,
     );
 
@@ -243,7 +244,7 @@ export const settleExpenseSharesHandler = async (
       debtorUserId: share.userId,
     }));
 
-    const nonExistentExpenseSharePairs = wellFormattedExpenseSahres.filter(
+    const nonExistentExpenseSharePairs = wellFormattedExpenseShares.filter(
       (item) =>
         !validExpenseSharePairs.some(
           (valid) =>
@@ -269,6 +270,7 @@ export const settleExpenseSharesHandler = async (
       )
       .map((share) => ({
         expenseId: share.expenseId,
+        creditorUserId: share.expense.paidById,
         debtorUserId: share.userId,
       }));
 
@@ -298,6 +300,45 @@ export const settleExpenseSharesHandler = async (
       tripId,
     );
 
+    // Notify the debtor or creditor about the expense settlement
+    for (const pair of authorizedExpenseSharePairs) {
+      const share = matchingExpenseShares.find(
+        (share) =>
+          share.expenseId === pair.expenseId &&
+          share.userId === pair.debtorUserId,
+      );
+
+      const debtorUser = share?.userId
+        ? await getUserById(share.userId)
+        : { fullName: 'A trip member' };
+      const debtorName = debtorUser?.fullName;
+      const amountPaid = share ? share.share : 0;
+
+      const creditorUser = share?.expense?.paidById
+        ? await getUserById(share.expense.paidById)
+        : { fullName: 'A trip member' };
+      const creditorName = creditorUser?.fullName;
+
+      // If the debtor is not the one settling (i.e. current user), notify them.
+      if (pair.debtorUserId !== userId) {
+        await notifyIndividual(pair.debtorUserId, tripId, {
+          type: NotificationType.EXPENSE_SHARE_SETTLED,
+          relatedId: pair.expenseId,
+          title: `Payment Completed: ${creditorName} Got Paid`,
+          message: `You have successfully settled your share of $${amountPaid} for an expense covered by ${creditorName}.`,
+          channel: 'IN_APP',
+        });
+      } else if (pair.creditorUserId && pair.creditorUserId !== userId) {
+        await notifyIndividual(pair.creditorUserId, tripId, {
+          type: NotificationType.EXPENSE_SHARE_SETTLED,
+          relatedId: pair.expenseId,
+          title: `Expense Share Received from ${debtorName}`,
+          message: `${debtorName} has paid their share of $${amountPaid} for an expense you covered.`,
+          channel: 'IN_APP',
+        });
+      }
+    }
+
     res.status(200).json({
       message: 'Expense shares settled successfully',
       settledCount: result.count,
@@ -306,19 +347,6 @@ export const settleExpenseSharesHandler = async (
       nonExistentExpenseSharePairs,
       unauthorizedExpenseSharePairs,
     });
-
-    for (const pair of authorizedExpenseSharePairs) {
-      // If the debtor is not the one settling (i.e. current user), notify them.
-      if (pair.debtorUserId !== userId) {
-        await notifyIndividual(pair.debtorUserId, tripId, {
-          type: NotificationType.EXPENSE_SHARE_SETTLED,
-          relatedId: pair.expenseId,
-          title: 'Expense Share Settled',
-          message: 'Your expense share has been settled.',
-          channel: 'IN_APP',
-        });
-      }
-    }
   } catch (error) {
     handleControllerError(error, res, 'Error settling expenses:');
   }

@@ -16,6 +16,13 @@ import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 import { EventCategory } from '@/interfaces/enums.js';
+import {
+  cancelScheduledNotifications,
+  notifySpecificTripMembers,
+  notifyTripMembers,
+  notifyTripMembersExceptInitiator,
+} from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 export const createItineraryEventHandler = async (
   req: Request,
@@ -130,6 +137,58 @@ export const createItineraryEventHandler = async (
       assignedUserIds: assignedUserIds ?? [],
       notes: notes ?? [],
     });
+
+    // Notify the trip members of the new event and schedule reminders
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.EVENT_CREATED,
+      relatedId: itineraryEvent.id,
+      title: `New Itinerary Event Added for trip "${trip.name}"!`,
+      message: `"${title}” has been added to the trip itinerary. Check the schedule for details!`,
+      channel: 'IN_APP',
+    });
+
+    if (startTimeUtc) {
+      const now = DateTime.now().toUTC();
+      const eventStart = DateTime.fromJSDate(startTimeUtc);
+      //Schedule a notification for 1 hour from the event start time
+      if (eventStart.diff(now, 'hours').hours >= 1) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${trip.name}"!`,
+          message: `"${title}" starts in an hour. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ hours: 1 }).toJSDate(),
+        });
+      }
+
+      //Schedule a notification for 30 minutes from the event start time
+      if (eventStart.diff(now, 'minutes').minutes >= 30) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${trip.name}"!`,
+          message: `"${title}" starts in 30 minutes. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ minutes: 30 }).toJSDate(),
+        });
+      }
+
+      // Notify the assigned users
+      if (assignedUserIds && assignedUserIds.length > 0) {
+        const assignedUsersToNotify = assignedUserIds.filter(
+          (id: string) => id !== userId,
+        );
+        await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
+          type: NotificationType.EVENT_ASSIGNMENT,
+          relatedId: itineraryEvent.id,
+          title: "You're now assigned to an event!",
+          message: `You have been assigned as a planner for event "${itineraryEvent.title}" in trip "${trip.name}".`,
+          channel: 'IN_APP',
+        });
+      }
+    }
 
     res.status(201).json({
       message: 'Itinerary event created successfully',
@@ -247,6 +306,53 @@ export const updateItineraryEventHandler = async (
       endTime: endTimeUtc,
       category: categoryEnum,
     });
+
+    // Notify trip members (except initiator) about the update
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.EVENT_UPDATED,
+      relatedId: itineraryEvent.id,
+      title: `An Itinerary Event has been updated in trip "${tripDetails.name}"!`,
+      message: `The event "${title}" has been modified. Check the itinerary for details.`,
+      channel: 'IN_APP',
+    });
+
+    // Check if the start time changed
+    if (
+      startTimeUtc &&
+      (!event.startTime || startTimeUtc.getTime() !== event.startTime.getTime())
+    ) {
+      // Remove old scheduled notifications
+      await cancelScheduledNotifications(
+        itineraryEvent.id,
+        NotificationType.EVENT_REMINDER,
+      );
+
+      const now = DateTime.now().toUTC();
+      const eventStart = DateTime.fromJSDate(startTimeUtc);
+
+      // Schedule new reminders
+      if (eventStart.diff(now, 'hours').hours >= 1) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${tripDetails.name}"!`,
+          message: `"${title}" starts in an hour. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ hours: 1 }).toJSDate(),
+        });
+      }
+
+      if (eventStart.diff(now, 'minutes').minutes >= 30) {
+        await notifyTripMembers(tripId, {
+          type: NotificationType.EVENT_REMINDER,
+          relatedId: itineraryEvent.id,
+          title: `Upcoming Itinerary Event for trip "${tripDetails.name}"!`,
+          message: `"${title}" starts in 30 minutes. Don't miss it!`,
+          channel: 'IN_APP',
+          sendAt: eventStart.minus({ minutes: 30 }).toJSDate(),
+        });
+      }
+    }
 
     res.status(201).json({
       message: 'Itinerary event updated successfully',
@@ -416,6 +522,19 @@ export const deleteItineraryEventHandler = async (
 
     // Delete the itinerary event
     await deleteItineraryEvent(tripId, eventId);
+
+    // Notify the assigned users that the trip event they were assigned to plan was deleted
+    const assignedUsersToNotify = itineraryEvent.assignedUsers
+      .map((assignedUser) => assignedUser.user.id)
+      .filter((id: string) => id !== userId);
+
+    await notifySpecificTripMembers(tripId, assignedUsersToNotify, {
+      type: NotificationType.EVENT_DELETED,
+      relatedId: itineraryEvent.id,
+      title: 'An event you were assigned to has been deleted!',
+      message: `The event '${itineraryEvent.title}' has been removed from the itinerary.`,
+      channel: 'IN_APP',
+    });
 
     res.status(200).json({ message: 'Itinerary event deleted successfully' });
   } catch (error) {

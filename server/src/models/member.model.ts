@@ -13,6 +13,7 @@ export const getTripMember = async (tripId: number, userId: string) => {
       include: {
         user: {
           select: {
+            fullName: true,
             email: true,
           },
         },
