@@ -23,6 +23,20 @@ jest.mock('@/config/prismaClient.js', () => ({
   },
 }));
 
+// Mock out the stuff needed for notifications
+jest.mock('@/models/trip.model.js', () => ({
+  fetchSingleTrip: jest.fn().mockResolvedValue({ name: 'tripName' }),
+}));
+jest.mock('@/utils/notificationHandlers.js', () => ({
+  notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),
+  notifySpecificTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyIndividual: jest.fn().mockResolvedValue(undefined),
+  notifyIndividuals: jest.fn().mockResolvedValue(undefined),
+  notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Trip Member API - Update Role', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -276,6 +290,7 @@ describe('Trip Member API - Leave Trip', () => {
       userId: 'user-id',
       tripId: 1,
       role: 'member',
+      user: { fullName: 'John Doe' },
     });
 
     (prisma.tripMember.delete as jest.Mock).mockResolvedValue({});
@@ -530,6 +545,7 @@ describe('Trip Member API - Remove Member', () => {
         userId: 'target-id',
         tripId: 1,
         role: 'member',
+        user: { fullName: 'John Doe' },
       }); // Target is a member
     (prisma.tripMember.count as jest.Mock).mockResolvedValue(2);
 

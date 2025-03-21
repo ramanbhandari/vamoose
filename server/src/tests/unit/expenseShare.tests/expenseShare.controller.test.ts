@@ -20,6 +20,23 @@ jest.mock('@/config/prismaClient.js', () => ({
   },
 }));
 
+// Mock out the stuff needed for notifications
+jest.mock('@/models/trip.model.js', () => ({
+  fetchSingleTrip: jest.fn().mockResolvedValue({ name: 'tripName' }),
+}));
+jest.mock('@/models/user.model.js', () => ({
+  getUserById: jest.fn().mockResolvedValue({ fullName: 'A trip member' }),
+}));
+jest.mock('@/utils/notificationHandlers.js', () => ({
+  notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),
+  notifySpecificTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyIndividual: jest.fn().mockResolvedValue(undefined),
+  notifyIndividuals: jest.fn().mockResolvedValue(undefined),
+  notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Trip Debt Summary Controller', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
@@ -244,8 +261,8 @@ describe('Settle Expenses Controller', () => {
       message: 'Expense shares settled successfully',
       settledCount: 2,
       settledExpenseShares: [
-        { expenseId: 1, debtorUserId: 'debtor1' },
-        { expenseId: 2, debtorUserId: 'debtor2' },
+        { expenseId: 1, debtorUserId: 'debtor1', creditorUserId: 'creditor1' },
+        { expenseId: 2, debtorUserId: 'debtor2', creditorUserId: 'creditor1' },
       ],
       poorlyFormattedExpenseShares: [],
       nonExistentExpenseSharePairs: [

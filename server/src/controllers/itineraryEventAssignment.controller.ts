@@ -11,6 +11,9 @@ import {
 import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getItineraryEventById } from '@/models/itineraryEvent.model.js';
+import { notifySpecificTripMembers } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 export const assignUsersToItineraryEventHandler = async (
   req: Request,
@@ -102,6 +105,29 @@ export const assignUsersToItineraryEventHandler = async (
 
     await assignUsersToItineraryEvent(eventId, usersToAssign);
 
+    // Notify newly assigned users
+    const trip = await fetchSingleTrip(userId, tripId);
+    const usersToNotify = usersToAssign.filter((id) => id !== userId);
+    await notifySpecificTripMembers(tripId, usersToNotify, {
+      type: NotificationType.EVENT_ASSIGNMENT,
+      relatedId: eventId,
+      title: "You're now assigned to an event!",
+      message: `You have been assigned as a planner for event "${event.title}" in trip "${trip.name}".`,
+      channel: 'IN_APP',
+    });
+
+    // Notify existing assigned users about the new planners
+    const existingPlanners = [...assignedUserIds].filter((id) => id !== userId);
+    if (existingPlanners.length > 0) {
+      await notifySpecificTripMembers(tripId, existingPlanners, {
+        type: NotificationType.EVENT_ASSIGNMENT,
+        relatedId: eventId,
+        title: 'New planners added to your event!',
+        message: `New members have been assigned to help plan the itinerary event "${event.title}".`,
+        channel: 'IN_APP',
+      });
+    }
+
     res.status(200).json({
       message: 'Users assigned successfully',
       assignedUsers: usersToAssign,
@@ -184,6 +210,30 @@ export const unassignUserFromItineraryEventHandler = async (
     }
 
     await unassignUserFromItineraryEvent(eventId, validUserIds);
+
+    // Notify unassigned users
+    const usersToNotify = validUserIds.filter((id) => id !== userId);
+    await notifySpecificTripMembers(tripId, usersToNotify, {
+      type: NotificationType.EVENT_ASSIGNMENT,
+      relatedId: eventId,
+      title: 'You’ve been removed as a planner',
+      message: `You are no longer assigned to plan the itinerary event "${event.title}".`,
+      channel: 'IN_APP',
+    });
+
+    // Notify remaining assigned users about the removal
+    const remainingPlanners = assignedUserIds.filter(
+      (id) => !validUserIds.includes(id),
+    );
+    if (remainingPlanners.length > 0) {
+      await notifySpecificTripMembers(tripId, remainingPlanners, {
+        type: NotificationType.EVENT_ASSIGNMENT,
+        relatedId: eventId,
+        title: 'Planners removed from your event',
+        message: `Some members are no longer assigned as planners for the itinerary event "${event.title}".`,
+        channel: 'IN_APP',
+      });
+    }
 
     res.status(200).json({
       message: 'Users unassigned successfully',

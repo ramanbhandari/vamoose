@@ -27,6 +27,18 @@ jest.mock('@/config/prismaClient.js', () => ({
   },
 }));
 
+// Mock out the stuff needed for notifications
+
+jest.mock('@/utils/notificationHandlers.js', () => ({
+  notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),
+  notifySpecificTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyIndividual: jest.fn().mockResolvedValue(undefined),
+  notifyIndividuals: jest.fn().mockResolvedValue(undefined),
+  notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Create Invite Handler', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -396,6 +408,10 @@ describe('Accept Invite Handler', () => {
       status: 'pending',
       invitedUserId: '1',
     };
+    (prisma.trip.findUnique as jest.Mock).mockResolvedValue({
+      name: 'tripName',
+      members: [{ userId: '1' }],
+    });
     (prisma.tripInvitee.findUnique as jest.Mock).mockResolvedValue(invite);
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
       id: '1',
