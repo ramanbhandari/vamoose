@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as turf from "@turf/turf";
@@ -15,7 +15,6 @@ import {
   Hotel,
   LocalGasStation,
   ShoppingBag,
-  Help,
   Place,
 } from "@mui/icons-material";
 import { useNotificationStore } from "@/stores/notification-store";
@@ -30,6 +29,13 @@ import {
 } from "./services/mapbox";
 import MarkerCard from "./MarkerCard";
 import { GeolocationButton, RadiusSlider } from "./controls";
+import { getGeolocation } from "./utils/geolocation";
+import { useParams } from "next/navigation";
+import {
+  getSavedLocations,
+  markedLocationToPOI,
+  SavedPOI,
+} from "./services/markedLocations";
 
 // Map location types to icons and colors
 const locationConfig: Record<
@@ -41,7 +47,6 @@ const locationConfig: Record<
   [LocationType.CoffeeShops]: { icon: <LocalCafe />, color: "#8D6E63" },
   [LocationType.Shopping]: { icon: <ShoppingBag />, color: "#EC407A" },
   [LocationType.GasStations]: { icon: <LocalGasStation />, color: "#66BB6A" },
-  [LocationType.Other]: { icon: <Help />, color: "#757575" },
 };
 
 interface MapComponentProps {
@@ -54,6 +59,8 @@ export default function MapComponent({
   initialZoom = 2,
 }: MapComponentProps) {
   const theme = useTheme();
+  const params = useParams();
+  const tripId = Number(params.tripId);
   const isDarkMode = theme.palette.mode === "dark";
   const { setNotification } = useNotificationStore();
   const [map, setMap] = useState<MapType | null>(null);
@@ -64,14 +71,16 @@ export default function MapComponent({
     [number, number] | null
   >(null);
   // State for POIs
-  const [pois, setPois] = useState<POI[]>([]);
+  const [pois, setPois] = useState<(POI | SavedPOI)[]>([]);
   const [selectedLocationTypes, setSelectedLocationTypes] = useState<
     LocationType[]
   >([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
-  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
-  const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
+  const [selectedPOI, setSelectedPOI] = useState<POI | SavedPOI | null>(null);
+  const [hoveredPOI, setHoveredPOI] = useState<POI | SavedPOI | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(SEARCH_RADIUS_KM);
+  const [isLoadingSavedLocations, setIsLoadingSavedLocations] = useState(false);
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -87,6 +96,7 @@ export default function MapComponent({
       style: isDarkMode ? mapStyles.dark : mapStyles.light,
       center: initialCenter,
       zoom: initialZoom,
+      minZoom: 1.8,
       attributionControl: false,
       logoPosition: "bottom-left",
     });
@@ -94,7 +104,7 @@ export default function MapComponent({
     setMap(initialMap);
 
     return () => initialMap.remove();
-  }, [mapContainer]); //ignore other dependencies, cause it re-renders the map infinitely
+  }, [mapContainer]); // Include necessary dependencies but still avoid infinite rerenders
 
   // Update map style when theme changes
   useEffect(() => {
@@ -102,19 +112,59 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
+  // Fetch saved locations when the map is ready and trip ID is available
+  useEffect(() => {
+    const fetchSavedLocations = async () => {
+      if (!map || !tripId) return;
+
+      setIsLoadingSavedLocations(true);
+      try {
+        const savedLocations = await getSavedLocations(tripId);
+
+        // Convert saved locations to POI format and ensure notes are included
+        const savedPois = savedLocations.map(markedLocationToPOI);
+        setPois((currentPois) => {
+          const unsavedPois = currentPois.filter(
+            (poi) => !("isSaved" in poi) || !poi.isSaved
+          );
+          return [...unsavedPois, ...savedPois];
+        });
+      } catch (error) {
+        console.error("Error fetching saved locations:", error);
+        setNotification("Failed to load saved locations", "error");
+      } finally {
+        setIsLoadingSavedLocations(false);
+      }
+    };
+
+    if (map && map.loaded()) {
+      fetchSavedLocations();
+    } else if (map) {
+      map.once("load", fetchSavedLocations);
+    }
+  }, [map, tripId, setNotification]);
+
   // Fetch POIs when location or selected location types change
   useEffect(() => {
     const fetchPOIs = async () => {
       if (!currentLocation || selectedLocationTypes.length === 0) {
-        setPois([]);
+        // Don't clear saved POIs, only clear unsaved ones
+        setPois((currentPois) =>
+          currentPois.filter((poi) => "isSaved" in poi && poi.isSaved)
+        );
         return;
       }
 
       setIsLoadingPOIs(true);
 
       try {
-        // Clear existing POIs
-        setPois([]);
+        // Clear existing unsaved POIs
+        setPois((currentPois) =>
+          currentPois.filter((poi) => "isSaved" in poi && poi.isSaved)
+        );
+
+        // Get current saved POIs
+        const savedPois = pois.filter((poi) => "isSaved" in poi && poi.isSaved);
 
         // Fetch POIs for each selected location type
         const poiPromises = selectedLocationTypes.map((locationType) =>
@@ -136,7 +186,33 @@ export default function MapComponent({
           return distance <= searchRadius;
         });
 
-        setPois(filteredPois);
+        const unsavedPois = filteredPois.map((poi) => {
+          // Check if this POI has a saved version
+          const hasSavedVersion = savedPois.some((savedPoi) => {
+            const coordinateTolerance = 0.0001;
+            return (
+              Math.abs(savedPoi.coordinates[0] - poi.coordinates[0]) <
+                coordinateTolerance &&
+              Math.abs(savedPoi.coordinates[1] - poi.coordinates[1]) <
+                coordinateTolerance &&
+              savedPoi.name.toLowerCase() === poi.name.toLowerCase()
+            );
+          });
+
+          // Add a property to track if this has a saved version
+          return {
+            ...poi,
+            hasSavedVersion,
+          };
+        });
+
+        // Add all POIs to the state
+        setPois((currentPois) => {
+          const savedPois = currentPois.filter(
+            (poi) => "isSaved" in poi && poi.isSaved
+          );
+          return [...savedPois, ...unsavedPois];
+        });
       } catch (error) {
         console.error("Error fetching POIs:", error);
         setNotification("Failed to load points of interest", "error");
@@ -159,7 +235,6 @@ export default function MapComponent({
       if (!map.loaded()) {
         console.warn("Map not fully loaded yet. Waiting for load event...");
         map.once("load", () => {
-          console.log("Map loaded! Proceeding with location update...");
           updateUserLocation(longitude, latitude);
         });
         return;
@@ -172,6 +247,7 @@ export default function MapComponent({
       map.flyTo({
         center: [longitude, latitude],
         zoom: zoomLevel,
+        duration: 4000,
       });
 
       const circleGeoJSON = turf.circle([longitude, latitude], searchRadius, {
@@ -209,31 +285,37 @@ export default function MapComponent({
   // Auto-locate on mount—only after the map has loaded
   useEffect(() => {
     if (!map) return;
-
     const autoLocate = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            updateUserLocation(longitude, latitude);
-          },
-          (error) => {
-            setNotification("Automatic location detection failed", "error");
-            console.error(error);
-          }
-        );
-      } else {
-        setNotification(
-          "Geolocation is not supported by your browser",
-          "error"
-        );
-      }
+      getGeolocation(
+        (longitude, latitude) => {
+          updateUserLocation(longitude, latitude);
+        },
+        // Error handler
+        (errorMessage) => {
+          setNotification(errorMessage, "error");
+        }
+      );
     };
 
     if (map.loaded()) {
       autoLocate();
     } else {
-      map.once("load", autoLocate);
+      const handleLoadEvent = () => {
+        autoLocate();
+      };
+
+      const handleIdleEvent = () => {
+        autoLocate();
+      };
+
+      map.once("load", handleLoadEvent);
+      map.once("idle", handleIdleEvent);
+
+      // Cleanup
+      return () => {
+        map.off("load", handleLoadEvent);
+        map.off("idle", handleIdleEvent);
+      };
     }
   }, [map, updateUserLocation, setNotification]);
 
@@ -292,48 +374,33 @@ export default function MapComponent({
   // Manual geolocation button handler
   const handleGeolocate = useCallback(() => {
     setIsLocating(true);
-    if (!navigator.geolocation) {
-      setNotification("Geolocation is not supported by your browser", "error");
-      setIsLocating(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { longitude, latitude } = position.coords;
+    getGeolocation(
+      (longitude, latitude) => {
         updateUserLocation(longitude, latitude);
       },
-      (error) => {
-        setIsLocating(false);
-        setNotification("Location access was denied", "error");
-        console.error(error);
+      // Error handler
+      (errorMessage) => {
+        setNotification(errorMessage, "error");
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      setIsLocating
     );
   }, [setNotification, updateUserLocation]);
 
-  const handleSearch = (query: string) => {
-    console.log("Searching for:", query);
-  };
-
   const handleLocationTypeFilter = (types: LocationType[]) => {
-    console.log("Filtering by location types:", types);
     setSelectedLocationTypes(types);
   };
 
   const handleLocationSelect = (location: SearchResult) => {
-    console.log("Location selected:", location);
-
     // Update the map center to the selected location
     if (map) {
       const { coordinates } = location;
 
       // Update the current location
       setCurrentLocation(coordinates);
+
+      // Clear any selected POI and hover state
+      setSelectedPOI(null);
+      setHoveredPOI(null);
 
       // Calculate zoom level based on current radius
       const zoomLevel = calculateZoomForRadius(searchRadius);
@@ -343,9 +410,6 @@ export default function MapComponent({
         center: coordinates,
         zoom: zoomLevel,
       });
-
-      // Clear any selected POI
-      setSelectedPOI(null);
 
       // Create a circle for the search radius
       const circleGeoJSON = turf.circle(coordinates, searchRadius, {
@@ -379,9 +443,10 @@ export default function MapComponent({
 
   const handleUserMarkerClick = () => {
     setSelectedPOI(null);
+    resetMapView();
   };
 
-  const handlePOIMarkerClick = (poi: POI) => {
+  const handlePOIMarkerClick = (poi: POI | SavedPOI) => {
     setSelectedPOI(poi);
 
     // Center the map on the POI
@@ -394,7 +459,7 @@ export default function MapComponent({
   };
 
   // Mouse event handlers for POI markers
-  const handlePOIMarkerMouseEnter = (poi: POI) => {
+  const handlePOIMarkerMouseEnter = (poi: POI | SavedPOI) => {
     setHoveredPOI(poi);
   };
 
@@ -452,16 +517,131 @@ export default function MapComponent({
     }
   };
 
+  // Add a cleanup function that resets the view
+  const resetMapView = useCallback(() => {
+    // Close all markers
+    setSelectedPOI(null);
+    setHoveredPOI(null);
+
+    // Center map back to user location
+    if (map && currentLocation) {
+      const zoomLevel = Math.max(
+        12,
+        calculateZoomForRadius(searchRadius) - 0.5
+      );
+
+      // Don't animate if we're already at the right location and zoom
+      const currentZoom = map.getZoom();
+      const currentCenter = map.getCenter();
+      const isAlreadyCentered =
+        Math.abs(currentCenter.lng - currentLocation[0]) < 0.001 &&
+        Math.abs(currentCenter.lat - currentLocation[1]) < 0.001 &&
+        Math.abs(currentZoom - zoomLevel) < 0.3;
+
+      if (!isAlreadyCentered) {
+        map.flyTo({
+          center: currentLocation,
+          zoom: zoomLevel,
+          duration: 1000, // 1 second animation
+        });
+      }
+    }
+  }, [map, currentLocation, searchRadius]);
+
+  const handleSavePOI = (savedPOI: SavedPOI) => {
+    // Update the POIs state to reflect the saved status
+    setPois((currentPois) => {
+      // Find if this POI already exists in the state
+      const existingPOIIndex = currentPois.findIndex(
+        (poi) =>
+          poi.coordinates[0] === savedPOI.coordinates[0] &&
+          poi.coordinates[1] === savedPOI.coordinates[1] &&
+          poi.name === savedPOI.name
+      );
+
+      if (existingPOIIndex >= 0) {
+        // Update existing POI
+        const newPois = [...currentPois];
+        newPois[existingPOIIndex] = savedPOI;
+        return newPois;
+      } else {
+        // Add new POI
+        return [...currentPois, savedPOI];
+      }
+    });
+
+    // Update the selected POI
+    setSelectedPOI(savedPOI);
+
+    // Reset view after a short delay
+    setTimeout(() => {
+      resetMapView();
+    }, 1000); // Wait 1 second so user can see confirmation
+  };
+
+  const handleDeletePOI = (deletedId: string) => {
+    // Remove the deleted POI from the state
+    setPois((currentPois) => {
+      const filteredPois = currentPois.filter((poi) => poi.id !== deletedId);
+      return filteredPois;
+    });
+
+    // Clear the selected POI if it was the one that was deleted
+    if (selectedPOI && selectedPOI.id === deletedId) {
+      setSelectedPOI(null);
+    }
+
+    // After deleting, refetch the saved locations to ensure sync with server
+    const refetchSavedLocations = async () => {
+      try {
+        const savedLocations = await getSavedLocations(tripId);
+        const savedPois = savedLocations.map(markedLocationToPOI);
+
+        // Update only saved POIs, keeping unsaved ones
+        setPois((currentPois) => {
+          // Keep only unsaved POIs
+          const unsavedPois = currentPois.filter(
+            (poi) => !("isSaved" in poi) || !poi.isSaved
+          );
+          return [...unsavedPois, ...savedPois];
+        });
+
+        // Reset view after refetching
+        resetMapView();
+      } catch (error) {
+        console.error("Error refetching saved locations after delete:", error);
+      }
+    };
+
+    // Delay the refetch slightly to allow the server to process the delete
+    setTimeout(refetchSavedLocations, 500);
+  };
+
+  // Handle marker close and reset map view
+  const handleCloseMarker = useCallback(() => {
+    setSelectedPOI(null);
+    resetMapView();
+  }, [resetMapView]);
+
   const calculateZoomForRadius = (radiusKm: number): number => {
-    return 16 - Math.log2(radiusKm) * 2;
+    if (radiusKm <= 1) {
+      return 14;
+    } else if (radiusKm <= 3) {
+      return 12.5;
+    } else if (radiusKm <= 5) {
+      return 11.5;
+    } else {
+      return 10.5 - Math.log2(radiusKm / 5);
+    }
   };
 
   return (
     <Box sx={{ position: "relative" }}>
       <Box
+        ref={mapRef}
         sx={{
           position: "relative",
-          height: "45rem",
+          height: "34rem",
           width: "100%",
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
@@ -516,6 +696,15 @@ export default function MapComponent({
         {/* Render POI markers */}
         {map &&
           pois.map((poi) => {
+            // Skip rendering unsaved POIs that have a saved version
+            if (
+              !("isSaved" in poi) &&
+              "hasSavedVersion" in poi &&
+              poi.hasSavedVersion
+            ) {
+              return null;
+            }
+
             const config = locationConfig[poi.locationType];
             return (
               <Marker
@@ -528,6 +717,7 @@ export default function MapComponent({
                 icon={config.icon}
                 onMouseEnter={() => handlePOIMarkerMouseEnter(poi)}
                 onMouseLeave={handlePOIMarkerMouseLeave}
+                isSaved={"isSaved" in poi && poi.isSaved}
               />
             );
           })}
@@ -535,7 +725,7 @@ export default function MapComponent({
         {/* Conditionally render the MarkerCard on hover */}
         {hoveredPOI && map && hoveredPOI.id !== selectedPOI?.id && (
           <MarkerCard
-            key={hoveredPOI.id}
+            key={`hover-${hoveredPOI.id}`}
             map={map}
             coordinates={hoveredPOI.coordinates}
             name={hoveredPOI.name}
@@ -543,13 +733,16 @@ export default function MapComponent({
             locationType={hoveredPOI.locationType}
             color={locationConfig[hoveredPOI.locationType].color}
             isSelected={false}
+            isSaved={"isSaved" in hoveredPOI && hoveredPOI.isSaved}
+            onMouseEnter={() => setHoveredPOI(hoveredPOI)}
+            onMouseLeave={() => setHoveredPOI(null)}
           />
         )}
 
         {/* Selected POI Info */}
         {selectedPOI && map && (
           <MarkerCard
-            key={selectedPOI.id}
+            key={`selected-${selectedPOI.id}`}
             map={map}
             coordinates={selectedPOI.coordinates}
             name={selectedPOI.name}
@@ -558,7 +751,15 @@ export default function MapComponent({
             color={locationConfig[selectedPOI.locationType].color}
             isSelected={true}
             website={selectedPOI.website}
-            onClose={() => setSelectedPOI(null)}
+            onClose={handleCloseMarker}
+            isSaved={"isSaved" in selectedPOI && selectedPOI.isSaved}
+            notes={selectedPOI.notes}
+            onSave={handleSavePOI}
+            onDelete={handleDeletePOI}
+            id={selectedPOI.id}
+            createdBy={
+              "createdBy" in selectedPOI ? selectedPOI.createdBy : undefined
+            }
           />
         )}
 
@@ -589,7 +790,6 @@ export default function MapComponent({
             }}
           >
             <MapSearchFilter
-              onSearch={handleSearch}
               onTagFilter={handleLocationTypeFilter}
               onLocationSelect={handleLocationSelect}
             />
@@ -609,7 +809,7 @@ export default function MapComponent({
         />
 
         {/* Loading indicator for POIs */}
-        {isLoadingPOIs && (
+        {(isLoadingPOIs || isLoadingSavedLocations) && (
           <Box
             sx={{
               position: "absolute",
@@ -626,7 +826,11 @@ export default function MapComponent({
             }}
           >
             <CircularProgress size={20} color="inherit" />
-            <Typography variant="caption">Loading POIs...</Typography>
+            <Typography variant="caption">
+              {isLoadingSavedLocations
+                ? "Loading saved locations..."
+                : "Loading POIs..."}
+            </Typography>
           </Box>
         )}
 

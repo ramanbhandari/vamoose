@@ -18,7 +18,7 @@ export default function Maps({ tripId, tripName, imageUrl }: MapsProps) {
           background: imageUrl
             ? "none"
             : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-
+          height: "1rem",
           "&::after": imageUrl
             ? {
                 content: '""',
@@ -54,7 +54,7 @@ export default function Maps({ tripId, tripName, imageUrl }: MapsProps) {
           </Box>
         </Container>
       </GradientHeader>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: 1 }}>
         <InteractiveMap />
       </Container>
     </Box>
