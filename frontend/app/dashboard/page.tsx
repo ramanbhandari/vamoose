@@ -106,7 +106,7 @@ export default function Dashboard() {
         sx={{
           position: "relative",
           width: "100%",
-          height: isMobile ? "40vh" : "60vh",
+          height: "60vh",
         }}
       >
         {isMobile ? (
