@@ -101,7 +101,7 @@ describe('Chat Message API Integration Tests', () => {
       userId,
       tripId,
       text: 'First message',
-      createdAt: new Date(Date.now() - 3000), // 3 seconds ago
+      createdAt: new Date(Date.now() - 30000),
     });
 
     const message2 = await Message.create({
@@ -109,7 +109,7 @@ describe('Chat Message API Integration Tests', () => {
       userId,
       tripId,
       text: 'Second message',
-      createdAt: new Date(Date.now() - 2000), // 2 seconds ago
+      createdAt: new Date(Date.now() - 20000),
     });
 
     const message3 = await Message.create({
@@ -118,7 +118,7 @@ describe('Chat Message API Integration Tests', () => {
       tripId,
       text: 'Third message',
       reactions: { '👍': [userId] },
-      createdAt: new Date(Date.now() - 1000), // 1 second ago
+      createdAt: new Date(Date.now() - 10000),
     });
 
     const response = await request(app)
@@ -128,20 +128,32 @@ describe('Chat Message API Integration Tests', () => {
     expect(response.status).toBe(200);
     expect(response.body.messages.length).toBe(3);
 
-    // Check chronological ordering (oldest first)
-    expect(response.body.messages[0].text).toBe('First message');
-    expect(response.body.messages[1].text).toBe('Second message');
-    expect(response.body.messages[2].text).toBe('Third message');
+    expect(response.body.messages[0].messageId).toBe(message1.messageId);
+    expect(response.body.messages[1].messageId).toBe(message2.messageId);
+    expect(response.body.messages[2].messageId).toBe(message3.messageId);
 
-    // Verify message structure and content
+    expect(response.body.messages[0].text).toBe(message1.text);
+    expect(response.body.messages[1].text).toBe(message2.text);
+    expect(response.body.messages[2].text).toBe(message3.text);
+
     const lastMessage = response.body.messages[2];
-    expect(lastMessage).toHaveProperty('messageId');
+    expect(lastMessage).toHaveProperty('messageId', message3.messageId);
     expect(lastMessage).toHaveProperty('tripId', String(tripId));
     expect(lastMessage).toHaveProperty('userId', userId);
-    expect(lastMessage).toHaveProperty('text', 'Third message');
     expect(lastMessage).toHaveProperty('reactions');
     expect(lastMessage.reactions).toHaveProperty('👍');
     expect(lastMessage.reactions['👍']).toContain(userId);
+
+    const firstResponseDate = new Date(response.body.messages[0].createdAt);
+    const secondResponseDate = new Date(response.body.messages[1].createdAt);
+    const thirdResponseDate = new Date(response.body.messages[2].createdAt);
+
+    expect(firstResponseDate.getTime()).toBeLessThan(
+      secondResponseDate.getTime(),
+    );
+    expect(secondResponseDate.getTime()).toBeLessThan(
+      thirdResponseDate.getTime(),
+    );
   });
   // ==========================
   // ADD REACTION TEST
