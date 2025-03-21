@@ -12,6 +12,8 @@ import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
+import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
 
 /**
  * Create a Trip
@@ -44,22 +46,9 @@ export const createTripHandler = async (req: Request, res: Response) => {
     // Parse dates
     const startDate = DateTime.fromISO(start).toUTC().startOf('day');
     const endDate = DateTime.fromISO(end).toUTC().endOf('day');
-    const today = DateTime.now().toUTC().startOf('day');
 
     if (!startDate.isValid || !endDate.isValid) {
       res.status(400).json({ error: 'Invalid start or end date format' });
-      return;
-    }
-
-    if (startDate < today) {
-      res
-        .status(400)
-        .json({ error: 'Start date must be today or in the future' });
-      return;
-    }
-
-    if (startDate >= endDate) {
-      res.status(400).json({ error: 'Start date must be before end date' });
       return;
     }
 
@@ -137,7 +126,7 @@ export const fetchTripsWithFiltersHandler = async (
     }
 
     const filters: TripFilters = {};
-    const today = DateTime.now().toUTC().startOf('day');
+    const today = DateTime.now().startOf('day').toUTC().startOf('day');
 
     // Handle destination filtering
     if (destination) {
@@ -228,6 +217,16 @@ export const deleteTripHandler = async (req: Request, res: Response) => {
     }
 
     const deletedTrip = await deleteTrip(userId, tripId);
+
+    // Notify trip members that the trip was deleted
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.TRIP_DELETED,
+      relatedId: tripId,
+      title: 'Trip Deleted',
+      message: `The trip "${trip.name}" has been deleted.`,
+      channel: 'IN_APP',
+    });
+
     res
       .status(200)
       .json({ message: 'Trip deleted successfully', trip: deletedTrip });
@@ -326,6 +325,16 @@ export const updateTripHandler = async (req: Request, res: Response) => {
     }
 
     const updatedTrip = await updateTrip(tripId, tripData);
+
+    // Notify all trip members about the update
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.TRIP_UPDATED,
+      relatedId: tripId,
+      title: 'Trip Updated',
+      message: `The trip "${updatedTrip.name}" has been updated.`,
+      channel: 'IN_APP',
+    });
+
     res
       .status(200)
       .json({ message: 'Trip updated successfully', trip: updatedTrip });

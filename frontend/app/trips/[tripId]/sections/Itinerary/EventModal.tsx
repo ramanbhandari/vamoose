@@ -21,7 +21,13 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
-import { Close, EditNote, Schedule, Add } from "@mui/icons-material";
+import {
+  Close,
+  EditNote,
+  Schedule,
+  Add,
+  KeyboardDoubleArrowDown,
+} from "@mui/icons-material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { styled } from "@mui/material/styles";
@@ -94,6 +100,7 @@ export default function CreateEventDialog({
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(
     !event ? false : true
   );
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
@@ -161,8 +168,10 @@ export default function CreateEventDialog({
       const { scrollHeight, clientHeight } = contentRef.current;
       if (scrollHeight <= clientHeight) {
         setHasScrolledToBottom(true);
+        setShowScrollHint(false);
       } else {
         setHasScrolledToBottom(false);
+        setShowScrollHint(true);
       }
     }
   }, [open]);
@@ -173,6 +182,7 @@ export default function CreateEventDialog({
     // Using a small tolerance of 5px
     if (scrollTop + clientHeight >= scrollHeight - 5) {
       setHasScrolledToBottom(true);
+      setShowScrollHint(false);
     }
   };
 
@@ -251,6 +261,7 @@ export default function CreateEventDialog({
     onClose();
     setSelectedUserIds([]);
     setHasScrolledToBottom(false);
+    setShowScrollHint(true);
   };
 
   const handleSave = () => {
@@ -281,6 +292,7 @@ export default function CreateEventDialog({
     onClose();
     setSelectedUserIds([]);
     setHasScrolledToBottom(false);
+    setShowScrollHint(true);
   };
 
   const roundUpToNearestFive = (date: Date): Date => {
@@ -691,6 +703,11 @@ export default function CreateEventDialog({
               </Box>
             )}
           </Stack>
+          {showScrollHint && (
+            <div className="absolute right-6 bottom-20 z-10 bg-secondary rounded-full p-1 shadow-md hidden sm:block animate-custom-bounce">
+              <KeyboardDoubleArrowDown className="text-background text-3xl" />
+            </div>
+          )}
         </DialogContent>
 
         <DialogActions

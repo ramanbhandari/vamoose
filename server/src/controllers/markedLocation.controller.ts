@@ -10,6 +10,12 @@ import {
   getMarkedLocationById,
 } from '@/models/markedLocation.model.js';
 import { getTripMember } from '@/models/member.model.js';
+import {
+  notifyIndividual,
+  notifyTripMembersExceptInitiator,
+} from '@/utils/notificationHandlers.js';
+import { NotificationType } from '@/interfaces/enums.js';
+import { fetchSingleTrip } from '@/models/trip.model.js';
 
 // Create a new marked location
 export const createMarkedLocationHandler = async (
@@ -59,6 +65,15 @@ export const createMarkedLocationHandler = async (
       notes,
       website,
       phoneNumber,
+    });
+
+    // Notify the trip members except the user who marked
+    const trip = await fetchSingleTrip(userId, tripId);
+    await notifyTripMembersExceptInitiator(tripId, userId, {
+      type: NotificationType.LOCATION_MARKED,
+      title: 'New Location Marked',
+      message: `"${markedLocation.name}" has been marked in trip "${trip.name}".`,
+      channel: 'IN_APP',
     });
 
     res.status(201).json({
@@ -148,6 +163,16 @@ export const updateMarkedLocationNotesHandler = async (
 
     // Update the notes
     const updatedLocation = await updateMarkedLocationNotes(locationId, notes);
+
+    // Notify the creator of the marker that the note was updated if they aren't the user updating it
+    if (userId !== location.createdById) {
+      await notifyIndividual(location.createdById, tripId, {
+        type: NotificationType.LOCATION_NOTE_UPDATED,
+        title: 'Marked Location Updated',
+        message: `The notes for "${location.name}" have been updated.`,
+        channel: 'IN_APP',
+      });
+    }
 
     res.status(200).json({
       message: 'Marked location notes updated successfully',

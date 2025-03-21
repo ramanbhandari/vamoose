@@ -32,6 +32,17 @@ jest.mock('@/config/prismaClient.js', () => ({
   },
 }));
 
+// Mock out the stuff needed for notifications
+jest.mock('@/utils/notificationHandlers.js', () => ({
+  notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),
+  notifySpecificTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyIndividual: jest.fn().mockResolvedValue(undefined),
+  notifyIndividuals: jest.fn().mockResolvedValue(undefined),
+  notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Trip Controller - createTripHandler (with model)', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -121,24 +132,6 @@ describe('Trip Controller - createTripHandler (with model)', () => {
       bodyOverrides: { startDate: 'invalid-date' },
       expectedStatus: 400,
       expectedMessage: 'Invalid start or end date format',
-    },
-    {
-      userIdOverride: {},
-      bodyOverrides: {
-        startDate: getXDaysFromToday(-1).toISOString(),
-        endDate: getXDaysFromToday(7).toISOString(),
-      },
-      expectedStatus: 400,
-      expectedMessage: 'Start date must be today or in the future',
-    },
-    {
-      userIdOverride: {},
-      bodyOverrides: {
-        startDate: getXDaysFromToday(8).toISOString(),
-        endDate: getXDaysFromToday(7).toISOString(),
-      },
-      expectedStatus: 400,
-      expectedMessage: 'Start date must be before end date',
     },
   ])(
     'when request body is $bodyOverrides should return $expectedStatus',

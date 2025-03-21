@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { supabase } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
+import socketClient from "@/utils/socketClient";
 
 interface UserState {
   user: User | null;
@@ -33,6 +34,10 @@ export const useUserStore = create<UserState>((set) => ({
   },
   // set loading true, then reset user state on supabase signout success
   logoutUser: async () => {
+    // if socket is connected, set disconnect it
+    if (socketClient.isConnected()) {
+      socketClient.disconnectSocket();
+    }
     set({ loading: true });
     await supabase.auth.signOut();
     set({ user: null, loading: false });

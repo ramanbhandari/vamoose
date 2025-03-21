@@ -32,6 +32,18 @@ jest.mock('@/config/prismaClient.js', () => ({
   },
 }));
 
+// Mock out the stuff needed for notifications
+jest.mock('@/utils/notificationHandlers.js', () => ({
+  notifyTripMembersExceptInitiator: jest.fn().mockResolvedValue(undefined),
+  notifySpecificTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembers: jest.fn().mockResolvedValue(undefined),
+  notifyIndividual: jest.fn().mockResolvedValue(undefined),
+  notifyIndividuals: jest.fn().mockResolvedValue(undefined),
+  notifyTripAdmins: jest.fn().mockResolvedValue(undefined),
+  notifyTripMembersExcept: jest.fn().mockResolvedValue(undefined),
+  cancelScheduledNotifications: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Create Itinerary Event Controller', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -663,6 +675,7 @@ describe('Delete Itinerary Event Controller', () => {
       id: 1,
       tripId: 1,
       createdById: 'test-user-id',
+      assignedUsers: [],
     });
     (prisma.itineraryEvent.delete as jest.Mock).mockResolvedValue({ id: 1 });
 

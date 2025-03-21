@@ -283,10 +283,10 @@ export default function Expenses({
     }
   };
 
-  const membersList = Array.from(new Set(members.map((e) => e.user.email))).map(
-    (email) => ({
-      value: email,
-      label: email,
+  const membersList = Array.from(new Set(members.map((e) => e.user))).map(
+    (user) => ({
+      value: user.email,
+      label: `${user.fullName} (${user.email})`,
     })
   );
 
