@@ -9,10 +9,6 @@ import {
   TextField,
   Button,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import { Map as MapType } from "maplibre-gl";
 import { LocationType } from "./services/mapbox";
@@ -33,6 +29,7 @@ import {
   deleteLocation,
   SavedPOI,
 } from "./services/markedLocations";
+import DeleteConfirmationDialog from "../Itinerary/ListView/DeleteConfirmationDialog";
 
 interface MarkerCardProps {
   map: MapType;
@@ -492,66 +489,13 @@ export default function MarkerCard({
       </Box>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      <DeleteConfirmationDialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        aria-labelledby="delete-dialog-title"
-        sx={{
-          "& .MuiDialog-paper": {
-            borderRadius: 2,
-            border: 2,
-            backgroundColor: "background.paper",
-            borderColor: "error.main",
-            maxWidth: "400px",
-            width: "90%",
-          },
-        }}
-      >
-        <DialogTitle sx={{ p: 0 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              p: 2,
-              pb: 1,
-            }}
-          >
-            <Typography variant="h6" fontWeight={600} color="text.primary">
-              Delete Location
-            </Typography>
-            <IconButton
-              onClick={() => setShowDeleteConfirm(false)}
-              size="small"
-            >
-              <Clear />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ p: 2, pt: 1 }}>
-          <Typography variant="body1">
-            Are you sure you want to delete &ldquo;{name}&rdquo;?
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowDeleteConfirm(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteLocation}
-            variant="contained"
-            color="error"
-            disabled={isDeleting}
-            sx={{
-              px: 3,
-              borderRadius: "8px",
-              fontWeight: 600,
-            }}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDeleteLocation}
+        title="Delete Location"
+        description={`Are you sure you want to delete "${name}"?`}
+      />
     </>
   );
 }
