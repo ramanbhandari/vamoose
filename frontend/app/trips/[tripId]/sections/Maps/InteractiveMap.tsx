@@ -386,8 +386,6 @@ export default function MapComponent({
     );
   }, [setNotification, updateUserLocation]);
 
-  const handleSearch = (query: string) => {};
-
   const handleLocationTypeFilter = (types: LocationType[]) => {
     setSelectedLocationTypes(types);
   };
@@ -643,7 +641,7 @@ export default function MapComponent({
         ref={mapRef}
         sx={{
           position: "relative",
-          height: "36rem",
+          height: "34rem",
           width: "100%",
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
