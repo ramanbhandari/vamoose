@@ -163,8 +163,30 @@ export default function MarkerCard({
     if (!id || !isSaved) return;
 
     try {
-      await updateLocationNotes(tripId, id, notesText || "");
+      const updatedLocation = await updateLocationNotes(
+        tripId,
+        id,
+        notesText || ""
+      );
       setIsEditingNotes(false);
+
+      // Update the notes in the parent component through onSave callback if available
+      if (onSave) {
+        const updatedPOI: SavedPOI = {
+          id: id,
+          name: name,
+          address: address,
+          website: website,
+          locationType: locationType,
+          coordinates: coordinates,
+          isSaved: true,
+          notes: notesText, // Use the updated notes text
+          createdBy: updatedLocation.createdBy,
+        };
+
+        onSave(updatedPOI);
+      }
+
       setNotification("Notes updated successfully", "success");
 
       if (onClose) {
@@ -358,12 +380,17 @@ export default function MarkerCard({
                     <TextField
                       fullWidth
                       multiline
-                      rows={3}
+                      rows={2}
+                      maxRows={2}
                       variant="outlined"
                       size="small"
                       value={notesText || ""}
-                      onChange={(e) => setNotesText(e.target.value)}
+                      onChange={(e) =>
+                        setNotesText(e.target.value.substring(0, 100))
+                      }
                       placeholder="Add notes about this location..."
+                      inputProps={{ maxLength: 100 }}
+                      helperText={`${notesText ? notesText.length : 0}/100`}
                     />
                   ) : (
                     <Typography
@@ -376,6 +403,8 @@ export default function MarkerCard({
                             : "rgba(0, 0, 0, 0.03)",
                         borderRadius: 1,
                         minHeight: "2.5rem",
+                        maxHeight: "4rem",
+                        overflow: "auto",
                         whiteSpace: "pre-wrap",
                       }}
                     >
@@ -397,18 +426,23 @@ export default function MarkerCard({
                       color="text.secondary"
                       fontWeight="medium"
                     >
-                      Add a Note
+                      Add Notes
                     </Typography>
                   </Box>
                   <TextField
                     fullWidth
                     multiline
                     rows={2}
+                    maxRows={2}
                     variant="outlined"
                     size="small"
                     value={notesText || ""}
-                    onChange={(e) => setNotesText(e.target.value)}
+                    onChange={(e) =>
+                      setNotesText(e.target.value.substring(0, 100))
+                    }
                     placeholder="Add notes about this location..."
+                    inputProps={{ maxLength: 100 }}
+                    helperText={`${notesText ? notesText.length : 0}/100`}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: (theme) =>
