@@ -42,7 +42,7 @@ jobs:
           docker run --rm --network ci-network \
           -e DATABASE_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
           -e DIRECT_URL="postgresql://prisma:prisma@integration-tests-prisma:5432/tests" \
-          -e MONGO_URL="mongodb://mongo:mongo@integration-tests-mongo:27018/tests?authSource=admin&directConnection=true" \
+          -e MONGO_TEST_URI="mongodb://mongo:mongo@integration-tests-mongo:27017/tests?authSource=admin&directConnection=true" \
           -e SUPABASE_JWT_SECRET="Super-secret-key" \
           server-ci npm run test:integration
 
