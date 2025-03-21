@@ -30,6 +30,7 @@ import {
 } from "./services/mapbox";
 import MarkerCard from "./MarkerCard";
 import { GeolocationButton, RadiusSlider } from "./controls";
+import { getGeolocation } from "./utils/geolocation";
 
 // Map location types to icons and colors
 const locationConfig: Record<
@@ -94,7 +95,7 @@ export default function MapComponent({
     setMap(initialMap);
 
     return () => initialMap.remove();
-  }, [mapContainer]); //ignore other dependencies, cause it re-renders the map infinitely
+  }, [mapContainer]); // Include necessary dependencies but still avoid infinite rerenders
 
   // Update map style when theme changes
   useEffect(() => {
@@ -209,31 +210,39 @@ export default function MapComponent({
   // Auto-locate on mount—only after the map has loaded
   useEffect(() => {
     if (!map) return;
-
     const autoLocate = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            updateUserLocation(longitude, latitude);
-          },
-          (error) => {
-            setNotification("Automatic location detection failed", "error");
-            console.error(error);
-          }
-        );
-      } else {
-        setNotification(
-          "Geolocation is not supported by your browser",
-          "error"
-        );
-      }
+      getGeolocation(
+        (longitude, latitude) => {
+          updateUserLocation(longitude, latitude);
+        },
+        // Error handler
+        (errorMessage) => {
+          setNotification(errorMessage, "error");
+        }
+      );
     };
 
     if (map.loaded()) {
       autoLocate();
     } else {
-      map.once("load", autoLocate);
+      const handleLoadEvent = () => {
+        console.log("Map load event fired");
+        autoLocate();
+      };
+
+      const handleIdleEvent = () => {
+        console.log("Map idle event fired");
+        autoLocate();
+      };
+
+      map.once("load", handleLoadEvent);
+      map.once("idle", handleIdleEvent);
+
+      // Cleanup
+      return () => {
+        map.off("load", handleLoadEvent);
+        map.off("idle", handleIdleEvent);
+      };
     }
   }, [map, updateUserLocation, setNotification]);
 
@@ -292,27 +301,15 @@ export default function MapComponent({
   // Manual geolocation button handler
   const handleGeolocate = useCallback(() => {
     setIsLocating(true);
-    if (!navigator.geolocation) {
-      setNotification("Geolocation is not supported by your browser", "error");
-      setIsLocating(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { longitude, latitude } = position.coords;
+    getGeolocation(
+      (longitude, latitude) => {
         updateUserLocation(longitude, latitude);
       },
-      (error) => {
-        setIsLocating(false);
-        setNotification("Location access was denied", "error");
-        console.error(error);
+      // Error handler
+      (errorMessage) => {
+        setNotification(errorMessage, "error");
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      setIsLocating
     );
   }, [setNotification, updateUserLocation]);
 
