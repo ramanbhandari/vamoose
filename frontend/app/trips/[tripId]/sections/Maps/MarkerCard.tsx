@@ -581,7 +581,8 @@ export default function MarkerCard({
               sx={{
                 mt: 1,
                 display: "flex",
-                flexDirection: "column",
+                justifyContent: "space-between",
+                alignItems: "center",
                 gap: 0.5,
               }}
             >
@@ -591,7 +592,6 @@ export default function MarkerCard({
                   sx={{ mr: 0.5, color: "primary.main" }}
                 />
                 <Link
-                  // Use Google search URL if no website is provided
                   href={website || googleSearchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -606,6 +606,45 @@ export default function MarkerCard({
                   {website ? "Visit website" : "Search on Google"}
                 </Link>
               </Box>
+              {isSaved && createdBy && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontSize: "0.7rem" }}
+                  >
+                    Added by {createdBy.fullName || "User"}
+                  </Typography>
+                  <Chip
+                    label={getUserRoleLabel(createdBy.id)}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      height: 16,
+                      fontSize: "0.6rem",
+                      fontWeight: 500,
+                      px: 0.5,
+                      "& .MuiChip-label": {
+                        px: 0.5,
+                      },
+                      borderColor:
+                        theme.palette.mode === "dark"
+                          ? "white"
+                          : theme.palette.secondary.main,
+                      color:
+                        theme.palette.mode === "dark"
+                          ? "white"
+                          : theme.palette.secondary.main,
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           </Paper>
         </Fade>
