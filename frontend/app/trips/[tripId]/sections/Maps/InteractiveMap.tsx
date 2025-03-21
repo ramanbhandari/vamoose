@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as turf from "@turf/turf";
@@ -73,6 +73,7 @@ export default function MapComponent({
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
   const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(SEARCH_RADIUS_KM);
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
   const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -399,6 +400,26 @@ export default function MapComponent({
     setHoveredPOI(null);
   };
 
+  // Handle click outside to close the selected POI card
+  useEffect(() => {
+    if (!selectedPOI) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if ((event.target as Element).closest(".custom-marker")) {
+        return;
+      }
+
+      if (!(event.target as Element).closest(".marker-card")) {
+        setSelectedPOI(null);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [selectedPOI]);
+
   // Update user location marker position when map moves
   useEffect(() => {
     if (!map || !currentLocation) return;
@@ -456,6 +477,7 @@ export default function MapComponent({
   return (
     <Box sx={{ position: "relative" }}>
       <Box
+        ref={mapRef}
         sx={{
           position: "relative",
           height: "45rem",
@@ -532,7 +554,7 @@ export default function MapComponent({
         {/* Conditionally render the MarkerCard on hover */}
         {hoveredPOI && map && hoveredPOI.id !== selectedPOI?.id && (
           <MarkerCard
-            key={hoveredPOI.id}
+            key={`hover-${hoveredPOI.id}`}
             map={map}
             coordinates={hoveredPOI.coordinates}
             name={hoveredPOI.name}
@@ -540,13 +562,15 @@ export default function MapComponent({
             locationType={hoveredPOI.locationType}
             color={locationConfig[hoveredPOI.locationType].color}
             isSelected={false}
+            onMouseEnter={() => setHoveredPOI(hoveredPOI)}
+            onMouseLeave={() => setHoveredPOI(null)}
           />
         )}
 
         {/* Selected POI Info */}
         {selectedPOI && map && (
           <MarkerCard
-            key={selectedPOI.id}
+            key={`selected-${selectedPOI.id}`}
             map={map}
             coordinates={selectedPOI.coordinates}
             name={selectedPOI.name}

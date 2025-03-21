@@ -27,6 +27,8 @@ export default function MarkerCard({
   isSelected = false,
   website,
   onClose,
+  onMouseEnter,
+  onMouseLeave,
 }: MarkerCardProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -53,15 +55,18 @@ export default function MarkerCard({
   if (!isSelected) {
     return (
       <Box
+        className="marker-card"
         sx={{
           position: "absolute",
           left: position.x,
           top: position.y,
           transform: "translate(-50%, -120%)",
           zIndex: 1500,
-          pointerEvents: "none",
+          pointerEvents: "auto",
           width: "200px",
         }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <Paper
           elevation={3}
@@ -92,6 +97,7 @@ export default function MarkerCard({
   // For selected state
   return (
     <Box
+      className="marker-card"
       sx={{
         position: "absolute",
         bottom: "2.5rem",
