@@ -13,7 +13,7 @@ dotenv.config({ path: '.env.test' });
 
 describe('Chat Message API Integration Tests', () => {
   let userId: string, authToken: string, tripId: number;
-  const secret = process.env.SUPABASE_JWT_SECRET;
+  const secret = process.env.SUPABASE_JWT_SECRET || '';
   const tripStartDate = '2025-05-01';
   const tripEndDate = '2025-05-30';
 
@@ -110,5 +110,91 @@ describe('Chat Message API Integration Tests', () => {
     expect(response.status).toBe(200);
     expect(response.body.updatedMessage.reactions).toHaveProperty('👍');
     expect(response.body.updatedMessage.reactions['👍']).toContain(userId);
+  });
+
+  // ==========================
+  // UPDATE COMPLETE REACTIONS TEST
+  // ==========================
+  it('should update all reactions on a message', async () => {
+    const message = await Message.create({
+      messageId: uuidv4(),
+      userId,
+      tripId,
+      text: 'React to me completely!',
+      reactions: { '😀': [userId] },
+    });
+
+    const newReactions = { '👍': [userId], '❤️': [userId] };
+
+    const response = await request(app)
+      .patch(`/api/trips/${tripId}/messages/${message.messageId}`)
+      .set('Authorization', authToken)
+      .send({ reactions: newReactions });
+
+    expect(response.status).toBe(200);
+    expect(response.body.updatedMessage.reactions).toEqual(newReactions);
+    expect(response.body.updatedMessage.reactions).not.toHaveProperty('😀');
+  });
+
+  // ==========================
+  // REMOVE REACTION TEST
+  // ==========================
+  it('should remove a reaction from a message', async () => {
+    const message = await Message.create({
+      messageId: uuidv4(),
+      userId,
+      tripId,
+      text: 'Remove reaction from me!',
+      reactions: { '👍': [userId], '❤️': [userId] },
+    });
+
+    const response = await request(app)
+      .patch(
+        `/api/trips/${tripId}/messages/${message.messageId}/removeReaction`,
+      )
+      .set('Authorization', authToken)
+      .send({ emoji: '👍' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.updatedMessage.reactions).not.toHaveProperty('👍');
+    expect(response.body.updatedMessage.reactions).toHaveProperty('❤️');
+  });
+
+  // ==========================
+  // UNAUTHORIZED ACCESS TEST
+  // ==========================
+  it('should reject unauthorized message access', async () => {
+    const response = await request(app)
+      .get(`/api/trips/${tripId}/messages`)
+      .set('Authorization', 'Bearer invalid-token');
+
+    expect(response.status).toBe(401);
+  });
+
+  // ==========================
+  // NON-MEMBER ACCESS TEST
+  // ==========================
+  it('should reject message creation from non-trip members', async () => {
+    // Create a different user not in the trip
+    const nonMemberUserId = 'non-member-user';
+
+    // Ensure secret is a string and not undefined for TypeScript
+    if (!secret) throw new Error('JWT Secret is required');
+    const nonMemberToken = `Bearer ${jwt.sign({ sub: nonMemberUserId }, secret)}`;
+
+    await prisma.user.create({
+      data: { id: nonMemberUserId, email: 'nonmember@example.com' },
+    });
+
+    const response = await request(app)
+      .post(`/api/trips/${tripId}/messages/sendMessage`)
+      .set('Authorization', nonMemberToken)
+      .send({ text: 'This should fail' });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error).toContain('not a member of this trip');
+
+    // Clean up the non-member user
+    await prisma.user.delete({ where: { id: nonMemberUserId } });
   });
 });
