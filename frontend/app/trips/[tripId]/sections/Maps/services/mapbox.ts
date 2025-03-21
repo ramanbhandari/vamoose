@@ -11,6 +11,7 @@ export interface POI {
   locationType: LocationType;
   coordinates: [number, number]; // [longitude, latitude]
   properties?: Record<string, unknown>;
+  notes?: string;
 }
 
 export interface SearchResult {
@@ -197,7 +198,7 @@ function transformMapboxResponseToPOIs(
         website = metadata.website;
       }
     }
-    
+
     // Ensure website has proper protocol
     if (website && !website.startsWith("http")) {
       website = "https://" + website;

@@ -31,6 +31,12 @@ import {
 import MarkerCard from "./MarkerCard";
 import { GeolocationButton, RadiusSlider } from "./controls";
 import { getGeolocation } from "./utils/geolocation";
+import { useParams } from "next/navigation";
+import {
+  getSavedLocations,
+  markedLocationToPOI,
+  SavedPOI,
+} from "./services/markedLocations";
 
 // Map location types to icons and colors
 const locationConfig: Record<
@@ -55,6 +61,8 @@ export default function MapComponent({
   initialZoom = 2,
 }: MapComponentProps) {
   const theme = useTheme();
+  const params = useParams();
+  const tripId = Number(params.tripId);
   const isDarkMode = theme.palette.mode === "dark";
   const { setNotification } = useNotificationStore();
   const [map, setMap] = useState<MapType | null>(null);
@@ -65,14 +73,15 @@ export default function MapComponent({
     [number, number] | null
   >(null);
   // State for POIs
-  const [pois, setPois] = useState<POI[]>([]);
+  const [pois, setPois] = useState<(POI | SavedPOI)[]>([]);
   const [selectedLocationTypes, setSelectedLocationTypes] = useState<
     LocationType[]
   >([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
-  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
-  const [hoveredPOI, setHoveredPOI] = useState<POI | null>(null);
+  const [selectedPOI, setSelectedPOI] = useState<POI | SavedPOI | null>(null);
+  const [hoveredPOI, setHoveredPOI] = useState<POI | SavedPOI | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(SEARCH_RADIUS_KM);
+  const [isLoadingSavedLocations, setIsLoadingSavedLocations] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   const mapStyles = {
@@ -104,19 +113,61 @@ export default function MapComponent({
     map.setStyle(isDarkMode ? mapStyles.dark : mapStyles.light);
   }, [isDarkMode, map, mapStyles.dark, mapStyles.light]);
 
+  // Fetch saved locations when the map is ready and trip ID is available
+  useEffect(() => {
+    const fetchSavedLocations = async () => {
+      if (!map || !tripId) return;
+
+      setIsLoadingSavedLocations(true);
+      try {
+        const savedLocations = await getSavedLocations(tripId);
+
+        // Convert saved locations to POI format and ensure notes are included
+        const savedPois = savedLocations.map(markedLocationToPOI);
+        console.log("Saved POIs with notes:", savedPois); // Debug log
+
+        setPois((currentPois) => {
+          const unsavedPois = currentPois.filter(
+            (poi) => !("isSaved" in poi) || !poi.isSaved
+          );
+          return [...unsavedPois, ...savedPois];
+        });
+      } catch (error) {
+        console.error("Error fetching saved locations:", error);
+        setNotification("Failed to load saved locations", "error");
+      } finally {
+        setIsLoadingSavedLocations(false);
+      }
+    };
+
+    if (map && map.loaded()) {
+      fetchSavedLocations();
+    } else if (map) {
+      map.once("load", fetchSavedLocations);
+    }
+  }, [map, tripId, setNotification]);
+
   // Fetch POIs when location or selected location types change
   useEffect(() => {
     const fetchPOIs = async () => {
       if (!currentLocation || selectedLocationTypes.length === 0) {
-        setPois([]);
+        // Don't clear saved POIs, only clear unsaved ones
+        setPois((currentPois) =>
+          currentPois.filter((poi) => "isSaved" in poi && poi.isSaved)
+        );
         return;
       }
 
       setIsLoadingPOIs(true);
 
       try {
-        // Clear existing POIs
-        setPois([]);
+        // Clear existing unsaved POIs
+        setPois((currentPois) =>
+          currentPois.filter((poi) => "isSaved" in poi && poi.isSaved)
+        );
+
+        // Get current saved POIs for duplicate checking
+        const savedPois = pois.filter((poi) => "isSaved" in poi && poi.isSaved);
 
         // Fetch POIs for each selected location type
         const poiPromises = selectedLocationTypes.map((locationType) =>
@@ -138,7 +189,31 @@ export default function MapComponent({
           return distance <= searchRadius;
         });
 
-        setPois(filteredPois);
+        // Filter out POIs that match saved locations
+        const newPois = filteredPois.filter((newPoi) => {
+          // Check if there's a saved POI that matches this one
+          return !savedPois.some((savedPoi) => {
+            //threshold for coordinate matching (about 10 meters)
+            const coordinateTolerance = 0.0001;
+
+            // Check if coordinates are close and same name
+            return (
+              Math.abs(savedPoi.coordinates[0] - newPoi.coordinates[0]) <
+                coordinateTolerance &&
+              Math.abs(savedPoi.coordinates[1] - newPoi.coordinates[1]) <
+                coordinateTolerance &&
+              savedPoi.name.toLowerCase() === newPoi.name.toLowerCase()
+            );
+          });
+        });
+
+        // Add new fetched POIs to existing saved POIs
+        setPois((currentPois) => {
+          const savedPois = currentPois.filter(
+            (poi) => "isSaved" in poi && poi.isSaved
+          );
+          return [...savedPois, ...newPois];
+        });
       } catch (error) {
         console.error("Error fetching POIs:", error);
         setNotification("Failed to load points of interest", "error");
@@ -379,7 +454,8 @@ export default function MapComponent({
     setSelectedPOI(null);
   };
 
-  const handlePOIMarkerClick = (poi: POI) => {
+  const handlePOIMarkerClick = (poi: POI | SavedPOI) => {
+    console.log("Selected POI:", poi); // Debug log
     setSelectedPOI(poi);
 
     // Center the map on the POI
@@ -392,33 +468,13 @@ export default function MapComponent({
   };
 
   // Mouse event handlers for POI markers
-  const handlePOIMarkerMouseEnter = (poi: POI) => {
+  const handlePOIMarkerMouseEnter = (poi: POI | SavedPOI) => {
     setHoveredPOI(poi);
   };
 
   const handlePOIMarkerMouseLeave = () => {
     setHoveredPOI(null);
   };
-
-  // Handle click outside to close the selected POI card
-  useEffect(() => {
-    if (!selectedPOI) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if ((event.target as Element).closest(".custom-marker")) {
-        return;
-      }
-
-      if (!(event.target as Element).closest(".marker-card")) {
-        setSelectedPOI(null);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [selectedPOI]);
 
   // Update user location marker position when map moves
   useEffect(() => {
@@ -467,6 +523,41 @@ export default function MapComponent({
         zoom: zoomLevel,
         duration: 500,
       });
+    }
+  };
+
+  const handleSavePOI = (savedPOI: SavedPOI) => {
+    // Update the POIs state to reflect the saved status
+    setPois((currentPois) => {
+      // Find if this POI already exists in the state
+      const existingPOIIndex = currentPois.findIndex(
+        (poi) =>
+          poi.coordinates[0] === savedPOI.coordinates[0] &&
+          poi.coordinates[1] === savedPOI.coordinates[1] &&
+          poi.name === savedPOI.name
+      );
+
+      if (existingPOIIndex >= 0) {
+        // Update existing POI
+        const newPois = [...currentPois];
+        newPois[existingPOIIndex] = savedPOI;
+        return newPois;
+      } else {
+        // Add new POI
+        return [...currentPois, savedPOI];
+      }
+    });
+
+    // Update the selected POI
+    setSelectedPOI(savedPOI);
+  };
+
+  const handleDeletePOI = (deletedId: string) => {
+    // Remove the deleted POI from the state
+    setPois((currentPois) => currentPois.filter((poi) => poi.id !== deletedId));
+    // Clear the selected POI if it was the one that was deleted
+    if (selectedPOI && selectedPOI.id === deletedId) {
+      setSelectedPOI(null);
     }
   };
 
@@ -547,6 +638,7 @@ export default function MapComponent({
                 icon={config.icon}
                 onMouseEnter={() => handlePOIMarkerMouseEnter(poi)}
                 onMouseLeave={handlePOIMarkerMouseLeave}
+                isSaved={"isSaved" in poi && poi.isSaved}
               />
             );
           })}
@@ -562,6 +654,7 @@ export default function MapComponent({
             locationType={hoveredPOI.locationType}
             color={locationConfig[hoveredPOI.locationType].color}
             isSelected={false}
+            isSaved={"isSaved" in hoveredPOI && hoveredPOI.isSaved}
             onMouseEnter={() => setHoveredPOI(hoveredPOI)}
             onMouseLeave={() => setHoveredPOI(null)}
           />
@@ -580,6 +673,14 @@ export default function MapComponent({
             isSelected={true}
             website={selectedPOI.website}
             onClose={() => setSelectedPOI(null)}
+            isSaved={"isSaved" in selectedPOI && selectedPOI.isSaved}
+            notes={selectedPOI.notes}
+            onSave={handleSavePOI}
+            onDelete={handleDeletePOI}
+            id={selectedPOI.id}
+            createdBy={
+              "createdBy" in selectedPOI ? selectedPOI.createdBy : undefined
+            }
           />
         )}
 
@@ -630,7 +731,7 @@ export default function MapComponent({
         />
 
         {/* Loading indicator for POIs */}
-        {isLoadingPOIs && (
+        {(isLoadingPOIs || isLoadingSavedLocations) && (
           <Box
             sx={{
               position: "absolute",
@@ -647,7 +748,11 @@ export default function MapComponent({
             }}
           >
             <CircularProgress size={20} color="inherit" />
-            <Typography variant="caption">Loading POIs...</Typography>
+            <Typography variant="caption">
+              {isLoadingSavedLocations
+                ? "Loading saved locations..."
+                : "Loading POIs..."}
+            </Typography>
           </Box>
         )}
 

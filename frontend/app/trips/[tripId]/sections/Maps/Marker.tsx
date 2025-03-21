@@ -12,6 +12,7 @@ interface MarkerProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   icon: React.ReactElement<SvgIconProps>;
+  isSaved?: boolean;
 }
 
 export default function Marker({
@@ -23,6 +24,7 @@ export default function Marker({
   onMouseEnter,
   onMouseLeave,
   icon,
+  isSaved = false,
 }: MarkerProps) {
   const [marker, setMarker] = useState<maplibre.Marker | null>(null);
 
@@ -39,8 +41,16 @@ export default function Marker({
     el.style.justifyContent = "center";
     el.style.backgroundColor = color;
     el.style.borderRadius = "50%";
-    el.style.border = "2px solid white";
-    el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+
+    // Add a different border style for saved locations
+    if (isSaved) {
+      el.style.border = "3px solid gold";
+      el.style.boxShadow = "0 2px 6px rgba(255, 215, 0, 0.6)";
+    } else {
+      el.style.border = "2px solid white";
+      el.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+    }
+
     el.style.cursor = "pointer";
 
     // container for the icon
@@ -88,7 +98,17 @@ export default function Marker({
       }
       newMarker.remove();
     };
-  }, [map, color, size, onClick, onMouseEnter, onMouseLeave, position, icon]);
+  }, [
+    map,
+    color,
+    size,
+    onClick,
+    onMouseEnter,
+    onMouseLeave,
+    position,
+    icon,
+    isSaved,
+  ]);
 
   // Update marker position on change
   useEffect(() => {
