@@ -508,8 +508,14 @@ export default function MarkerCard({
                                       "& .MuiChip-label": {
                                         px: 0.5,
                                       },
-                                      borderColor: theme.palette.primary.main,
-                                      color: theme.palette.primary.main,
+                                      borderColor:
+                                        theme.palette.mode === "dark"
+                                          ? "white"
+                                          : theme.palette.secondary.main,
+                                      color:
+                                        theme.palette.mode === "dark"
+                                          ? "white"
+                                          : theme.palette.secondary.main,
                                     }}
                                   />
                                 )}
