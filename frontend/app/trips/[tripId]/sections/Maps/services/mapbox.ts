@@ -1,4 +1,5 @@
 import * as turf from "@turf/turf";
+import { v4 as uuidv4 } from "uuid";
 
 // Consistent search radius in kilometers
 export const SEARCH_RADIUS_KM = 1;
@@ -16,6 +17,7 @@ export interface POI {
 }
 
 export interface SearchResult {
+  id?: string;
   name: string;
   coordinates: [number, number];
   address?: string;
@@ -54,12 +56,64 @@ interface MapboxResponse {
   [key: string]: unknown;
 }
 
+interface MapboxSuggestion {
+  name: string;
+  mapbox_id: string;
+  feature_type: string;
+  address?: string;
+  full_address?: string;
+  place_formatted?: string;
+  context?: {
+    country?: {
+      name?: string;
+    };
+    region?: {
+      name?: string;
+    };
+    place?: {
+      name?: string;
+    };
+  };
+}
+
+interface MapboxSuggestResponse {
+  suggestions: MapboxSuggestion[];
+  attribution: string;
+}
+
+interface MapboxRetrieveResponse {
+  features: {
+    type: string;
+    properties: {
+      name: string;
+      mapbox_id: string;
+      feature_type: string;
+      full_address?: string;
+    };
+    geometry: {
+      coordinates: [number, number];
+      type: string;
+    };
+  }[];
+  attribution: string;
+}
+
+// Session token to group related search API calls
+let sessionToken = uuidv4();
+
+// Reset session token periodically
+export function resetSessionToken() {
+  sessionToken = uuidv4();
+  return sessionToken;
+}
+
 /**
- * Search for locations using Mapbox Geocoding API
+ * Search for locations using Mapbox Search Box API with suggestions and proximity
  */
 export async function searchLocation(
   query: string,
-  limit: number = 5
+  limit: number = 5,
+  proximity?: [number, number]
 ): Promise<SearchResult[]> {
   if (!query.trim()) {
     return [];
@@ -75,35 +129,94 @@ export async function searchLocation(
   // URL encode the query
   const encodedQuery = encodeURIComponent(query);
 
-  // Mapbox Geocoding API endpoint
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=${limit}`;
+  // Build the URL with optional proximity parameter
+  let url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodedQuery}&limit=${limit}&session_token=${sessionToken}&access_token=${token}`;
+
+  // Add proximity if provided
+  if (proximity && proximity.length === 2) {
+    url += `&proximity=${proximity[0]},${proximity[1]}`;
+  }
 
   try {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Mapbox Geocoding API error: ${response.status}`);
+      throw new Error(`Mapbox Search Box API error: ${response.status}`);
     }
 
-    const data = (await response.json()) as MapboxResponse;
+    const data = (await response.json()) as MapboxSuggestResponse;
 
-    if (!data.features || !Array.isArray(data.features)) {
+    if (
+      !data.suggestions ||
+      !Array.isArray(data.suggestions) ||
+      data.suggestions.length === 0
+    ) {
       return [];
     }
 
-    return data.features.map((feature) => {
-      const coordinates = feature.geometry?.coordinates || [0, 0];
-
+    // Return suggestions without coordinates for display in dropdown
+    return data.suggestions.map((suggestion) => {
       return {
-        name: feature.text || feature.place_name || "Unknown location",
-        coordinates: coordinates as [number, number],
-        address: feature.place_name,
-        placeType: feature.place_type?.[0],
+        id: suggestion.mapbox_id,
+        name: suggestion.name,
+        coordinates: [0, 0],
+        address:
+          suggestion.full_address ||
+          suggestion.address ||
+          suggestion.place_formatted,
+        placeType: suggestion.feature_type,
       };
     });
   } catch (error) {
     console.error("Error searching for location:", error);
     return [];
+  }
+}
+
+/**
+ * Retrieve detailed information for a selected suggestion
+ */
+export async function retrieveLocation(
+  suggestionId: string
+): Promise<SearchResult | null> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+  if (!token) {
+    console.error("Mapbox access token is missing");
+    return null;
+  }
+
+  try {
+    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestionId}?session_token=${sessionToken}&access_token=${token}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Mapbox Retrieve API error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as MapboxRetrieveResponse;
+
+    if (
+      !data.features ||
+      !Array.isArray(data.features) ||
+      data.features.length === 0
+    ) {
+      return null;
+    }
+
+    const feature = data.features[0];
+
+    return {
+      id: feature.properties.mapbox_id,
+      name: feature.properties.name,
+      coordinates: feature.geometry.coordinates as [number, number],
+      address: feature.properties.full_address,
+      placeType: feature.properties.feature_type,
+    };
+  } catch (error) {
+    console.error("Error retrieving location details:", error);
+    return null;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   TextField,
@@ -17,8 +17,20 @@ import {
   Divider,
   CircularProgress,
 } from "@mui/material";
-import { Search, Clear, FilterList, LocationOn } from "@mui/icons-material";
-import { LocationType, searchLocation, SearchResult } from "./services/mapbox";
+import {
+  Search,
+  Clear,
+  FilterList,
+  LocationOn,
+  MyLocation,
+} from "@mui/icons-material";
+import {
+  LocationType,
+  searchLocation,
+  SearchResult,
+  retrieveLocation,
+  resetSessionToken,
+} from "./services/mapbox";
 
 interface MapSearchFilterProps {
   onSearch?: (query: string) => void;
@@ -49,8 +61,18 @@ export default function MapSearchFilter({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  // Debounced search for locations
+  // Reset session token when component mounts
+  useEffect(() => {
+    resetSessionToken();
+  }, []);
+
+  // Debounced search for locations with proximity if available
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -61,7 +83,11 @@ export default function MapSearchFilter({
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchLocation(searchQuery);
+        const results = await searchLocation(
+          searchQuery,
+          5,
+          userLocation || undefined
+        );
         setSearchResults(results);
         setShowSearchResults(results.length > 0);
       } catch (error) {
@@ -72,7 +98,7 @@ export default function MapSearchFilter({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, userLocation]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -100,21 +126,86 @@ export default function MapSearchFilter({
     setShowFilters(!showFilters);
   };
 
-  const handleLocationClick = (location: SearchResult) => {
-    onLocationSelect?.(location);
-    setShowSearchResults(false);
-    // Keep the search query to show what was searched
+  const handleLocationClick = async (suggestion: SearchResult) => {
+    // Only proceed if we have an ID to retrieve
+    if (!suggestion.id) {
+      console.error("No suggestion ID available");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Retrieve detailed location information
+      const detailedLocation = await retrieveLocation(suggestion.id);
+
+      if (detailedLocation) {
+        onLocationSelect?.(detailedLocation);
+      } else {
+        // Fallback to the suggestion if retrieve fails
+        onLocationSelect?.(suggestion);
+      }
+    } catch (error) {
+      console.error("Error retrieving location details:", error);
+      // Fallback to the suggestion without coordinates
+      onLocationSelect?.(suggestion);
+    } finally {
+      setIsSearching(false);
+      setShowSearchResults(false);
+    }
+  };
+
+  // Get user's current location
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Mapbox expects coordinates as [longitude, latitude]
+        const coordinates: [number, number] = [
+          position.coords.longitude,
+          position.coords.latitude,
+        ];
+        setUserLocation(coordinates);
+        setIsLoadingLocation(false);
+
+        // Refresh search results with new location
+        if (searchQuery.trim()) {
+          searchLocation(searchQuery, 5, coordinates)
+            .then((results) => {
+              setSearchResults(results);
+              setShowSearchResults(results.length > 0);
+            })
+            .catch((error) => {
+              console.error("Error searching with new location:", error);
+            });
+        }
+      },
+      (error) => {
+        console.error("Error getting user location:", error);
+        setIsLoadingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   // Close search results when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowSearchResults(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
     };
 
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -142,6 +233,7 @@ export default function MapSearchFilter({
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Box
+          ref={searchRef}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -166,16 +258,18 @@ export default function MapSearchFilter({
                   )}
                 </InputAdornment>
               ),
-              endAdornment: searchQuery && (
+              endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={handleClearSearch}
-                    edge="end"
-                    aria-label="clear search"
-                  >
-                    <Clear fontSize="small" />
-                  </IconButton>
+                  {searchQuery && (
+                    <IconButton
+                      size="small"
+                      onClick={handleClearSearch}
+                      edge="end"
+                      aria-label="clear search"
+                    >
+                      <Clear fontSize="small" />
+                    </IconButton>
+                  )}
                 </InputAdornment>
               ),
             }}
@@ -218,7 +312,7 @@ export default function MapSearchFilter({
             >
               <List dense>
                 {searchResults.map((result, index) => (
-                  <Box key={`${result.name}-${index}`}>
+                  <Box key={`${result.id || result.name}-${index}`}>
                     <ListItem
                       onClick={() => handleLocationClick(result)}
                       sx={{
