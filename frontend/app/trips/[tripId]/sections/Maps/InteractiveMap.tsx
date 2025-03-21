@@ -251,6 +251,7 @@ export default function MapComponent({
       map.flyTo({
         center: [longitude, latitude],
         zoom: zoomLevel,
+        duration: 4000,
       });
 
       const circleGeoJSON = turf.circle([longitude, latitude], searchRadius, {
@@ -410,6 +411,10 @@ export default function MapComponent({
       // Update the current location
       setCurrentLocation(coordinates);
 
+      // Clear any selected POI and hover state
+      setSelectedPOI(null);
+      setHoveredPOI(null);
+
       // Calculate zoom level based on current radius
       const zoomLevel = calculateZoomForRadius(searchRadius);
 
@@ -418,9 +423,6 @@ export default function MapComponent({
         center: coordinates,
         zoom: zoomLevel,
       });
-
-      // Clear any selected POI
-      setSelectedPOI(null);
 
       // Create a circle for the search radius
       const circleGeoJSON = turf.circle(coordinates, searchRadius, {
@@ -454,6 +456,7 @@ export default function MapComponent({
 
   const handleUserMarkerClick = () => {
     setSelectedPOI(null);
+    resetMapView();
   };
 
   const handlePOIMarkerClick = (poi: POI | SavedPOI) => {
@@ -528,6 +531,37 @@ export default function MapComponent({
     }
   };
 
+  // Add a cleanup function that resets the view
+  const resetMapView = useCallback(() => {
+    // Close all markers
+    setSelectedPOI(null);
+    setHoveredPOI(null);
+
+    // Center map back to user location
+    if (map && currentLocation) {
+      const zoomLevel = Math.max(
+        12,
+        calculateZoomForRadius(searchRadius) - 0.5
+      );
+
+      // Don't animate if we're already at the right location and zoom
+      const currentZoom = map.getZoom();
+      const currentCenter = map.getCenter();
+      const isAlreadyCentered =
+        Math.abs(currentCenter.lng - currentLocation[0]) < 0.001 &&
+        Math.abs(currentCenter.lat - currentLocation[1]) < 0.001 &&
+        Math.abs(currentZoom - zoomLevel) < 0.3;
+
+      if (!isAlreadyCentered) {
+        map.flyTo({
+          center: currentLocation,
+          zoom: zoomLevel,
+          duration: 1000, // 1 second animation
+        });
+      }
+    }
+  }, [map, currentLocation, searchRadius]);
+
   const handleSavePOI = (savedPOI: SavedPOI) => {
     // Update the POIs state to reflect the saved status
     setPois((currentPois) => {
@@ -552,52 +586,18 @@ export default function MapComponent({
 
     // Update the selected POI
     setSelectedPOI(savedPOI);
+
+    // Reset view after a short delay
+    setTimeout(() => {
+      resetMapView();
+    }, 1000); // Wait 1 second so user can see confirmation
   };
 
   const handleDeletePOI = (deletedId: string) => {
-    // Get the POI being deleted to find its coordinates and name for matching
-    const deletedPOI = pois.find((poi) => poi.id === deletedId);
-    if (!deletedPOI) {
-      console.error("Could not find POI with ID:", deletedId);
-      return;
-    }
-
     // Remove the deleted POI from the state
     setPois((currentPois) => {
       const filteredPois = currentPois.filter((poi) => poi.id !== deletedId);
-
-      // If there was a hidden unsaved version, make it visible by removing hasSavedVersion flag
-      const updatedPois = filteredPois.map((poi) => {
-        if (
-          !("isSaved" in poi) &&
-          "hasSavedVersion" in poi &&
-          poi.hasSavedVersion
-        ) {
-          // Check if this is the same location as the deleted one
-          const coordinateTolerance = 0.0001;
-          const isSameLocation =
-            Math.abs(deletedPOI.coordinates[0] - poi.coordinates[0]) <
-              coordinateTolerance &&
-            Math.abs(deletedPOI.coordinates[1] - poi.coordinates[1]) <
-              coordinateTolerance &&
-            deletedPOI.name.toLowerCase() === poi.name.toLowerCase();
-
-          if (isSameLocation) {
-            // This is the unsaved version of what we just deleted - make it visible
-            console.log("Making hidden unsaved POI visible:", poi.name);
-            return { ...poi, hasSavedVersion: false };
-          }
-        }
-        return poi;
-      });
-
-      console.log(
-        "POIs before:",
-        currentPois.length,
-        "POIs after:",
-        updatedPois.length
-      ); // Debug log
-      return updatedPois;
+      return filteredPois;
     });
 
     // Clear the selected POI if it was the one that was deleted
@@ -619,6 +619,9 @@ export default function MapComponent({
           );
           return [...unsavedPois, ...savedPois];
         });
+
+        // Reset view after refetching
+        resetMapView();
       } catch (error) {
         console.error("Error refetching saved locations after delete:", error);
       }
@@ -628,8 +631,22 @@ export default function MapComponent({
     setTimeout(refetchSavedLocations, 500);
   };
 
+  // Handle marker close and reset map view
+  const handleCloseMarker = useCallback(() => {
+    setSelectedPOI(null);
+    resetMapView();
+  }, [resetMapView]);
+
   const calculateZoomForRadius = (radiusKm: number): number => {
-    return 16 - Math.log2(radiusKm) * 2;
+    if (radiusKm <= 1) {
+      return 14;
+    } else if (radiusKm <= 3) {
+      return 12.5;
+    } else if (radiusKm <= 5) {
+      return 11.5;
+    } else {
+      return 10.5 - Math.log2(radiusKm / 5);
+    }
   };
 
   return (
@@ -748,7 +765,7 @@ export default function MapComponent({
             color={locationConfig[selectedPOI.locationType].color}
             isSelected={true}
             website={selectedPOI.website}
-            onClose={() => setSelectedPOI(null)}
+            onClose={handleCloseMarker}
             isSaved={"isSaved" in selectedPOI && selectedPOI.isSaved}
             notes={selectedPOI.notes}
             onSave={handleSavePOI}

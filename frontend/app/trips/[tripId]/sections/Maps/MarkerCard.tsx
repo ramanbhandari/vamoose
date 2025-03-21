@@ -73,7 +73,6 @@ export default function MarkerCard({
   onSave,
   onDelete,
   id,
-  createdBy,
   onMouseEnter,
   onMouseLeave,
 }: MarkerCardProps) {
@@ -167,6 +166,12 @@ export default function MarkerCard({
       await updateLocationNotes(tripId, id, notesText || "");
       setIsEditingNotes(false);
       setNotification("Notes updated successfully", "success");
+
+      if (onClose) {
+        setTimeout(() => {
+          onClose();
+        }, 300);
+      }
     } catch (error) {
       console.error("Error updating notes:", error);
       setNotification("Failed to update notes", "error");
@@ -361,7 +366,19 @@ export default function MarkerCard({
                       placeholder="Add notes about this location..."
                     />
                   ) : (
-                    <Typography variant="body2">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        p: 1.5,
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(0, 0, 0, 0.03)",
+                        borderRadius: 1,
+                        minHeight: "2.5rem",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
                       {notesText ? notesText : "No notes added yet."}
                     </Typography>
                   )}
@@ -380,7 +397,7 @@ export default function MarkerCard({
                       color="text.secondary"
                       fontWeight="medium"
                     >
-                      Add Notes
+                      Add a Note
                     </Typography>
                   </Box>
                   <TextField
@@ -392,6 +409,14 @@ export default function MarkerCard({
                     value={notesText || ""}
                     onChange={(e) => setNotesText(e.target.value)}
                     placeholder="Add notes about this location..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.05)"
+                            : "rgba(0, 0, 0, 0.03)",
+                      },
+                    }}
                   />
                 </Box>
               )}
@@ -441,12 +466,20 @@ export default function MarkerCard({
         <DialogTitle id="delete-dialog-title">Delete Location</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete this saved location? This action
-            cannot be undone.
+            Are you sure you want to unmark this location?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setShowDeleteConfirm(false);
+              if (onClose) {
+                onClose();
+              }
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleDeleteLocation}
             color="error"
