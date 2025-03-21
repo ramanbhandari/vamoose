@@ -19,7 +19,7 @@ export default function Marker({
   map,
   position,
   color = "red",
-  size = 32,
+  size = 45,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -42,7 +42,7 @@ export default function Marker({
     el.style.alignItems = "center";
     el.style.justifyContent = "center";
     el.style.backgroundColor = color;
-    el.style.borderRadius = "50%";
+    el.style.borderRadius = "20%";
 
     // Add a different border style for saved locations based on theme
     if (isSaved) {

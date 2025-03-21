@@ -380,7 +380,7 @@ export default function MarkerCard({
                     <TextField
                       fullWidth
                       multiline
-                      rows={2}
+                      rows={1}
                       maxRows={2}
                       variant="outlined"
                       size="small"
@@ -432,7 +432,7 @@ export default function MarkerCard({
                   <TextField
                     fullWidth
                     multiline
-                    rows={2}
+                    rows={1}
                     maxRows={2}
                     variant="outlined"
                     size="small"
