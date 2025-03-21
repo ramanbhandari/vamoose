@@ -149,7 +149,7 @@ npm run test:unit
 
 ### 🔗 Running Integration Tests
 
-Integration tests run against a PostgreSQL test database that is launched in Docker. To run integration tests:
+Integration tests run against a PostgreSQL and Mongo test databases that are launched in Docker. To run integration tests:
 
 1. **Ensure Docker is installed and running.**
 
@@ -158,6 +158,7 @@ Integration tests run against a PostgreSQL test database that is launched in Doc
     ```env
     DIRECT_URL="postgresql://prisma:prisma@localhost:5433/tests"
     DATABASE_URL="postgresql://prisma:prisma@localhost:5433/tests"
+    MONGO_TEST_URI="mongodb://mongo:mongo@localhost:27018/tests?authSource=admin&directConnection=true"
     SUPABASE_JWT_SECRET="Super-secret-key"
     ```
 
@@ -291,6 +292,15 @@ Below is a summary of the key endpoints provided by the backend:
 | `/api/trips/:tripId/polls/:pollId/vote`     | DELETE | Delete a vote                     |
 | `/api/trips/:tripId/polls/`                 | DELETE | Batch delete polls                |
 
+### Marked Locations
+
+| Endpoint                                                | Method | Description                           |
+| ------------------------------------------------------- | ------ | ------------------------------------- |
+| `/api/trips/:tripId/marked-locations`                   | GET    | Get all marked locations for a trip   |
+| `/api/trips/:tripId/marked-locations`                   | POST   | Create a new marked location          |
+| `/api/trips/:tripId/marked-locations/:locationId/notes` | PUT    | Update the notes of a marked location |
+| `/api/trips/:tripId/marked-locations/:locationId`       | DELETE | Delete a marked location              |
+
 
 🔹 More API routes will be added as development progresses.
 
@@ -315,6 +325,7 @@ The backend is deployed on Google Cloud Services.
 - ✔️ Chat Messaging (Send, fetch, update messages and reactions)
 - ✔️ Notifications (Fetch, mark read/unread, clear notifications)
 - ✔️ Polls (Create polls, cast/delete votes, complete, batch delete)
+- ✔️ Maps (Mark/Unmark loactions, update notes, fetch)
 - ✔️ Unit Testing (Jest)
 - ✔️ Integration Testing (Jest + Supertest)
 
