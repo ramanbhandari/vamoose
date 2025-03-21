@@ -96,6 +96,7 @@ export default function MapComponent({
       style: isDarkMode ? mapStyles.dark : mapStyles.light,
       center: initialCenter,
       zoom: initialZoom,
+      minZoom: 1.8,
       attributionControl: false,
       logoPosition: "bottom-left",
     });
@@ -122,8 +123,6 @@ export default function MapComponent({
 
         // Convert saved locations to POI format and ensure notes are included
         const savedPois = savedLocations.map(markedLocationToPOI);
-        console.log("Saved POIs with notes:", savedPois); // Debug log
-
         setPois((currentPois) => {
           const unsavedPois = currentPois.filter(
             (poi) => !("isSaved" in poi) || !poi.isSaved
@@ -236,7 +235,6 @@ export default function MapComponent({
       if (!map.loaded()) {
         console.warn("Map not fully loaded yet. Waiting for load event...");
         map.once("load", () => {
-          console.log("Map loaded! Proceeding with location update...");
           updateUserLocation(longitude, latitude);
         });
         return;
@@ -303,12 +301,10 @@ export default function MapComponent({
       autoLocate();
     } else {
       const handleLoadEvent = () => {
-        console.log("Map load event fired");
         autoLocate();
       };
 
       const handleIdleEvent = () => {
-        console.log("Map idle event fired");
         autoLocate();
       };
 
@@ -390,18 +386,13 @@ export default function MapComponent({
     );
   }, [setNotification, updateUserLocation]);
 
-  const handleSearch = (query: string) => {
-    console.log("Searching for:", query);
-  };
+  const handleSearch = (query: string) => {};
 
   const handleLocationTypeFilter = (types: LocationType[]) => {
-    console.log("Filtering by location types:", types);
     setSelectedLocationTypes(types);
   };
 
   const handleLocationSelect = (location: SearchResult) => {
-    console.log("Location selected:", location);
-
     // Update the map center to the selected location
     if (map) {
       const { coordinates } = location;
@@ -458,7 +449,6 @@ export default function MapComponent({
   };
 
   const handlePOIMarkerClick = (poi: POI | SavedPOI) => {
-    console.log("Selected POI:", poi); // Debug log
     setSelectedPOI(poi);
 
     // Center the map on the POI
@@ -802,7 +792,6 @@ export default function MapComponent({
             }}
           >
             <MapSearchFilter
-              onSearch={handleSearch}
               onTagFilter={handleLocationTypeFilter}
               onLocationSelect={handleLocationSelect}
             />
