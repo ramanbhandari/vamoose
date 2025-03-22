@@ -7,6 +7,7 @@
   - [Description](#description)
   - [Documents](#documents)
   - [Installation](#installation)
+  - [Docker Images](#docker-images)
   - [Architecture](#architecture)
   - [Contributing](#contributing)
   - [Team](#team)
@@ -30,12 +31,21 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
 ## Documents
 
 - [Proposal Document](./Documentation/project_proposal.md)
-- [Test Plan Document](./Documentation/Test_Plan_Sprint_2.pdf)
+- [Test Plan Document](./Documentation/Test_Plan_Sprint_3.pdf)
+- [Acceptance Tests](./Documentation/Acceptance_Tests.pdf)
 - Sequence Diagrams
-  - [Expense_API](./Documentation/SequenceDiagrams/expense_api_sequence_diagram.pdf)
-  - [Invite_API](./Documentation/SequenceDiagrams/invite_api_sequence_diagram.pdf)
-  - [Member_API](./Documentation/SequenceDiagrams/member_api_sequence_diagram.pdf)
-  - [Trip_API](./Documentation/SequenceDiagrams/trip_api_sequence_diagram.pdf)
+  - [Expense_API](./Documentation/SequenceDiagrams/expense_api_seq_diagram.pdf)
+  - [Expense_Shares_API](./Documentation/SequenceDiagrams/expenseShare_api_seq_diagram.pdf)
+  - [Invite_API](./Documentation/SequenceDiagrams/invitee_api_seq_diagram.pdf)
+  - [Member_API](./Documentation/SequenceDiagrams/member_api_seq_diagram.pdf)
+  - [Trip_API](./Documentation/SequenceDiagrams/trip_api_seq_diagram.pdf)
+  - [Polls_API](./Documentation/SequenceDiagrams/polls_api_seq_diagram.pdf)
+  - [Notifications_API](./Documentation/SequenceDiagrams/notifications_api_seq_diagram.pdf)
+  - [Events_API](./Documentation/SequenceDiagrams/events_api_seq_diagram.pdf)
+  - [Events_Notes_API](./Documentation/SequenceDiagrams/eventNotes_api_seq_diagram.pdf)
+  - [Locations_API](./Documentation/SequenceDiagrams/location_api_seq_diagram.pdf)
+  - [Messages_API](./Documentation/SequenceDiagrams/messages_api_seq_diagram.pdf)
+
 
 Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
 
@@ -44,6 +54,11 @@ Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
 
 - [Frontend](./frontend/README.md)
 - [Backend](./server//README.md)
+
+## Docker Images
+
+- **Backend:** [Vamoose Server](https://hub.docker.com/r/ramanbhandari14/vamoose-server)
+- **Frontend:** [Vamoose Frontend](https://hub.docker.com/r/ramanbhandari14/vamoose-frontend)
 
 ## Architecture
 
