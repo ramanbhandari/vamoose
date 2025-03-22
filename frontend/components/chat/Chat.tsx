@@ -1,6 +1,7 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { differenceInHours, startOfDay } from "date-fns";
+import { differenceInHours, startOfDay, format } from "date-fns";
 
 import {
   Box,
@@ -14,6 +15,8 @@ import {
   Grow,
   CircularProgress,
   useTheme,
+  useMediaQuery,
+  Badge,
 } from "@mui/material";
 
 import Message from "@mui/icons-material/Message";
@@ -22,11 +25,12 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import MenuIcon from "@mui/icons-material/Menu";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import { useMediaQuery } from "@mui/material";
 
 import { useUserStore } from "@/stores/user-store";
 import { useMessageStore } from "@/stores/message-store";
-import { format } from "date-fns";
+import { useUserTripsStore } from "@/stores/user-trips-store";
+import { useChatNotificationStore } from "@/stores/chat-notification-store";
+
 import socketClient from "@/utils/socketClient";
 import DateDivider from "./DateDivider";
 import ChatInput from "./ChatInput";
@@ -38,20 +42,58 @@ interface ChatMessage {
   text: string;
   reactions?: { [emoji: string]: string[] };
 }
-import { useUserTripsStore } from "@/stores/user-trips-store";
 
 export default function Chat() {
-  const [isOpen, setIsOpen] = useState(false);
+  const MINIMIZED_TAB_WIDTH = 150;
+  const MAX_TAB_MIN_WIDTH = 200;
+  const MAX_TAB_MAX_WIDTH = 400;
+  // Constant list of reaction emojis.
+  const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👏"];
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const { user } = useUserStore();
+  const { getAllTrips, fetchUserTrips } = useUserTripsStore();
+  const {
+    messages,
+    loading,
+    error,
+    initializeSocket,
+    setActiveTrip,
+    sendMessage,
+    fetchMessages,
+    initializeSocketListeners,
+  } = useMessageStore();
+
+  const { joinAllTrips, clearUnreadCount, unreadCounts, getTotalUnreadCount } =
+    useChatNotificationStore();
+
+  const [selectedTrip, setSelectedTrip] = useState<{
+    id: number;
+    name?: string;
+  } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(isMobile);
-  const [tripTabOpen, setTripTabOpen] = useState(false);
   const [inputAreaHeight, setInputAreaHeight] = useState(115);
+  const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
+    useState(MINIMIZED_TAB_WIDTH);
 
-  // Add a state to track whether the trips bar is open on mobile
+  const tripTabWidth =
+    isMobile || isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
+  const chatContainerStyle =
+    isMobile || isMaximized
+      ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
+      : {
+          bottom: 80,
+          width: { xs: "90%", sm: "80%", md: "60%" },
+          maxWidth: 550,
+          height: 650,
+        };
+
+  const [tripTabOpen, setTripTabOpen] = useState(false);
   const [isTripBarOpenOnMobile, setIsTripBarOpenOnMobile] = useState(false);
-
-  // Consolidated menu toggle function that works for both mobile and desktop
   const toggleMenu = () => {
     if (isMobile) {
       setIsTripBarOpenOnMobile((prev) => !prev);
@@ -64,66 +106,70 @@ export default function Chat() {
   const [hoveredTrip, setHoveredTrip] = useState<number | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to handle mouse enter
-  const handleMouseEnter = (tripId: number) => {
-    if (!isMobile) {
-      hoverTimeoutRef.current = setTimeout(() => {
-        setHoveredTrip(tripId);
-      }, 500);
-    }
-  };
-
-  // Function to handle mouse leave (clear the timer and hide members)
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    setHoveredTrip(null);
-  };
-
-  const MINIMIZED_TAB_WIDTH = 150;
-  const MAX_TAB_MIN_WIDTH = 200;
-  const MAX_TAB_MAX_WIDTH = 400;
-
-  const [maximizedTripTabWidth, setMaximizedTripTabWidth] =
-    useState(MINIMIZED_TAB_WIDTH);
-
-  const [selectedTrip, setSelectedTrip] = useState<{
-    id: number;
-    name?: string;
-  } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const { getAllTrips, fetchUserTrips } = useUserTripsStore();
-  const { user } = useUserStore();
-  // Constant list of reaction emojis.
-  const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👏"];
-
+  const reactionPickerRef = useRef<HTMLDivElement>(null);
+  const reactionButtonRef = useRef<HTMLButtonElement>(null);
   // Track which message's reaction picker is open.
   const [openReactionPickerFor, setOpenReactionPickerFor] = useState<
     string | null
   >(null);
-  const reactionPickerRef = useRef<HTMLDivElement>(null);
-  const reactionButtonRef = useRef<HTMLButtonElement>(null);
-  const {
-    messages,
-    loading,
-    error,
-    initializeSocket,
-    joinTripChat,
-    leaveTripChat,
-    sendMessage,
-    fetchMessages,
-    initializeSocketListeners,
-  } = useMessageStore();
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const prevMessagesLengthRef = useRef(messages.length);
-
   // Track which reactions are currently being processed
   const [processingReactions, setProcessingReactions] = useState<{
     [key: string]: boolean;
   }>({});
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = useRef(messages.length);
+
+  useEffect(() => {
+    if (user) {
+      const fetchTrips = async () => {
+        const allTrips = getAllTrips();
+        if (allTrips.length === 0) {
+          await Promise.all([
+            fetchUserTrips("current"),
+            fetchUserTrips("upcoming"),
+            fetchUserTrips("past"),
+          ]);
+        }
+      };
+
+      fetchTrips().then(() => {
+        // Once trips are fetched, join all trip rooms.
+        const allTrips = getAllTrips();
+        if (allTrips.length > 0) {
+          joinAllTrips(allTrips);
+        }
+      });
+
+      initializeSocket();
+      initializeSocketListeners();
+    }
+  }, [
+    fetchUserTrips,
+    getAllTrips,
+    initializeSocket,
+    initializeSocketListeners,
+    joinAllTrips,
+    user,
+  ]);
+
+  // Get combined trips for chat
+  const userTrips = getAllTrips();
+
+  // Show latest messages when chat is re-opened
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView();
+    }
+  }, [isOpen]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messages.length > prevMessagesLengthRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages]);
 
   // Handle click outside to close reaction picker
   useEffect(() => {
@@ -145,67 +191,16 @@ export default function Chat() {
     };
   }, [openReactionPickerFor]);
 
-  // Initialize socket connection when component mounts
-  useEffect(() => {
-    // Only initialize and set up the socket if the user is authenticated, saves the unnecessary initilization on login screen
-    if (user) {
-      initializeSocket();
-      initializeSocketListeners();
-    }
-    // don't disconnect from the socket, just leave the trip chat, we will disconnect socket on logout
-    return () => {
-      if (user && selectedTrip) {
-        leaveTripChat();
-      }
-    };
-  }, [user]);
-
-  useEffect(() => {
-    const fetchTrips = async () => {
-      const allTrips = getAllTrips();
-      if (allTrips.length === 0) {
-        await Promise.all([
-          fetchUserTrips("current"),
-          fetchUserTrips("upcoming"),
-          fetchUserTrips("past"),
-        ]);
-      }
-    };
-    // don't make API calls on login screen, only do if user is authenticated
-    if (user) fetchTrips();
-  }, [fetchUserTrips, getAllTrips]);
-
-  // Get combined trips for chat
-  const userTrips = getAllTrips();
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    prevMessagesLengthRef.current = messages.length;
-  }, [messages]);
-
-  // Show latest messages when chat is re-opened
-  useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView();
-    }
-  }, [isOpen]);
-
   // Handle trip selection
   useEffect(() => {
     if (selectedTrip && selectedTrip.id) {
-      // Leave previous trip chat if any
-      leaveTripChat();
-
-      // Join new trip chat
-      joinTripChat(selectedTrip.id.toString());
+      setActiveTrip(selectedTrip.id.toString());
 
       // Fetch messages for the selected trip
       fetchMessages(selectedTrip.id.toString());
+      clearUnreadCount(selectedTrip.id.toString());
     }
-  }, [selectedTrip, joinTripChat, leaveTripChat, fetchMessages]);
+  }, [selectedTrip, fetchMessages, clearUnreadCount, setActiveTrip]);
 
   // check if trip still exists in user trips
   useEffect(() => {
@@ -310,25 +305,6 @@ export default function Chat() {
     setInputAreaHeight(height);
   };
 
-  // Format timestamp
-  const formatTimestamp = (timestamp: Date | string) => {
-    const date = new Date(timestamp);
-    return format(date, "h:mm a");
-  };
-
-  const chatContainerStyle =
-    isMobile || isMaximized
-      ? { top: 0, right: 0, bottom: 0, width: "100%", height: "100%" }
-      : {
-          bottom: 80,
-          width: { xs: "90%", sm: "80%", md: "60%" },
-          maxWidth: 550,
-          height: 650,
-        };
-
-  const tripTabWidth =
-    isMobile || isMaximized ? maximizedTripTabWidth : MINIMIZED_TAB_WIDTH;
-
   // Handle adding a reaction to a message
   const handleReaction = async (messageId: string, emoji: string) => {
     if (user?.id && selectedTrip) {
@@ -413,6 +389,32 @@ export default function Chat() {
     );
   };
 
+  // Function to handle mouse enter
+  const handleMouseEnter = (tripId: number) => {
+    if (!isMobile) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredTrip(tripId);
+      }, 500);
+    }
+  };
+
+  // Function to handle mouse leave (clear the timer and hide members)
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredTrip(null);
+  };
+
+  // Format timestamp
+  const formatTimestamp = (timestamp: Date | string) => {
+    const date = new Date(timestamp);
+    return format(date, "h:mm a");
+  };
+
+  const globalUnread = getTotalUnreadCount();
+
   return (
     <>
       <IconButton
@@ -445,7 +447,13 @@ export default function Chat() {
           },
         }}
       >
-        <Message fontSize="medium" />
+        <Badge
+          badgeContent={globalUnread}
+          color="error"
+          invisible={globalUnread === 0}
+        >
+          <Message fontSize="medium" />
+        </Badge>
       </IconButton>
 
       {isOpen && (
@@ -486,7 +494,7 @@ export default function Chat() {
           <Paper
             sx={{
               p: 1,
-              backgroundColor: "var(--primary)",
+              backgroundColor: "var(--background-paper)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -495,7 +503,7 @@ export default function Chat() {
             <IconButton
               onClick={toggleMenu}
               sx={{
-                color: "#fff",
+                color: "var(--secondary)",
                 width: 40,
                 height: 40,
                 padding: 0,
@@ -511,7 +519,7 @@ export default function Chat() {
 
             <Typography
               variant="h6"
-              color="#fff"
+              color="var(--secondary)"
               sx={{
                 flex: 1,
                 textAlign: "center",
@@ -526,11 +534,14 @@ export default function Chat() {
             </Typography>
 
             {!isMobile && (
-              <IconButton onClick={toggleMaximize} sx={{ color: "#fff" }}>
+              <IconButton
+                onClick={toggleMaximize}
+                sx={{ color: "var(--secondary)" }}
+              >
                 {isMaximized ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </IconButton>
             )}
-            <IconButton onClick={toggleChat} sx={{ color: "#fff" }}>
+            <IconButton onClick={toggleChat} sx={{ color: "var(--primary)" }}>
               <CloseIcon />
             </IconButton>
           </Paper>
@@ -580,92 +591,112 @@ export default function Chat() {
                 </Typography>
                 <List sx={{ width: "100%" }}>
                   {userTrips.length > 0 ? (
-                    userTrips.map((trip) => (
-                      <ListItem
-                        key={trip.id}
-                        disablePadding
-                        sx={{
-                          cursor: "pointer",
-                          borderRadius: "4px",
-                          "&:hover": {
-                            backgroundColor: "var(--secondary-hover)",
-                            color: "var(--chat)",
-                          },
-                          backgroundColor:
-                            selectedTrip?.id === trip.id
-                              ? "var(--secondary)"
-                              : "transparent",
-                          p: 1,
-                          color:
-                            selectedTrip?.id === trip.id
-                              ? "var(--chat)"
-                              : "var(--text)",
-                          position: "relative",
-                        }}
-                        onClick={() => selectTrip(trip)}
-                        {...(!isMobile && {
-                          onMouseEnter: () => handleMouseEnter(trip.id),
-                          onMouseLeave: handleMouseLeave,
-                        })}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography
+                    userTrips.map((trip) => {
+                      const tripUnread = unreadCounts[trip.id.toString()] || 0;
+                      return (
+                        <ListItem
+                          key={trip.id}
+                          disablePadding
+                          sx={{
+                            cursor: "pointer",
+                            borderRadius: "4px",
+                            "&:hover": {
+                              backgroundColor: "var(--secondary-hover)",
+                              color: "var(--chat)",
+                            },
+                            backgroundColor:
+                              selectedTrip?.id === trip.id
+                                ? "var(--secondary)"
+                                : "transparent",
+                            p: 1,
+                            color:
+                              selectedTrip?.id === trip.id
+                                ? "var(--chat)"
+                                : "var(--text)",
+                            position: "relative",
+                          }}
+                          onClick={() => selectTrip(trip)}
+                          {...(!isMobile && {
+                            onMouseEnter: () => handleMouseEnter(trip.id),
+                            onMouseLeave: handleMouseLeave,
+                          })}
+                        >
+                          <ListItemText
+                            primary={
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    whiteSpace: "normal",
+                                    wordBreak: "break-word",
+                                    width: "100%",
+                                    fontWeight:
+                                      selectedTrip?.id === trip.id
+                                        ? "bold"
+                                        : "normal",
+                                  }}
+                                >
+                                  {trip.name || "Unnamed Trip"}
+                                </Typography>
+                                {tripUnread > 0 && (
+                                  <Badge
+                                    badgeContent={tripUnread}
+                                    color="error"
+                                  />
+                                )}
+                              </Box>
+                            }
+                          />
+                          {!isMobile && hoveredTrip === trip.id && (
+                            <Box
                               sx={{
-                                whiteSpace: "normal",
-                                wordBreak: "break-word",
-                                width: "100%",
-                                fontWeight:
-                                  selectedTrip?.id === trip.id
-                                    ? "bold"
-                                    : "normal",
+                                position: "absolute",
+                                top: "100%", // Position below the trip name
+                                left: 0,
+                                backgroundColor: "var(--background)",
+                                border: "1px solid var(--divider)",
+                                borderRadius: "4px",
+                                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                                zIndex: 1000,
+                                p: 1,
+                                mt: 1,
+                                minWidth: "100%",
+                                color: "var(--text)",
                               }}
                             >
-                              {trip.name || "Unnamed Trip"}
-                            </Typography>
-                          }
-                        />
-                        {!isMobile && hoveredTrip === trip.id && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: "100%", // Position below the trip name
-                              left: 0,
-                              backgroundColor: "var(--background)",
-                              border: "1px solid var(--divider)",
-                              borderRadius: "4px",
-                              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                              zIndex: 1000,
-                              p: 1,
-                              mt: 1,
-                              minWidth: "100%",
-                              color: "var(--text)",
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              sx={{ fontWeight: "bold", mb: 1 }}
-                            >
-                              Members
-                            </Typography>
-                            <List sx={{ p: 0 }}>
-                              {trip.members?.map((member) => (
-                                <ListItem key={member.userId} sx={{ py: 0.5 }}>
-                                  <ListItemText
-                                    primary={
-                                      <Typography variant="body2">
-                                        {member.user?.fullName ||
-                                          "Unknown User"}
-                                      </Typography>
-                                    }
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Box>
-                        )}
-                      </ListItem>
-                    ))
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: "bold", mb: 1 }}
+                              >
+                                Members
+                              </Typography>
+                              <List sx={{ p: 0 }}>
+                                {trip.members?.map((member) => (
+                                  <ListItem
+                                    key={member.userId}
+                                    sx={{ py: 0.5 }}
+                                  >
+                                    <ListItemText
+                                      primary={
+                                        <Typography variant="body2">
+                                          {member.user?.fullName ||
+                                            "Unknown User"}
+                                        </Typography>
+                                      }
+                                    />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            </Box>
+                          )}
+                        </ListItem>
+                      );
+                    })
                   ) : (
                     <Typography
                       sx={{
@@ -797,7 +828,7 @@ export default function Chat() {
                     }}
                   >
                     <Typography
-                      sx={{ fontStyle: "italic", color: "text.secondary" }}
+                      sx={{ fontStyle: "italic", color: "var(--secondary)" }}
                     >
                       {selectedTrip
                         ? "No messages yet. Start the conversation!"
