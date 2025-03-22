@@ -421,8 +421,8 @@ export default function Chat() {
         onClick={toggleChat}
         sx={{
           position: "fixed",
-          bottom: 20,
-          right: 20,
+          bottom: 25,
+          right: 25,
           bgcolor: "primary.main",
           color: "white",
           p: 1.5,
@@ -641,7 +641,7 @@ export default function Chat() {
                                         : "normal",
                                   }}
                                 >
-                                  {trip.name || "Unnamed Trip"}
+                                  {trip.name}
                                 </Typography>
                                 {tripUnread > 0 && (
                                   <Badge
