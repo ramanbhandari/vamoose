@@ -7,12 +7,7 @@ export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
   group('Marked Locations API', () => {
-    // console.log(
-    //   '🔁 Starting Marked Locations test for user:',
-    //   k6Config.testUserId,
-    // );
-
-    // 1. Create Trip
+    // Create Trip
     const tripRes = http.post(
       getUrl('/api/trips'),
       JSON.stringify({
@@ -27,10 +22,9 @@ export default function () {
     check(tripRes, { '✅ Trip created': (r) => r.status === 201 });
 
     const tripId = tripRes.json('trip.id');
-    // console.log('📦 Trip ID:', tripId);
     if (!tripId) return;
 
-    // 2. Create Marked Location
+    // Create Marked Location
     const locationRes = http.post(
       getUrl(`/api/trips/${tripId}/marked-locations`),
       JSON.stringify({
@@ -51,10 +45,9 @@ export default function () {
     check(locationRes, { '✅ Location created': (r) => r.status === 201 });
 
     const locationId = locationRes.json('markedLocation.id');
-    // console.log('📦 Location ID:', locationId);
     if (!locationId) return;
 
-    // 3. Update Notes
+    // Update Notes
     const update = http.put(
       getUrl(`/api/trips/${tripId}/marked-locations/${locationId}/notes`),
       JSON.stringify({ notes: 'Updated note' }),
@@ -65,7 +58,7 @@ export default function () {
       '✅ Location note updated': (r) => r.status === 200,
     });
 
-    // 4. Delete Location
+    // Delete Location
     const del = http.del(
       getUrl(`/api/trips/${tripId}/marked-locations/${locationId}`),
       null,

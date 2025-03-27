@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import path from 'path';
 import fs from 'fs';
 import { spawn, execSync } from 'child_process';
@@ -184,7 +182,6 @@ async function setupTestData(module: string, numVuIds: number) {
 
 async function cleanupTestDatabase() {
   try {
-    // Example: delete all trips created by the test user
     await prisma.trip.deleteMany({});
     await prisma.tripMember.deleteMany({});
     await prisma.tripInvitee.deleteMany({});

@@ -7,11 +7,6 @@ export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
   group('Itinerary Events API', () => {
-    // console.log(
-    //   '🔁 Starting Itinerary Events test with user:',
-    //   k6Config.testUserId,
-    // );
-
     const tripRes = http.post(
       getUrl('/api/trips'),
       JSON.stringify({
@@ -26,7 +21,6 @@ export default function () {
     check(tripRes, { '✅ Trip created': (r) => r.status === 201 });
 
     const tripId = tripRes.json('trip.id');
-    // console.log('📦 Trip ID:', tripId);
     if (!tripId) return;
 
     const startTime = new Date(Date.now() + 3600000).toISOString(); // +1 hour
@@ -51,7 +45,6 @@ export default function () {
     });
 
     const eventId = createRes.json('itineraryEvent.id');
-    // console.log('📦 Event ID:', eventId);
     if (!eventId) return;
 
     // Fetch single event
@@ -89,7 +82,7 @@ export default function () {
       { headers, tags: { name: 'itinerary' } },
     );
     check(unassignRes, {
-      '✅ Event updated': (r) => [200, 201].includes(r.status),
+      '✅ Event updated': (r) => r.status === 200,
     });
 
     // Add another note

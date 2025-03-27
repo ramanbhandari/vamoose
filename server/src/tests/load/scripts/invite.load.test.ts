@@ -13,8 +13,6 @@ export default async function () {
   const dummyHeader = getAuthHeaders(dummyUserId);
 
   group('Trip Invitation API', () => {
-    // console.log('🔁 Starting Invite API test with dummy email:', dummyEmail);
-
     // 1. Create a trip
     const tripRes = http.post(
       getUrl('/api/trips'),
@@ -34,7 +32,6 @@ export default async function () {
     });
 
     if (!tripId) return;
-    // console.log('📦 Trip ID:', tripId);
 
     // 2. Send invite
     const inviteRes = http.post(
@@ -50,8 +47,6 @@ export default async function () {
     const inviteUrl = inviteRes.json('inviteUrl');
     const token =
       typeof inviteUrl === 'string' ? inviteUrl.split('/').pop() : undefined;
-
-    // console.log('🔑 Invite Token:', token);
 
     if (!token) return;
 

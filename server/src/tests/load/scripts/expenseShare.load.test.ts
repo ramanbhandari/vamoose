@@ -7,11 +7,6 @@ export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
   group('Expense Shares API', () => {
-    // console.log(
-    //   '🔁 Starting Expense Share test with user:',
-    //   k6Config.testUserId,
-    // );
-
     const tripRes = http.post(
       getUrl('/api/trips'),
       JSON.stringify({
@@ -23,14 +18,11 @@ export default function () {
       { headers, tags: { name: 'trips' } },
     );
 
-    // console.log(`📨 Trip create response: ${tripRes.status}`);
-
     check(tripRes, {
       '✅ Trip created': (r) => r.status === 201,
     });
 
     const tripId = tripRes.json('trip.id');
-    // console.log('📦 Trip ID:', tripId);
 
     if (!tripId) return;
 
@@ -44,14 +36,11 @@ export default function () {
       { headers, tags: { name: 'expenses' } },
     );
 
-    // console.log(`📨 Expense create response: ${expenseRes.status}\n`);
-
     check(expenseRes, {
       '✅ Expense created': (r) => r.status === 201,
     });
 
     const expenseId = expenseRes.json('expense.id');
-    // console.log('📦 Expense ID:', expenseId);
 
     if (!expenseId) return;
 
@@ -59,8 +48,6 @@ export default function () {
       getUrl(`/api/trips/${tripId}/expenseShares/debt-summary`),
       { headers, tags: { name: 'expenseShares' } },
     );
-
-    // console.log(`📨 Debt summary response: ${summaryRes.status}`);
 
     check(summaryRes, {
       '✅ Debt summary fetched': (r) => r.status === 200,
@@ -72,8 +59,6 @@ export default function () {
       ),
       { headers, tags: { name: 'expenseShares' } },
     );
-
-    // console.log(`📨 Debt detail response: ${detailRes.status}`);
 
     check(detailRes, {
       '✅ Debt detail fetched': (r) => [200, 404].includes(r.status),
@@ -91,8 +76,6 @@ export default function () {
       }),
       { headers, tags: { name: 'expenseShares' } },
     );
-
-    // console.log(`📨 Settle response: ${settleRes.status}`);
 
     check(settleRes, {
       '✅ Settled or not found': (r) => [200, 404].includes(r.status),

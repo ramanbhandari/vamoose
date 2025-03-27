@@ -9,14 +9,11 @@ export default function () {
   const headers = getAuthHeaders(userId);
 
   group(`Notifications API - VU ${vuId}`, () => {
-    // console.log(`🔁 Starting Notifications test for ${userId}`);
-
-    // 1. Fetch notifications
+    // Fetch notifications
     const fetch = http.get(getUrl(`/api/notifications`), {
       headers,
       tags: { name: 'notifications' },
     });
-    // console.log(`📨 Fetch notifications response: ${fetch.status}`);
 
     check(fetch, { '✅ Fetched notifications': (r) => r.status === 200 });
 
@@ -27,13 +24,13 @@ export default function () {
       : [];
 
     if (notificationIds.length === 0) {
-      // console.warn(`⚠️ No valid notification IDs found for ${userId}`);
+      // console.warn(`⚠️ No valid notification IDs found for ${userId}, skipping mutation operations`);
       return;
     }
 
     const firstId = notificationIds[0];
 
-    // 2. Mark as read
+    // Mark as read
     const markRead = http.patch(
       getUrl(`/api/notifications/${firstId}/mark-as-read`),
       null,
@@ -41,7 +38,7 @@ export default function () {
     );
     check(markRead, { '✅ Marked single as read': (r) => r.status === 200 });
 
-    // 3. Mark as unread
+    // Mark as unread
     const markUnread = http.patch(
       getUrl(`/api/notifications/${firstId}/mark-as-unread`),
       null,
@@ -51,7 +48,7 @@ export default function () {
       '✅ Marked single as unread': (r) => r.status === 200,
     });
 
-    // 4. Batch mark read
+    // Batch mark read
     const batchRead = http.patch(
       getUrl(`/api/notifications/mark-as-read`),
       JSON.stringify({ notificationIds }),
@@ -59,7 +56,7 @@ export default function () {
     );
     check(batchRead, { '✅ Batch mark read': (r) => r.status === 200 });
 
-    // 5. Delete a single notification
+    // Delete a single notification
     const delOne = http.del(
       getUrl(`/api/notifications/${firstId}/clear`),
       null,
@@ -67,7 +64,7 @@ export default function () {
     );
     check(delOne, { '✅ Deleted single': (r) => r.status === 200 });
 
-    // 6. Batch delete notifications
+    // Batch delete notifications
     const delBatch = http.del(
       getUrl(`/api/notifications/clear`),
       JSON.stringify({ notificationIds }),

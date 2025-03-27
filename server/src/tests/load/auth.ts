@@ -9,6 +9,6 @@ export function getAuthHeaders(userId?: string) {
 }
 
 export function generateTestJWT(userId: string): string {
-  // 👇 Replace this with a pre-signed JWT if needed
+  // Replace this with a pre-signed JWT if needed
   return `FAKE.JWT.TOKEN.${userId}`;
 }
