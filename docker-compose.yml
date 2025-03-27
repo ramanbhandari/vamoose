@@ -19,3 +19,36 @@ services:
     env_file:
       - ./frontend/.env
     restart: always
+
+  server-loadtest:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "7001:7001"
+    env_file:
+      - ./server/.env.loadtest
+    environment:
+      DATABASE_URL: postgresql://vamoose:testpassword@loadtest-db:5432/vamoose_test
+      DIRECT_URL: postgresql://vamoose:testpassword@loadtest-db:5432/vamoose_test
+    depends_on:
+      - loadtest-db
+    restart: unless-stopped
+
+  loadtest-db:
+    image: postgres:15
+    container_name: vamoose-loadtest-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: vamoose
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: vamoose_test
+    volumes:
+      - loadtest-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  loadtest-db-data:
