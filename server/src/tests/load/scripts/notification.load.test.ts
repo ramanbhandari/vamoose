@@ -2,10 +2,9 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { getUrl } from '../config.ts';
 import { getAuthHeaders } from '../auth.ts';
-
 export default function () {
   const vuId = __VU; // Unique Virtual User ID assigned by k6
-  const userId = `test-user-${vuId}`;
+  const userId = `notify-user-${vuId}`;
   const headers = getAuthHeaders(userId);
 
   group(`Notifications API - VU ${vuId}`, () => {
@@ -70,7 +69,9 @@ export default function () {
       JSON.stringify({ notificationIds }),
       { headers, tags: { name: 'notifications' } },
     );
-    check(delBatch, { '✅ Batch deleted': (r) => r.status === 200 });
+    check(delBatch, {
+      '✅ Batch deleted': (r) => r.status === 200,
+    });
   });
 
   sleep(1);

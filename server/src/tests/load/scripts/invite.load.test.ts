@@ -2,14 +2,15 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { getAuthHeaders } from '../auth.ts';
 import { k6Config, getUrl } from '../config.ts';
-// import prisma from '../../../config/prismaClient.ts';
 
 export default async function () {
+  const vuId = __VU;
   const headers = getAuthHeaders(k6Config.testUserId);
 
   // Create a dummy test user
-  const dummyUserId = 'dummy-invitee-id';
-  const dummyEmail = 'dummy-invitee@example.com';
+  const dummyUserId = `invite-user-${vuId}`;
+  const dummyEmail = `${dummyUserId}@test.com`;
+
   const dummyHeader = getAuthHeaders(dummyUserId);
 
   group('Trip Invitation API', () => {
@@ -24,7 +25,6 @@ export default async function () {
       }),
       { headers, tags: { name: 'trips' } },
     );
-
     const tripId = tripRes.json('trip.id');
 
     check(tripRes, {

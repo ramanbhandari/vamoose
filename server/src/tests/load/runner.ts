@@ -23,11 +23,11 @@ const modules = [
   'expense',
   'expenseShare',
   'member',
-  // 'message',
   'itinerary',
   'poll',
   'notification',
   'markedLocation',
+  // 'message',
 ];
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -57,7 +57,7 @@ function runK6Script(module: string): Promise<string> {
   ];
 
   return new Promise((resolve, reject) => {
-    console.log(`🚀 Running test: ${module}`);
+    console.log(`🚀 Running load test: ${module}`);
 
     const child = spawn(cmd, args, { stdio: 'inherit' });
 
@@ -135,25 +135,42 @@ async function seedTestData(numVuIds: number) {
     create: { id: 'test-user-id', email: 'creator@example.com' },
   });
 
-  // Notification test data
-  console.log(`📦 Seeding notification test data for ${numVuIds} VUs...`);
+  // **Seeding Invite and Notification Test Data Separately**
+  console.log(
+    `📦 Seeding invite and notification test data for ${numVuIds} VUs...`,
+  );
+
   for (let vuId = 1; vuId <= numVuIds; vuId++) {
-    const userId = `test-user-${vuId}`;
+    const inviteUserId = `invite-user-${vuId}`;
+    const notifyUserId = `notify-user-${vuId}`;
 
-    console.log(`📨 Seeding notifications for VU ${vuId} (User: ${userId})...`);
-
+    // 📨 **Users for Invite Test**
     await prisma.user.upsert({
-      where: { id: userId },
+      where: { id: inviteUserId },
       update: {},
       create: {
-        id: userId,
-        email: `${userId}@test.com`,
+        id: inviteUserId,
+        email: `${inviteUserId}@test.com`,
       },
     });
 
+    // 📨 **Users for Notification Test**
+    await prisma.user.upsert({
+      where: { id: notifyUserId },
+      update: {},
+      create: {
+        id: notifyUserId,
+        email: `${notifyUserId}@test.com`,
+      },
+    });
+
+    console.log(`✅ Created invite test user: ${inviteUserId}`);
+    console.log(`✅ Created notification test user: ${notifyUserId}`);
+
+    // 🔔 **Seed Notifications Only for Notification Test Users**
     await prisma.notification.createMany({
       data: Array.from({ length: 2 }).map((_, i) => ({
-        userId,
+        userId: notifyUserId,
         title: `VU ${vuId} - Notification ${i + 1}`,
         message: `Test notification ${i + 1} for VU ${vuId}`,
         type: NotificationType.EVENT_REMINDER,
@@ -161,7 +178,7 @@ async function seedTestData(numVuIds: number) {
       })),
     });
 
-    console.log(`✅ Seeded notifications for ${userId}`);
+    console.log(`✅ Seeded notifications for ${notifyUserId}`);
   }
 
   console.log('✅ Test data seeding complete.\n');
@@ -174,6 +191,7 @@ async function cleanupTestDatabase() {
   console.log('🧹 Cleaning up database...');
 
   try {
+    await prisma.user.deleteMany({});
     await prisma.trip.deleteMany({});
     await prisma.tripMember.deleteMany({});
     await prisma.tripInvitee.deleteMany({});
