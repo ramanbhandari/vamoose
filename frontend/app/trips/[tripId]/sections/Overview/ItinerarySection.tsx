@@ -9,30 +9,67 @@ import {
   Avatar,
   Chip,
   useMediaQuery,
+  alpha,
 } from "@mui/material";
-import { Calculate, Person } from "@mui/icons-material";
+import { CalendarToday, Person } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { SectionContainer } from "./styled";
-import { Expense, PaidBy } from "@/types";
-import { categories } from "../Expenses/AllExpenses";
 import Masonry from "@mui/lab/Masonry";
+import { EventCategory, ItineraryEvent } from "../Itinerary/types";
+import { CategoryIcon } from "../Itinerary/ListView/EventCard";
+import { parseLocalDateWithTime } from "@/utils/dateFormatter";
 
-interface ExpenseCardProps {
+export const categories = [
+  { label: "MEAL", color: "#F59E0B" },
+  {
+    label: "TRAVEL",
+    color: "#ff696d",
+  },
+
+  {
+    label: "ACTIVITY",
+    color: "#14B8A6",
+  },
+  {
+    label: "GENERAL",
+    color: "#3B82F6",
+  },
+  {
+    label: "MEETING",
+    color: "#8B5CF6",
+  },
+  {
+    label: "FREE_TIME",
+    color: "#8B5CF6",
+  },
+  {
+    label: "OTHER",
+    color: "#8B5CF6",
+  },
+];
+
+interface ItineraryCardProps {
   id: number;
+  title: string;
   description: string;
-  category: string;
-  amount: number;
-  paidBy: PaidBy;
+  category: EventCategory;
+  createdBy: string;
+  startTime: string;
+  endTime: string;
   onClick?: () => void;
 }
 
-function ExpensePreviewCard({
+function ItineraryPreviewCard({
+  title,
   description,
   category,
-  amount,
-  paidBy,
+  createdBy,
+  startTime,
+  endTime,
   onClick,
-}: ExpenseCardProps) {
+}: ItineraryCardProps) {
+  const theme = useTheme();
+
   return (
     <motion.div whileHover={{ y: -5 }}>
       <Paper
@@ -51,11 +88,11 @@ function ExpensePreviewCard({
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Avatar
             sx={{
-              bgcolor: categories.find((c) => c.value === category)?.color,
+              bgcolor: categories.find((c) => c.label === category)?.color,
               color: "white",
             }}
           >
-            {categories.find((c) => c.value === category)?.icon}
+            {CategoryIcon[category]}
           </Avatar>
           <Box sx={{ flexGrow: 1 }}>
             <Box
@@ -67,21 +104,48 @@ function ExpensePreviewCard({
               }}
             >
               <Typography variant="h6" fontWeight="600">
-                ${amount.toFixed(2)}
+                {title}
               </Typography>
               <Chip
-                label={category.toUpperCase()}
+                label={category}
                 size="small"
                 sx={{
                   bgcolor:
-                    categories.find((c) => c.value === category)?.color + "22",
-                  color: categories.find((c) => c.value === category)?.color,
+                    categories.find((c) => c.label === category)?.color + "22",
+                  color: categories.find((c) => c.label === category)?.color,
                 }}
               />
             </Box>
             <Typography variant="body2" color="text.secondary">
               {description}
             </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mt: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight="600"
+                color={theme.palette.primary.main}
+              >
+                {parseLocalDateWithTime(startTime)?.toDateString()}
+                {", "}
+                {new Date(startTime).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}{" "}
+                -{" "}
+                {new Date(endTime).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </Typography>
+            </Box>
             <Box
               sx={{
                 display: "flex",
@@ -92,7 +156,7 @@ function ExpensePreviewCard({
             >
               <Person fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
-                Paid by {paidBy.fullName ? paidBy.fullName : paidBy.email}
+                Created by {createdBy}
               </Typography>
             </Box>
           </Box>
@@ -102,18 +166,19 @@ function ExpensePreviewCard({
   );
 }
 
-interface ExpensesSectionProps {
-  expenses: Expense[];
+interface ItinerarySectionProps {
+  itineraryEvents: ItineraryEvent[];
   onSectionChange: (sectionId: string) => void;
 }
 
-export default function ExpenseSection({
-  expenses,
+export default function ItinerarySection({
+  itineraryEvents,
   onSectionChange,
-}: ExpensesSectionProps) {
+}: ItinerarySectionProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const MAX_EXPENSES = 4;
+  const MAX_EVENTS = 4;
+
   return (
     <SectionContainer theme={theme}>
       <Box
@@ -135,11 +200,11 @@ export default function ExpenseSection({
               gap: 2,
             }}
           >
-            <Calculate fontSize="large" />
-            Expenses
+            <CalendarToday fontSize="large" />
+            Itinerary Events
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {expenses.length} expense(s)
+            {itineraryEvents.length} event(s)
           </Typography>
         </Box>
 
@@ -155,9 +220,9 @@ export default function ExpenseSection({
                   py: 1.5,
                   fontSize: "1.1rem",
                 }}
-                onClick={() => onSectionChange("expenses")}
+                onClick={() => onSectionChange("itinerary")}
               >
-                View All Expenses
+                View All Planned Events
               </Button>
             </motion.div>
           </Box>
@@ -165,15 +230,17 @@ export default function ExpenseSection({
       </Box>
 
       <Masonry columns={isMobile ? 1 : 2} spacing={2}>
-        {expenses.slice(0, MAX_EXPENSES).map((expense) => (
-          <ExpensePreviewCard
-            key={expense.id}
-            id={expense.id}
-            description={expense.description}
-            category={expense.category}
-            amount={expense.amount}
-            paidBy={expense.paidBy}
-            onClick={() => onSectionChange("expenses")}
+        {itineraryEvents.slice(0, MAX_EVENTS).map((event) => (
+          <ItineraryPreviewCard
+            key={event.id}
+            id={event.id}
+            title={event.title}
+            description={event.description ?? ""}
+            category={event.category}
+            createdBy={event.createdBy.fullName}
+            startTime={event.startTime}
+            endTime={event.endTime}
+            onClick={() => onSectionChange("itinerary")}
           />
         ))}
       </Masonry>
@@ -194,9 +261,11 @@ export default function ExpenseSection({
                 py: 1.5,
                 fontSize: "1.1rem",
               }}
-              onClick={() => onSectionChange("expenses")}
+              onClick={() => onSectionChange("itinerary")}
             >
-              {expenses.length > 0 ? "View All Expenses" : "Go to Expenses"}
+              {itineraryEvents.length > 0
+                ? " View All Planned Events"
+                : "Go to Itinerary"}
             </Button>
           </motion.div>
         </Box>
