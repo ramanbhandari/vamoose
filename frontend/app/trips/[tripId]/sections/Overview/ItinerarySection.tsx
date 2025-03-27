@@ -9,7 +9,6 @@ import {
   Avatar,
   Chip,
   useMediaQuery,
-  alpha,
 } from "@mui/material";
 import { CalendarToday, Person } from "@mui/icons-material";
 import { motion } from "framer-motion";
