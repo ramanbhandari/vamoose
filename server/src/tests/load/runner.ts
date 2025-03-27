@@ -31,7 +31,7 @@ const modules = [
   'expense',
   'expenseShare',
   'member',
-  // // 'message',
+  // 'message',
   'itinerary',
   'poll',
   'notification',
