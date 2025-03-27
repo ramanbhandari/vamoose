@@ -3,7 +3,6 @@ export const k6Config = {
   jwtSecret: __ENV.JWT_SECRET || 'testsecret',
   testUserId: __ENV.TEST_USER_ID || 'test-user-id',
   vus: Number(__ENV.VUS) || 10,
-  duration: __ENV.DURATION || '30s',
   chatMessageIntervalMs: Number(__ENV.CHAT_INTERVAL_MS) || 1000,
 };
 

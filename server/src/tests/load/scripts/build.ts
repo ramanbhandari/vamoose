@@ -15,8 +15,11 @@ const modules = fs
 for (const mod of modules) {
   const banner = `
     export const options = {
-      vus: __ENV.VUS ? parseInt(__ENV.VUS) : 10,           // Number of virtual users (default: 10)
-      duration: __ENV.DURATION || '30s',                   // Test duration (default: 30s)
+      stages: [
+        { duration: '2m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 100 }, // Ramp up to specified number of VUs in 3 minutes
+        { duration: '5m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 100 },  // Hold at specified number of VUs
+        { duration: '3m', target: 0 },   // Ramp down
+      ],
       thresholds: {
         http_req_duration: ['p(95)<1000'],                 // 95% of requests must finish < 1 second
         http_req_failed: ['rate==0'],                      // No failed requests allowed
