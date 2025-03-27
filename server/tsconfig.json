@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "nodenext",
@@ -23,8 +21,8 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
+    "./node_modules",
     "**/*.test.ts",
-    "tests"
+    "./src/tests"
   ]
 }

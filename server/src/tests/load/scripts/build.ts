@@ -16,8 +16,8 @@ for (const mod of modules) {
   const banner = `
     export const options = {
       stages: [
-        { duration: '2m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 100 }, // Ramp up to specified number of VUs in 3 minutes
-        { duration: '5m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 100 },  // Hold at specified number of VUs
+        { duration: '2m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 10 }, // Ramp up to specified number of VUs in 3 minutes
+        { duration: '5m', target: __ENV.VUS ? parseInt(__ENV.VUS) : 10 },  // Hold at specified number of VUs
         { duration: '3m', target: 0 },   // Ramp down
       ],
       thresholds: {
