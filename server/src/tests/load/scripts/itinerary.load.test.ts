@@ -3,14 +3,6 @@ import { check, group, sleep } from 'k6';
 import { getAuthHeaders } from '../auth.ts';
 import { k6Config, getUrl } from '../config.ts';
 
-function prettyJson(body: string): string {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    return body;
-  }
-}
-
 export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
@@ -30,10 +22,6 @@ export default function () {
       }),
       { headers, tags: { name: 'trips' } },
     );
-
-    // console.log(
-    //   `📨 Trip create response: ${tripRes.status}\n${prettyJson(tripRes.body)}`,
-    // );
 
     check(tripRes, { '✅ Trip created': (r) => r.status === 201 });
 
@@ -58,10 +46,6 @@ export default function () {
       { headers, tags: { name: 'itinerary' } },
     );
 
-    // console.log(
-    //   `📨 Event create response: ${createRes.status}\n${prettyJson(createRes.body)}`,
-    // );
-
     check(createRes, {
       '✅ Event created': (r) => r.status === 201,
     });
@@ -75,9 +59,6 @@ export default function () {
       getUrl(`/api/trips/${tripId}/itinerary-events/${eventId}`),
       { headers, tags: { name: 'itinerary' } },
     );
-    // console.log(
-    //   `📨 Event fetch response: ${fetchRes.status}\n${prettyJson(fetchRes.body)}`,
-    // );
     check(fetchRes, { '✅ Event fetched': (r) => r.status === 200 });
 
     // Update the event
@@ -86,9 +67,6 @@ export default function () {
       JSON.stringify({ title: 'Museum Visit (Updated)', category: 'OTHER' }),
       { headers, tags: { name: 'itinerary' } },
     );
-    // console.log(
-    //   `📨 Event update response: ${updateRes.status}\n${prettyJson(updateRes.body)}`,
-    // );
     check(updateRes, {
       '✅ Event updated': (r) => [200, 201].includes(r.status),
     });
@@ -99,9 +77,10 @@ export default function () {
       JSON.stringify({ userIds: [k6Config.testUserId] }),
       { headers, tags: { name: 'itinerary' } },
     );
-    // console.log(
-    //   `📨 Assign user response: ${assignRes.status}\n${prettyJson(assignRes.body)}`,
-    // );
+
+    check(assignRes, {
+      '✅ Event updated': (r) => [200, 201].includes(r.status),
+    });
 
     // Unassign the user
     const unassignRes = http.del(
@@ -109,9 +88,9 @@ export default function () {
       JSON.stringify({ userIds: [k6Config.testUserId] }),
       { headers, tags: { name: 'itinerary' } },
     );
-    // console.log(
-    //   `📨 Unassign user response: ${unassignRes.status}\n${prettyJson(unassignRes.body)}`,
-    // );
+    check(unassignRes, {
+      '✅ Event updated': (r) => [200, 201].includes(r.status),
+    });
 
     // Add another note
     const noteRes = http.post(
@@ -119,9 +98,9 @@ export default function () {
       JSON.stringify({ content: 'Wear comfy shoes' }),
       { headers, tags: { name: 'itinerary' } },
     );
-    // console.log(
-    //   `📨 Add note response: ${noteRes.status}\n${prettyJson(noteRes.body)}`,
-    // );
+    check(noteRes, {
+      '✅ Event updated': (r) => [200, 201].includes(r.status),
+    });
   });
 
   sleep(1);

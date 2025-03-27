@@ -3,14 +3,6 @@ import { check, group, sleep } from 'k6';
 import { getUrl } from '../config.ts';
 import { getAuthHeaders } from '../auth.ts';
 
-function prettyJson(body: string): string {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    return body;
-  }
-}
-
 export default function () {
   const vuId = __VU; // Unique Virtual User ID assigned by k6
   const userId = `test-user-${vuId}`;
@@ -47,9 +39,6 @@ export default function () {
       null,
       { headers, tags: { name: 'notifications' } },
     );
-    // console.log(
-    //   `📨 Mark as read response: ${markRead.status}\n${prettyJson(markRead.body)}`,
-    // );
     check(markRead, { '✅ Marked single as read': (r) => r.status === 200 });
 
     // 3. Mark as unread
@@ -58,9 +47,6 @@ export default function () {
       null,
       { headers, tags: { name: 'notifications' } },
     );
-    // console.log(
-    //   `📨 Mark as unread response: ${markUnread.status}\n${prettyJson(markUnread.body)}`,
-    // );
     check(markUnread, {
       '✅ Marked single as unread': (r) => r.status === 200,
     });
@@ -71,9 +57,6 @@ export default function () {
       JSON.stringify({ notificationIds }),
       { headers, tags: { name: 'notifications' } },
     );
-    // console.log(
-    //   `📨 Batch mark read response: ${batchRead.status}\n${prettyJson(batchRead.body)}`,
-    // );
     check(batchRead, { '✅ Batch mark read': (r) => r.status === 200 });
 
     // 5. Delete a single notification
@@ -82,9 +65,6 @@ export default function () {
       null,
       { headers, tags: { name: 'notifications' } },
     );
-    // console.log(
-    //   `📨 Delete single response: ${delOne.status}\n${prettyJson(delOne.body)}`,
-    // );
     check(delOne, { '✅ Deleted single': (r) => r.status === 200 });
 
     // 6. Batch delete notifications
@@ -93,9 +73,6 @@ export default function () {
       JSON.stringify({ notificationIds }),
       { headers, tags: { name: 'notifications' } },
     );
-    // console.log(
-    //   `📨 Batch delete response: ${delBatch.status}\n${prettyJson(delBatch.body)}`,
-    // );
     check(delBatch, { '✅ Batch deleted': (r) => r.status === 200 });
   });
 

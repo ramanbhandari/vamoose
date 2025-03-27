@@ -4,14 +4,6 @@ import { getAuthHeaders } from '../auth.ts';
 import { k6Config, getUrl } from '../config.ts';
 // import prisma from '../../../config/prismaClient.ts';
 
-function prettyJson(body: string): string {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 4);
-  } catch {
-    return body;
-  }
-}
-
 export default async function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
@@ -35,10 +27,6 @@ export default async function () {
       { headers, tags: { name: 'trips' } },
     );
 
-    // console.log(
-    //   `📨 Trip create response: ${tripRes.status}\n${prettyJson(tripRes.body)}`,
-    // );
-
     const tripId = tripRes.json('trip.id');
 
     check(tripRes, {
@@ -54,10 +42,6 @@ export default async function () {
       JSON.stringify({ email: dummyEmail }),
       { headers, tags: { name: 'invites' } },
     );
-
-    // console.log(
-    //   `📨 Invite create response: ${inviteRes.status}\n${prettyJson(inviteRes.body)}`,
-    // );
 
     check(inviteRes, {
       '✅ Invite sent': (res) => res.status === 201,
@@ -77,10 +61,6 @@ export default async function () {
       { headers: dummyHeader, tags: { name: 'invites' } },
     );
 
-    // console.log(
-    //   `📨 Invite validate response: ${validateRes.status}\n${prettyJson(validateRes.body)}`,
-    // );
-
     check(validateRes, {
       '✅ Invite validated': (res) => res.status === 200,
     });
@@ -91,10 +71,6 @@ export default async function () {
       null,
       { headers: dummyHeader, tags: { name: 'invites' } },
     );
-
-    // console.log(
-    //   `📨 Invite accept response: ${acceptRes.status}\n${prettyJson(acceptRes.body)}`,
-    // );
 
     check(acceptRes, {
       '✅ Invite accepted': (res) => res.status === 200,

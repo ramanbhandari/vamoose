@@ -3,14 +3,6 @@ import { check, group, sleep } from 'k6';
 import { getUrl, k6Config } from '../config.ts';
 import { getAuthHeaders } from '../auth.ts';
 
-function prettyJson(body: string): string {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    return body;
-  }
-}
-
 export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
@@ -32,9 +24,6 @@ export default function () {
       { headers, tags: { name: 'trips' } },
     );
 
-    // console.log(
-    //   `📨 Trip create response: ${tripRes.status}\n${prettyJson(tripRes.body)}`,
-    // );
     check(tripRes, { '✅ Trip created': (r) => r.status === 201 });
 
     const tripId = tripRes.json('trip.id');
@@ -59,9 +48,6 @@ export default function () {
       { headers, tags: { name: 'markedLocations' } },
     );
 
-    // console.log(
-    //   `📨 Location create response: ${locationRes.status}\n${prettyJson(locationRes.body)}`,
-    // );
     check(locationRes, { '✅ Location created': (r) => r.status === 201 });
 
     const locationId = locationRes.json('markedLocation.id');
@@ -75,9 +61,6 @@ export default function () {
       { headers, tags: { name: 'markedLocations' } },
     );
 
-    // console.log(
-    //   `📨 Note update response: ${update.status}\n${prettyJson(update.body)}`,
-    // );
     check(update, {
       '✅ Location note updated': (r) => r.status === 200,
     });
@@ -89,9 +72,6 @@ export default function () {
       { headers, tags: { name: 'markedLocations' } },
     );
 
-    // console.log(
-    //   `📨 Delete location response: ${del.status}\n${prettyJson(del.body)}`,
-    // );
     check(del, {
       '✅ Location deleted': (r) => r.status === 200,
     });

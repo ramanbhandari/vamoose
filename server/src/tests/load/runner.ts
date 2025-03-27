@@ -108,7 +108,7 @@ function convertToHtml(jsonPath: string): Promise<void> {
 
   try {
     for (const module of modules) {
-      await setupTestData(module, parseInt(process.env.VUS ?? '50'));
+      await setupTestData(module, parseInt(process.env.VUS ?? '10'));
 
       const reportPath = await runK6Script(module);
       jsonReports.push(reportPath);

@@ -3,14 +3,6 @@ import { check, group, sleep } from 'k6';
 import { getAuthHeaders } from '../auth.ts';
 import { k6Config, getUrl } from '../config.ts';
 
-function prettyJson(body: string): string {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    return body;
-  }
-}
-
 export default function () {
   const headers = getAuthHeaders(k6Config.testUserId);
 
@@ -29,9 +21,6 @@ export default function () {
       { headers, tags: { name: 'trips' } },
     );
 
-    // console.log(
-    //   `📨 Trip create response: ${tripRes.status}\n${prettyJson(tripRes.body)}`,
-    // );
     check(tripRes, { '✅ Trip created': (r) => r.status === 201 });
 
     const tripId = tripRes.json('trip.id');
@@ -51,9 +40,6 @@ export default function () {
       { headers, tags: { name: 'polls' } },
     );
 
-    // console.log(
-    //   `📨 Poll create response: ${createRes.status}\n${prettyJson(createRes.body)}`,
-    // );
     check(createRes, {
       '✅ Poll created': (r) => r.status === 201,
     });
@@ -74,9 +60,6 @@ export default function () {
       { headers, tags: { name: 'polls' } },
     );
 
-    // console.log(
-    //   `📨 Vote response: ${voteRes.status}\n${prettyJson(voteRes.body)}`,
-    // );
     check(voteRes, {
       '✅ Vote casted': (r) => r.status === 201,
     });
@@ -88,9 +71,6 @@ export default function () {
       { headers, tags: { name: 'polls' } },
     );
 
-    // console.log(
-    //   `📨 Delete vote response: ${delVote.status}\n${prettyJson(delVote.body)}`,
-    // );
     check(delVote, {
       '✅ Vote deleted or not found': (r) => [200, 404].includes(r.status),
     });
@@ -102,9 +82,6 @@ export default function () {
       { headers, tags: { name: 'polls' } },
     );
 
-    // console.log(
-    //   `📨 Poll complete response: ${completeRes.status}\n${prettyJson(completeRes.body)}`,
-    // );
     check(completeRes, {
       '✅ Poll completed or rejected': (r) => [200, 403].includes(r.status),
     });
