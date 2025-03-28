@@ -1,3 +1,9 @@
+/** 
+ * @file CreateTripButton.tsx 
+ * @description A React component that renders a button to navigate users to the trip creation page. 
+ * */
+
+
 "use client";
 
 import { Button } from "@mui/material";

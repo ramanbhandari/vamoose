@@ -1,3 +1,9 @@
+/** 
+ * @file ThemeToggle.tsx 
+ * @description A React component that toggles between dark and light mode based on user preference, saving the theme selection to local storage. 
+ * */
+
+
 "use client";
 
 import { IconButton, useTheme, Tooltip } from "@mui/material";
