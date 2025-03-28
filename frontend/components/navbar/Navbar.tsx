@@ -1,3 +1,24 @@
+/**
+ * @file Navbar.tsx
+ * 
+ * @description
+ * This component renders the top navigation bar for the application. It includes:
+ * - The application logo and title (Vamoose!) which redirects to the dashboard.
+ * - A theme toggle button for switching between light and dark modes.
+ * - A notification bell icon that shows user notifications.
+ * - A user profile menu (displaying the user's avatar and name), with options to:
+ *   - Manage the user account.
+ *   - Navigate to the dashboard.
+ *   - Logout the user, with loading state indication while logging out.
+ * 
+ * The component uses Zustand stores for user authentication state and notifications. 
+ * The Supabase auth client is used for handling user login and logout, and real-time 
+ * authentication state changes are tracked via the `onAuthStateChange` listener.
+ * 
+ * The navbar is styled with Material UI components and offers a responsive, interactive 
+ * experience for authenticated users.
+ */
+
 "use client";
 import Link from "next/link";
 import {
