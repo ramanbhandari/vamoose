@@ -14,7 +14,7 @@ import {
   deleteMultipleExpenses,
 } from '@/models/expense.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces';
+import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
 import { ForbiddenError, NotFoundError } from '@/utils/errors.js';
 import {
   notifySpecificTripMembers,

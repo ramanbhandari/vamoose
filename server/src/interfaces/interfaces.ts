@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { EventCategory, LocationType } from './enums';
+import { EventCategory, LocationType } from './enums.js';
 
 export interface AuthenticatedRequest extends Request {
   userId: string;

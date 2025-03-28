@@ -1,26 +1,31 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import app from '@/app.js';
-import { initializeSocketServer } from '@/socketServer.js';
 import prisma from '@/config/prismaClient.js';
 import connectMongoDB from '@/db/mongo.js';
-import dotenv from 'dotenv';
-import '@/cron/scheduler.js';
 
-const port: number | string = process.env.PORT || 8000;
-
-dotenv.config();
+const port = process.env.PORT || 8000;
+const isLoadTest = process.env.LOADTEST === 'true';
 
 connectMongoDB();
 
-// Initialize socket server and get HTTP server instance from Express app
-const server = initializeSocketServer(app);
+// imports only load if not in loadtest
+if (!isLoadTest) {
+  await import('@/cron/scheduler.js');
 
-// Start the server
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-  console.log(`WebSocket server is running`);
-});
+  const { initializeSocketServer } = await import('@/socketServer.js');
+  const server = initializeSocketServer(app);
+  server.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+    console.log(`WebSocket server is running`);
+  });
+} else {
+  app.listen(port, () => {
+    console.log(`[Loadtest] Server running at http://localhost:${port}`);
+  });
+}
 
-// Handle Prisma Client shutdown gracefully
+// Graceful shutdown for Prisma
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
