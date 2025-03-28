@@ -1,3 +1,11 @@
+/**
+ * @file userHelper.ts
+ * @description Contains helper functions to extract and manage user information 
+ * and roles (creator, admin, member) within a specific trip context. 
+ * These functions are used to determine user roles based on the trip data.
+ */
+
+
 import { User } from "@supabase/supabase-js";
 import { TripData } from "@/stores/trip-store";
 

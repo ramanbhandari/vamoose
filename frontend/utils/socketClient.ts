@@ -1,4 +1,11 @@
+/**
+ * @file socketClient.ts
+ * @description It manages the socket connection, emits and listens for socket events, and handles communication 
+ * with a backend API to send and receive messages, join/leave chat rooms, and add/remove reactions to messages. 
+ */
+
 "use client";
+
 import io from "socket.io-client";
 import { EventEmitter } from "events";
 import apiClient from "./apiClient";
@@ -35,7 +42,8 @@ interface MessageData {
  * @returns Socket.io instance
  */
 export const initializeSocket = (): ReturnType<typeof io> => {
-  // If socket already exists, doesn't matter connected or not, return it since we dont want to initialize a duplicate socket, we want to just keep one
+  // If socket already exists, doesn't matter connected or not, return it since we dont want to 
+  // initialize a duplicate socket, we want to just keep one
   if (socket) {
     return socket;
   }
