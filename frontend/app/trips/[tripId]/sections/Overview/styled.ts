@@ -36,3 +36,17 @@ export const SectionContainer = styled(Paper)(
     backgroundColor: theme.palette.background.paper,
   })
 );
+
+export const TwoColSectionContainer = styled(Paper)(
+  ({ theme }: { theme: Theme }) => ({
+    padding: theme.spacing(4),
+    borderRadius: theme.shape.borderRadius * 3,
+    boxShadow: theme.shadows[4],
+    marginBottom: theme.spacing(4),
+    backgroundColor: theme.palette.background.paper,
+    minHeight: 352,
+    [theme.breakpoints.down("sm")]: {
+      minHeight: 0,
+    },
+  })
+);

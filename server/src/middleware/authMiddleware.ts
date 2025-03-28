@@ -22,6 +22,14 @@ export const authMiddleware = (
 
     const token = authHeader.split(' ')[1];
 
+    if (
+      process.env.LOADTEST === 'true' &&
+      token.startsWith('FAKE.JWT.TOKEN.')
+    ) {
+      (req as any).userId = token.split('.').pop(); // extract test-user-id
+      return next();
+    }
+
     // Verify the JWT
     const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as {
       sub: string;

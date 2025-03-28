@@ -1,5 +1,5 @@
 import prisma from '@/config/prismaClient.js';
-import { NotificationType } from '@/interfaces/enums';
+import { NotificationType } from '@/interfaces/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 

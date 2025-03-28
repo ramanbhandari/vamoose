@@ -1,5 +1,10 @@
 # Vamoose! - Comp 4350
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=alert_status)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=coverage)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=security_rating)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+
 ## Table of Contents
 
 - [Vamoose! - Comp 4350](#vamoose---comp-4350)
