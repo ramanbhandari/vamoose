@@ -707,8 +707,8 @@ export default function Chat() {
                 position: "relative",
                 backgroundImage: (theme) =>
                   theme.palette.mode === "dark"
-                    ? "url('dark-mode.jpg')"
-                    : "url('light-mode.jpg')",
+                    ? "url('chat_dark-mode.jpg')"
+                    : "url('chat_light-mode.jpg')",
                 backgroundRepeat: "repeat",
                 backgroundSize: "auto",
                 backgroundPosition: "center",
