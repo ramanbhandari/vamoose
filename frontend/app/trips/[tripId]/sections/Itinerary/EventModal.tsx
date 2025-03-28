@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * @file EventModal.tsx
+ * @description Modal dialog for creating or updating an itinerary event.
+ * Includes form fields for title, description, location, start/end time,
+ * category, member assignments, and optional notes.
+ * Validates time constraints based on trip bounds and shows scroll hint UX.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   DialogTitle,

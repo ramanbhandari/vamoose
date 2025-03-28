@@ -1,5 +1,19 @@
 "use client";
 
+/**
+ * @file page.tsx
+ * 
+ * @description
+ * Main summary page for a specific trip, displaying various sections like:
+ * - Overview
+ * - Itinerary
+ * - Polls
+ * - Expenses
+ * - Members
+ * - Maps
+ * - Packing List
+ */
+
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {

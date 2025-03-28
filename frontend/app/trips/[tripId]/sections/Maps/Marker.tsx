@@ -1,3 +1,9 @@
+/**
+ * @file Marker.tsx
+ * @description A dynamic and styled custom marker component for MapLibre GL maps.
+ * Renders a colored icon marker with optional click and hover handlers.
+ */
+
 import { useState, useEffect } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import { SvgIconProps, useTheme } from "@mui/material";

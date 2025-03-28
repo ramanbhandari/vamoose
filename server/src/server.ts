@@ -1,3 +1,10 @@
+/**
+ * @file server.ts
+ * @description Main server entry point that initializes the application.
+ * Sets up HTTP/WebSocket servers, database connections, and handles graceful shutdown.
+ * Supports different configurations for load testing and normal operation.
+ */
+
 import dotenv from 'dotenv';
 dotenv.config();
 import app from '@/app.js';

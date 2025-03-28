@@ -1,5 +1,10 @@
 "use client";
 
+/** 
+ * @file CreateTripButton.tsx 
+ * @description A React component that renders a button to navigate users to the trip creation page. 
+ * */
+
 import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useRouter } from "next/navigation";

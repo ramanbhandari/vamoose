@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file AllExpenses.tsx
+ * @description Renders the expense list view with filters, bulk actions, and expense creation modal.
+ *
+ */
+
 import { useState, useMemo } from "react";
 import {
   Box,

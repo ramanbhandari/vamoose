@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file PollItem.tsx
+ * @description A card component that displays a single poll with voting logic, result display, and controls for delete/end actions.
+ */
+
 import React, { useState } from "react";
 import {
   Box,

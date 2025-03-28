@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file MemberOwedCard.tsx
+ * @description Displays an expandable card summarizing what a trip member owes to others,
+ * with detailed views of outstanding and settled transactions.
+ */
+
 import React, { useState, useEffect, useRef, RefObject } from "react";
 import {
   Card,

@@ -1,5 +1,16 @@
 "use client";
 
+/**
+ * @file CreateTrip.tsx
+ * 
+ * @description
+ * A responsive multi-step form for creating a new trip with the following stages:
+ * - Step 1: Enter trip details (name, description, destination with autocomplete)
+ * - Step 2: Select trip dates and budget
+ * - Step 3: Review all entered information before submission
+ * 
+ */
+
 import { useState, useEffect } from "react";
 import {
   Box,

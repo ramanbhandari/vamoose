@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * @file NotificationsBell.tsx
+ * @description A React component for displaying and managing user notifications.
+ * Handles marking notifications as read, deleting them, and clearing all notifications.
+ * Includes navigation to trip pages based on notification content and displays icons for different notification types.
+ * Integrates Material-UI components such as Menu, Badge, List, and Avatar for UI elements.
+ * 
+ */
+
 import React, { useState } from "react";
 import {
   IconButton,

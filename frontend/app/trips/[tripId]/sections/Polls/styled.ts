@@ -1,3 +1,8 @@
+/**
+ * @file styled.ts
+ * @description Styled components used in the Polls section for consistent theming and reusable styles.
+ */
+
 import { styled } from "@mui/material/styles";
 import { Button, Dialog, Paper, Theme } from "@mui/material";
 

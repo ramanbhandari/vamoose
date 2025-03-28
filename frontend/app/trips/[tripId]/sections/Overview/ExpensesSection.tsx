@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file ExpensesSection.tsx
+ * @description Displays a preview of recent trip expenses in a responsive masonry layout.
+ * Shows up to 4 expense cards, each with amount, category, description, and payer info.
+ * Includes CTA to navigate to full Expenses section.
+ */
+
 import {
   Box,
   Typography,

@@ -1,5 +1,17 @@
+/**
+ * @file theme.js
+ * @description This file defines the Material-UI theme configuration for the application.
+ * It dynamically retrieves CSS variables to apply custom colors, typography, and theme mode (light/dark).
+ */
+
 import { createTheme } from "@mui/material/styles";
 
+/**
+ * Retrieves the value of a specified CSS variable.
+ * 
+ * @param {string} variable - The name of the CSS variable.
+ * @returns {string} The value of the CSS variable, or an empty string if unavailable.
+ */
 const getCSSVariable = (variable: string) =>
   typeof window !== "undefined"
     ? getComputedStyle(document.documentElement)
@@ -7,7 +19,14 @@ const getCSSVariable = (variable: string) =>
         .trim()
     : "";
 
+/**
+ * Creates and returns a Material-UI theme based on CSS variables and system preferences.
+ * 
+ * Determines the current theme mode (light or dark) based on the `data-theme` attribute
+ * of the document. Uses CSS variables to set theme colors, with default fallback values.
+ */
 export const createAppTheme = () => {
+  // Determine the theme mode (dark or light) based on the document's data-theme attribute.
   const mode =
     typeof window !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "dark"

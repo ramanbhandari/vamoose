@@ -1,3 +1,8 @@
+/** 
+ * @file ConfirmationDialog.tsx 
+ * @description A React component that renders a confirmation dialog with custom title, message, and actions. 
+ * */
+
 import React from "react";
 import {
   Dialog,

@@ -1,3 +1,10 @@
+/**
+ * @file GeolocationButton.tsx
+ * @description A floating icon button that triggers user geolocation.
+ * Displays a loading spinner when locating.
+ *
+ */
+
 import React from "react";
 import { Box, IconButton, CircularProgress, useTheme } from "@mui/material";
 import { MyLocation } from "@mui/icons-material";

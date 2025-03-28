@@ -1,6 +1,7 @@
 /**
- * Utility function for handling geolocation with fallback
- * Used for both automatic and manual location detection
+ * @file getGeolocation.ts
+ * @description Utility function to retrieve the user's current geolocation.
+ * Handles both high-accuracy and fallback attempts to gracefully obtain coordinates.
  */
 export const getGeolocation = (
     onSuccess: (longitude: number, latitude: number) => void,

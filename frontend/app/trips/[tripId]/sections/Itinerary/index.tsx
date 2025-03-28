@@ -1,3 +1,9 @@
+/**
+ * @file index.tsx
+ * @description Full itinerary view for a trip. Displays events in both list and calendar views.
+ * Allows creation, updating, deletion, note management, and member assignment for itinerary events.
+ */
+
 import {
   Box,
   Typography,

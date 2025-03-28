@@ -1,3 +1,8 @@
+/**
+ * @file EventCard.tsx
+ * @description A detailed card component for displaying an itinerary event with actions and collapsible details.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   Box,

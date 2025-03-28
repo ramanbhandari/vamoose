@@ -1,3 +1,17 @@
+/**
+ * @file MapComponent.tsx
+ * @description Interactive map component using MapLibre GL and Mapbox services for location-based trip planning.
+ * Features include:
+ * - User geolocation with animated map centering and circular search radius visualization.
+ * - Location search with filters (e.g., hotels, restaurants) and autocomplete suggestions.
+ * - Dynamic loading and rendering of POIs (points of interest) using turf.js for spatial validation.
+ * - Marker components with hover/selection states, notes, and saving/deletion via API.
+ * - Responsive UI elements like a radius slider, geolocation button, and contextual tooltips.
+ *
+ * Dependencies: MapLibre GL, Turf.js, MUI, Mapbox Places API
+ * Used in: Trip planning module for displaying and managing nearby locations.
+ */
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import maplibre, { Map as MapType } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -641,7 +655,10 @@ export default function MapComponent({
         ref={mapRef}
         sx={{
           position: "relative",
-          height: "34rem",
+          height: {
+            xs: "34rem",
+            md: "calc(100vh - 200px)",
+          },
           width: "100%",
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",

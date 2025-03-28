@@ -1,5 +1,12 @@
 "use client";
 
+
+/** 
+ * @file InviteModal.tsx 
+ * @description A modal component for sending trip invitations via email and copying the invite URL. 
+ */
+
+
 import React, { useState } from "react";
 import {
   Modal,

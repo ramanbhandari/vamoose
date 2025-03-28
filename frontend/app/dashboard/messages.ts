@@ -1,3 +1,8 @@
+/**
+ * @file messages.ts
+ * @description Stores localized text for the dashboard UI.
+ */
+
 export const getMessages = {
   welcome: "Welcome to Vamoose!",
   tagline: "Your personalized trip planner for all your adventures.",

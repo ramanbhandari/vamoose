@@ -1,3 +1,10 @@
+/**
+ * @file socketServer.ts
+ * @description WebSocket server implementation for real-time communication.
+ * Handles trip-related events like joining/leaving trips, messaging, and reactions.
+ * Provides real-time updates to connected clients within trip rooms.
+ */
+
 import { Server as SocketServer } from 'socket.io';
 import { Express } from 'express';
 import http from 'http';

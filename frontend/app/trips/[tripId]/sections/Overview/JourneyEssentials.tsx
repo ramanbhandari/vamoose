@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file JourneyEssentials.tsx
+ * @description Displays key actionable sections (Itinerary, Maps, Packing List) as interactive cards.
+ * Provides quick access to essential trip setup tools using visual icons and status indicators.
+ */
+
 import { DateRange, LocationOn, Work } from "@mui/icons-material";
 import {
   Box,

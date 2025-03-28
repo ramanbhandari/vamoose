@@ -1,3 +1,8 @@
+/**
+ * @file CalendarView.tsx
+ * @description A full-featured calendar view for itinerary events using React Big Calendar with drag-and-drop and resizing support.
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   Calendar,

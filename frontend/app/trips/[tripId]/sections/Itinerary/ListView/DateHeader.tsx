@@ -1,3 +1,9 @@
+/**
+ * @file DateHeader.tsx
+ * @description A sticky header component that displays a formatted date above grouped itinerary events.
+ *
+ */
+
 import { Typography, Box, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 

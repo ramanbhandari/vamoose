@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file TripHeader.tsx
+ * @description Header section for the Trip Summary page. Displays and allows editing of trip metadata 
+ * (name, dates, destination, budget, description) with role-based permissions and action buttons for 
+ * editing, saving, deleting, or leaving the trip.
+ */
+
 import { useEffect, useState, useRef } from "react";
 import {
   Box,

@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file TravelSquad.tsx
+ * @description Displays a section with avatars of all trip members ("Travel Squad") 
+ * and a call-to-action button to invite more members.
+ * Includes role-based avatar initials, hover effects, and responsive layout.
+ */
+
 import {
   Box,
   Typography,

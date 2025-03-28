@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file TripMembers.tsx
+ * @description Displays and manages trip members with role editing, deletion, and invitation features.
+ */
+
 import InviteModal from "@/components/InviteModal";
 import { useUserStore } from "@/stores/user-store";
 import { Member, TripData } from "@/types";

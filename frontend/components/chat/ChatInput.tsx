@@ -1,3 +1,15 @@
+/**
+ * @file ChatInput.tsx
+ * 
+ * @description
+ * A rich text input area for the chat interface with features:
+ * - Multi-line text input with auto-expansion
+ * - Emoji picker integration
+ * - Responsive design for mobile/desktop
+ * - Message sending functionality
+ * 
+ */
+
 import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
@@ -311,7 +323,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               backgroundColor: "var(--background-paper)",
               color: "var(--text)",
               [theme.breakpoints.down("sm")]: {
-                transform: "scale(0.6)", // Smaller emoji picker on mobile
+                transform: "scale(0.6)",
                 bottom: "80px",
                 ...(effectiveMaximized
                   ? {
