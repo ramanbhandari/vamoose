@@ -1,3 +1,9 @@
+/** 
+ * @file layout.tsx 
+ * @description The root layout component that provides global styles, fonts, theme, and common components like Navbar, Footer, Chat, and NotificationSnackbar. 
+ */
+
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";

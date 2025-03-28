@@ -1,3 +1,9 @@
+/** 
+ * @file not-found.tsx 
+ * @description A page component that renders a "404 - Page Not Found" message with a button to navigate back to the dashboard. 
+ */
+
+
 import { Metadata } from "next";
 import Link from "next/link";
 import { Button, Container, Typography, Box, Stack } from "@mui/material";
