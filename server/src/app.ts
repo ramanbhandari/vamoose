@@ -1,3 +1,9 @@
+/**
+ * @file app.ts
+ * @description Express application setup and configuration.
+ * Configures middleware, routes, and error handling for the API server.
+ */
+
 import express, { NextFunction, Request, Response } from 'express';
 import appRouter from '@/routes/appRouter.js';
 import cors from 'cors';

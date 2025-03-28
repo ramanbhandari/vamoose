@@ -1,3 +1,9 @@
+/**
+ * @file mongo.ts
+ * @description MongoDB connection configuration and initialization.
+ * Supports different connection URIs for test, load test, and production environments.
+ */
+
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 

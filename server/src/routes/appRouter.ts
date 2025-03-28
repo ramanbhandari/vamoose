@@ -1,3 +1,9 @@
+/**
+ * @file appRouter.ts
+ * @description Main router configuration that combines all sub-routes.
+ * Handles authentication middleware and organizes routes into trip-specific and non-trip-specific categories.
+ */
+
 import express from 'express';
 import tripRouter from '@/routes/trip.routes.js';
 import expenseRouter from '@/routes/expense.routes.js';

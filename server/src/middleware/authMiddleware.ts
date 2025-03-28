@@ -1,3 +1,9 @@
+/**
+ * @file authMiddleware.ts
+ * @description Authentication middleware for validating JWT tokens.
+ * Handles Supabase authentication, token verification, and supports load testing with fake tokens.
+ */
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';

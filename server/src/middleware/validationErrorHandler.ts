@@ -1,3 +1,9 @@
+/**
+ * @file validationErrorHandler.ts
+ * @description Express middleware for handling validation errors.
+ * Processes express-validator results and returns standardized error responses.
+ */
+
 import { validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 
