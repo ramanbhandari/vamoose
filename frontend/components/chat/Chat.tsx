@@ -1,3 +1,39 @@
+/**
+ * Chat Component
+ * 
+ * A real-time chat interface for trip groups with features like:
+ * - Multiple trip selection
+ * - Message reactions
+ * - Responsive design for mobile/desktop
+ * - Real-time updates via socket connection
+ * 
+ * Hooks:
+ * - useState: Manage component state (isOpen, isMaximized, selectedTrip, etc.)
+ * - useEffect: Handle side effects (socket initialization, message fetching, etc.)
+ * - useRef: Reference DOM elements and store mutable values
+ * - useTheme: Access Material-UI theme
+ * - useMediaQuery: Detect screen size changes
+ * 
+ * Functions:
+ * - toggleChat: Toggle chat window visibility with animation
+ * - toggleMaximize: Toggle between minimized and maximized chat view
+ * - toggleMenu: Toggle trip selection menu visibility
+ * - selectTrip: Handle trip selection for chat
+ * - handleSend: Send new chat messages
+ * - handleInputHeightChange: Adjust layout when input height changes
+ * - formatTimestamp: Format message timestamps
+ * - handleReaction: Add/remove reactions to messages
+ * - isReactionProcessing: Check if a reaction is being processed
+ * - hasUserReacted: Check if user has reacted with specific emoji
+ * - getUserFullName: Get display name for message sender
+ * - shouldShowDateDivider: Determine if date divider should be shown between messages
+ * - handleMouseEnter/Leave: Show/hide trip member info on hover
+ * 
+ * Event Handlers:
+ * - handleClickOutside: Close reaction picker when clicking outside
+ * - handleMouseMove/Up: Handle trip tab resizing
+ */
+
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { differenceInHours, startOfDay } from "date-fns";

@@ -1,3 +1,28 @@
+/**
+ * DateDivider Component
+ * 
+ * A visual separator for chat messages that displays formatted dates with:
+ * - Relative dates (Today/Yesterday) when applicable
+ * - Day of week + date for current year dates
+ * - Full date with year for past/future years
+ * - Smooth fade-in animation
+ * 
+ * Props:
+ * - date: Date object to display
+ * 
+ * Features:
+ * - Intelligent date formatting with date-fns
+ * - Responsive design with Material-UI
+ * - Subtle visual styling with shadows and opacity
+ * - Animation on mount
+ * 
+ * Formatting Logic:
+ * - Today: "Today, MMM d"
+ * - Yesterday: "Yesterday, MMM d"
+ * - Current year: "EEEE, MMM d" (e.g., "Monday, Jan 1")
+ * - Other years: "EEEE, MMM d, yyyy" (e.g., "Monday, Jan 1, 2023")
+ */
+
 import React from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { format, isToday, isYesterday } from "date-fns";
