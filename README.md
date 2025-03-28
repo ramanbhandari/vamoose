@@ -44,6 +44,7 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
   - [Invite_API](./Documentation/SequenceDiagrams/invitee_api_seq_diagram.pdf)
   - [Member_API](./Documentation/SequenceDiagrams/member_api_seq_diagram.pdf)
   - [Trip_API](./Documentation/SequenceDiagrams/trip_api_seq_diagram.pdf)
+  - [Marked_Location_API](./Documentation/SequenceDiagrams/markedLocation_api_seq_diagram.pdf)
   - [Polls_API](./Documentation/SequenceDiagrams/polls_api_seq_diagram.pdf)
   - [Notifications_API](./Documentation/SequenceDiagrams/notifications_api_seq_diagram.pdf)
   - [Events_API](./Documentation/SequenceDiagrams/events_api_seq_diagram.pdf)
