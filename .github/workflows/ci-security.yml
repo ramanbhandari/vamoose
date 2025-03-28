@@ -1,7 +1,8 @@
 name: Security Analysis (Server and Frontend)
 on:
     push:
-      branches: ["*"]
+      branches:
+        - '**'
     pull_request:
       branches: [dev, uat, main]
 jobs:
