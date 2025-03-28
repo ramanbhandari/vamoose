@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Group, GroupAdd } from "@mui/icons-material";
 import { motion } from "framer-motion";
-import { SectionContainer } from "./styled";
+import { TwoColSectionContainer } from "./styled";
 import { Member } from "@/types";
 
 const getInitials = (member: Member) => {
@@ -67,7 +67,7 @@ export default function TravelSquad({ members, onInvite }: TravelSquadProps) {
   const theme = useTheme();
 
   return (
-    <SectionContainer theme={theme}>
+    <TwoColSectionContainer theme={theme}>
       <Box mb={3}>
         <Typography
           variant="h4"
@@ -109,6 +109,6 @@ export default function TravelSquad({ members, onInvite }: TravelSquadProps) {
           Invite More Explorers
         </Button>
       </motion.div>
-    </SectionContainer>
+    </TwoColSectionContainer>
   );
 }

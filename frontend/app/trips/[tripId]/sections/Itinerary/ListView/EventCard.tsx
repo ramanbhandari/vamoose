@@ -43,7 +43,7 @@ import { StyledEventCard } from "./styled";
 import { FloatingDialogSmall } from "../../Polls/styled";
 import { useUserStore } from "@/stores/user-store";
 
-const CategoryIcon = {
+export const CategoryIcon = {
   MEAL: <Restaurant fontSize="small" />,
   ACTIVITY: <Hiking fontSize="small" />,
   TRAVEL: <Flight fontSize="small" />,
@@ -461,7 +461,7 @@ const EventCard: React.FC<EventCardProps> = ({
               ))}
             </AvatarGroup>
             <Typography variant="caption" color="textSecondary">
-              {event.assignedUsers.length} participant
+              {event.assignedUsers.length} Assigned Planner
               {event.assignedUsers.length !== 1 && "s"}
             </Typography>
 

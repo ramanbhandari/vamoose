@@ -1,6 +1,6 @@
 "use client";
 
-import { DateRange, LocationOn, Luggage, Work } from "@mui/icons-material";
+import { DateRange, LocationOn, Work } from "@mui/icons-material";
 import {
   Box,
   Chip,
@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { SectionContainer } from "./styled";
+import { TwoColSectionContainer } from "./styled";
 
 interface AdventureCardProps {
   icon: React.ReactNode;
@@ -96,16 +96,10 @@ export default function JourneyEssentials({
       title: "Maps",
       status: "Pin Locations",
     },
-    {
-      id: "packing",
-      icon: <Luggage fontSize="large" />,
-      title: "Packing List",
-      status: "In Progress",
-    },
   ];
 
   return (
-    <SectionContainer theme={theme}>
+    <TwoColSectionContainer theme={theme}>
       <Box mb={3}>
         <Typography
           variant="h4"
@@ -132,6 +126,6 @@ export default function JourneyEssentials({
           </Grid>
         ))}
       </Grid>
-    </SectionContainer>
+    </TwoColSectionContainer>
   );
 }
