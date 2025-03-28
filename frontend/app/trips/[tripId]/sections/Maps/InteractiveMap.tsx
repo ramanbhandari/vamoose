@@ -655,7 +655,10 @@ export default function MapComponent({
         ref={mapRef}
         sx={{
           position: "relative",
-          height: "34rem",
+          height: {
+            xs: "34rem",
+            md: "calc(100vh - 200px)",
+          },
           width: "100%",
           borderRadius: theme.shape.borderRadius,
           overflow: "hidden",
