@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file index.tsx
+ * @description Main component for rendering the Expenses section of a trip.
+ */
+
 import { useEffect, useState } from "react";
 import {
   Tabs,

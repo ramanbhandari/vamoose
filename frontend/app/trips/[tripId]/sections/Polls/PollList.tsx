@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * @file PollList.tsx
+ * @description Masonry grid display for a list of polls. Renders individual PollItems and shows fallback UI when empty.
+ */
+
 import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
 import { People } from "@mui/icons-material";

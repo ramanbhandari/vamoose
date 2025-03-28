@@ -1,3 +1,10 @@
+/**
+ * @file markedLocations.ts
+ * @description Functions and type definitions for interacting with marked (saved) locations
+ * associated with a trip. This includes creating, updating, fetching, and deleting saved POIs
+ * on the server, as well as utility functions to map between client and server data formats.
+ */
+
 import { LocationType } from "./mapbox";
 import apiClient from "@/utils/apiClient";
 

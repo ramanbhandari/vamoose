@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * @file Polls.tsx
+ * @description Displays and manages active and expired polls for a trip, including creation, voting, and completion functionality.
+ */
+
 import React, { useEffect, useState } from "react";
 import {
   Box,

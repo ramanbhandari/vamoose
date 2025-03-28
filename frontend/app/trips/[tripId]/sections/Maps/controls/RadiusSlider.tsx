@@ -1,3 +1,8 @@
+/**
+ * @file RadiusSlider.tsx
+ * @description Vertical slider component to adjust the search radius for map POIs.
+ */
+
 import React from "react";
 import { Box, Slider, Typography, useTheme } from "@mui/material";
 

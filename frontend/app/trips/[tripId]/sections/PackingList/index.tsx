@@ -1,3 +1,8 @@
+/**
+ * @file PackingList.tsx
+ * @description Placeholder component for the Packing List feature in a trip. Displays a header and notice while the feature is under development.
+ */
+
 import { Box, Typography, useTheme, Container } from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
 

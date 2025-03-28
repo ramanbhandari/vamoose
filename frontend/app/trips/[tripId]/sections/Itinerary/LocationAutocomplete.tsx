@@ -1,3 +1,8 @@
+/**
+ * @file LocationAutocomplete.tsx
+ * @description Autocomplete input for selecting a geographic location using the Photon API.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   Autocomplete,

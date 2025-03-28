@@ -1,3 +1,11 @@
+/**
+ * @file MapSearchFilter.tsx
+ * @description A location search and filter component for MapLibre map interfaces.
+ * Allows users to search nearby locations, filter results by predefined location types,
+ * and select locations with detailed retrieval using the Mapbox API. 
+ * Includes responsive design for mobile and desktop, search debouncing, and dynamic search result display.
+ */
+
 import { useState, useEffect, useRef } from "react";
 import {
   Box,

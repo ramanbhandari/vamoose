@@ -1,3 +1,9 @@
+/**
+ * @file DeleteConfirmationDialog.tsx
+ * @description A small floating confirmation modal used to confirm destructive actions like deleting an event.
+ *
+ */
+
 import {
   Box,
   Button,

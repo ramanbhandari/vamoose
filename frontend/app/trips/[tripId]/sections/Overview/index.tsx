@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file TripOverview.tsx
+ * @description Main landing section for a trip, combining header, journey essentials, member avatars, expenses, and active polls.
+ * Includes scroll scaling effect for desktop and handles redirection for member invites.
+ */
+
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Container,

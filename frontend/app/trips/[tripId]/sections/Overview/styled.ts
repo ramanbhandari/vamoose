@@ -1,3 +1,10 @@
+/**
+ * @file styled.ts
+ * @description Shared styled components for trip pages using Emotion and MUI. 
+ * Includes layout wrappers like GradientHeader, HeaderGrid, and SectionContainer 
+ * with custom theming and visual enhancements.
+ */
+
 import styled from "@emotion/styled";
 import { Box, Grid, Paper, Theme } from "@mui/material";
 

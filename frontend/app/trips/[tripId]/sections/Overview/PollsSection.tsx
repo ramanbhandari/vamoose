@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file PollsSection.tsx
+ * @description A preview section displaying a limited number of active polls using a responsive Masonry layout.
+ * Provides quick access to poll summaries and navigation to the full Polls section.
+ */
+
 import {
   Typography,
   Box,
