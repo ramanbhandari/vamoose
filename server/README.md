@@ -8,25 +8,26 @@ This is the Node.js (Express) backend for Vamoose!, a personalized trip planner 
 - **Database**: PostgreSQL (via Prisma ORM)
 - **Authentication**: Supabase Auth (JWT-based)
 - **Hosting**: Google Cloud Run
-- **Testing**: Jest, Supertest
+- **Testing**: Jest, Supertest, K6
 - **Containerization**: Docker
 
 ## 📂 Project Structure
 
 The backend is located in the `server/` folder of the repository. It follows a structured layout:
 
-| Folder         | Description                                                                                                    |
-| -------------- | -------------------------------------------------------------------------------------------------------------- |
-| `config/`      | Contains Prisma Client configuration for database interaction.                                                 |
-| `controllers/` | Handles business logic for trips, members, invitations, and expenses.                                          |
-| `interfaces/`  | Defines TypeScript interfaces for better type safety.                                                          |
-| `middleware/`  | Contains custom middleware, including `authMiddleware` (JWT authentication) and validators (input validation). |
-| `models/`      | Contains Prisma-based models that interact with the PostgreSQL database.                                       |
-| `routes/`      | Defines Express API routes, with `appRouter.ts` serving as the main `/api` entry point.                        |
-| `utils/`       | Includes custom error handling utilities.                                                                      |
-| `tests/`       | Contains integration tests and unit tests for controllers, models, and middleware, using Jest.                 |
-| `cron/`        | Contains cron job to schedule notifications                                                                    |
-| `db/`          | Contains connection for mongodb                                                                                |
+| Folder         | Description                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `config/`      | Contains Prisma Client configuration for database interaction.                                                                         |
+| `controllers/` | Handles business logic for trips, members, invitations, and expenses.                                                                  |
+| `interfaces/`  | Defines TypeScript interfaces for better type safety.                                                                                  |
+| `middleware/`  | Contains custom middleware, including `authMiddleware` (JWT authentication) and validators (input validation).                         |
+| `models/`      | Contains Prisma-based models that interact with the PostgreSQL database.                                                               |
+| `routes/`      | Defines Express API routes, with `appRouter.ts` serving as the main `/api` entry point.                                                |
+| `utils/`       | Includes custom error handling utilities.                                                                                              |
+| `tests/`       | Contains integration tests, unit tests (using Jest & Supertest) and load testing scripts, reports, and configuration files (using K6). |
+| `cron/`        | Contains cron jobs to schedule notifications.                                                                                          |
+| `db/`          | Contains connection for MongoDB.                                                                                                       |
+
 
 ## � Getting Started
 
@@ -167,7 +168,54 @@ Integration tests run against a PostgreSQL and Mongo test databases that are lau
     ```bash
     npm run test:integration
     ```
+### 🏋 Load Testing
 
+Load testing is conducted using **K6**, with the server running inside a Docker container that includes both PostgreSQL and MongoDB. Follow these steps:
+
+1. **Ensure Docker is installed and running.**
+
+2. Create a `.env.loadtest` file in the `server/` directory with the following content:
+
+    ```env
+    DATABASE_URL=postgresql://vamoose:testpassword@localhost:5434/vamoose_test
+    DIRECT_URL=postgresql://vamoose:testpassword@localhost:5434/vamoose_test
+    MONGO_TEST_URI="mongodb://mongo:mongo@localhost:27017/tests?authSource=admin&directConnection=true"
+    BASE_URL=http://localhost:7001
+    PORT=7001
+    LOADTEST=true
+
+    TEST_USER_ID=test-user-id
+    SUPABASE_JWT_SECRET="Super-secret-key"
+    VUS=10
+    CHAT_INTERVAL_MS=1000
+    ```
+
+3. **Install K6 (if not already installed):**
+
+    **Linux:**
+    ```bash
+    curl -fsSL https://pkg.k6.io/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+    echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+    sudo apt update && sudo apt install k6
+    ```
+
+    **MacOS (Homebrew):**
+    ```bash
+    brew install k6
+    ```
+
+    **Windows (Chocolatey):**
+    ```bash
+    choco install k6
+    ```
+
+4. **Run the Load Tests:**
+
+    ```bash
+    npm run loadtest 
+    ```
+
+    **Once the load tests finish, the report generated by K6 can be found under `tests/load/reports`.**
 
 ## 📏 Linting & Formatting
 
@@ -328,6 +376,7 @@ The backend is deployed on Google Cloud Services.
 - ✔️ Maps (Mark/Unmark loactions, update notes, fetch)
 - ✔️ Unit Testing (Jest)
 - ✔️ Integration Testing (Jest + Supertest)
+- ✔️ Load Testing (K6)
 
 ## 💡 Contributors
 
