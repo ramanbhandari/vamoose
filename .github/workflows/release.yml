@@ -1,0 +1,81 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Bump Type from PR Labels
+        id: determine_bump
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.info("No PR found; defaulting bump type to 'patch'");
+              core.setOutput("bump", "patch");
+            } else {
+              const labels = pr.labels.map(label => label.name.toLowerCase());
+              let bump = "patch"; // Default to patch
+              if (labels.includes("feature")) {
+                bump = "major";
+              } else if (labels.includes("bug")) {
+                bump = "minor";
+              }
+              core.info(`Determined bump type: ${bump}`);
+              core.setOutput("bump", bump);
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Latest Tag
+        id: latest_tag
+        run: echo "tag=$(git describe --tags --abbrev=0 || echo 'v0.0.0')" >> $GITHUB_ENV
+
+      - name: Generate Next Version
+        id: next_version
+        run: |
+          VERSION=${{ env.tag }}
+          MAJOR=$(echo $VERSION | cut -d. -f1 | sed 's/v//')
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+
+          if [[ "${{ steps.determine_bump.outputs.bump }}" == "major" ]]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [[ "${{ steps.determine_bump.outputs.bump }}" == "minor" ]]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "New Version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Push New Tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ env.new_version }}
+          generate_release_notes: true
