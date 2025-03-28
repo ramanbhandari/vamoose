@@ -1,3 +1,8 @@
+/**
+ * @file DashboardSkeleton.tsx
+ * @description Skeleton loader for the dashboard page, used to display loading states.
+ */
+
 import { Box, Grid, Skeleton, useMediaQuery, useTheme } from "@mui/material";
 
 export default function DashboardSkeleton() {

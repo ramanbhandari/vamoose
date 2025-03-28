@@ -1,39 +1,13 @@
 /**
- * ChatInput Component
+ * @file ChatInput.tsx
  * 
+ * @description
  * A rich text input area for the chat interface with features:
  * - Multi-line text input with auto-expansion
  * - Emoji picker integration
  * - Responsive design for mobile/desktop
  * - Message sending functionality
  * 
- * Props:
- * - selectedTrip: Currently selected trip (or null if none selected)
- * - onSendMessage: Callback when user sends a message
- * - onHeightChange: Callback when input area height changes
- * - isMaximized: Flag indicating if chat is in maximized mode
- * 
- * Hooks:
- * - useState: Manage component state (messageText, showEmojiPicker)
- * - useEffect: Handle side effects (click outside detection, height changes)
- * - useRef: Reference DOM elements (input area, emoji picker)
- * - useTheme: Access Material-UI theme
- * - useMediaQuery: Detect screen size changes
- * 
- * Functions:
- * - handleSend: Validate and send message to parent component
- * - onEmojiClick: Handle emoji selection from picker
- * 
- * Event Handlers:
- * - handleClickOutside: Close emoji picker when clicking outside
- * - Keyboard events: Handle Enter key for message sending
- * 
- * Features:
- * - Dynamic height adjustment with ResizeObserver
- * - Disabled state when no trip is selected
- * - Responsive layout adjustments
- * - Custom scrollbar styling
- * - Blurred background effect
  */
 
 import React, { useState, useRef, useEffect } from "react";

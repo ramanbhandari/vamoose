@@ -1,3 +1,8 @@
+/**
+ * @file page.tsx
+ * @description Fetches and validates trip invite details using token, and renders the invite UI component.
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";

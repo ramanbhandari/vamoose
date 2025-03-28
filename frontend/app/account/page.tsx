@@ -1,3 +1,7 @@
+/**
+ * @file page.tsx
+ * @description User account management page for updating profile details and sending password reset emails.
+ */
 "use client";
 
 import { useEffect, useState } from "react";

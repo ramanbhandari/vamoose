@@ -1,18 +1,12 @@
 /**
- * Chat Component
+ * @file Chat.tsx
  * 
+ * @description
  * A real-time chat interface for trip groups with features like:
  * - Multiple trip selection
  * - Message reactions
  * - Responsive design for mobile/desktop
  * - Real-time updates via socket connection
- * 
- * Hooks:
- * - useState: Manage component state (isOpen, isMaximized, selectedTrip, etc.)
- * - useEffect: Handle side effects (socket initialization, message fetching, etc.)
- * - useRef: Reference DOM elements and store mutable values
- * - useTheme: Access Material-UI theme
- * - useMediaQuery: Detect screen size changes
  * 
  * Functions:
  * - toggleChat: Toggle chat window visibility with animation
@@ -29,9 +23,6 @@
  * - shouldShowDateDivider: Determine if date divider should be shown between messages
  * - handleMouseEnter/Leave: Show/hide trip member info on hover
  * 
- * Event Handlers:
- * - handleClickOutside: Close reaction picker when clicking outside
- * - handleMouseMove/Up: Handle trip tab resizing
  */
 
 "use client";
