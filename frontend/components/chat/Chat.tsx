@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @file Chat.tsx
  * 
@@ -25,7 +27,6 @@
  * 
  */
 
-"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { differenceInHours, startOfDay } from "date-fns";
 

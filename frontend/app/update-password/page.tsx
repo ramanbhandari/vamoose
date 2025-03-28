@@ -1,10 +1,9 @@
+"use client";
+
 /** 
  * @file page.tsx 
  * @description A page component for resetting the user's password. It handles session validation, password change, and error handling.
  */
-
-
-"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";

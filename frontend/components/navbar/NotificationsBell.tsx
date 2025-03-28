@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @file NotificationsBell.tsx
  * @description A React component for displaying and managing user notifications.
@@ -6,8 +8,6 @@
  * Integrates Material-UI components such as Menu, Badge, List, and Avatar for UI elements.
  * 
  */
-
-"use client";
 
 import React, { useState } from "react";
 import {

@@ -1,9 +1,10 @@
+"use client";
+
 /** 
  * @file Providers.tsx 
  * @description A wrapper component that handles user session management, including authentication state changes, idle session timeout, and notifications.
  */
 
-"use client";
 import React, { useEffect, useRef } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useUserStore } from "@/stores/user-store";

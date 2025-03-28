@@ -5,12 +5,6 @@
  * and showing alerts if the budget is near or exceeded. The chart is interactive and displays tooltips
  * with detailed information when hovered.
  * 
- * Features:
- * - Displays total budget and expenses with visual representation using a donut chart.
- * - Provides a real-time update of remaining and spent budget.
- * - Offers editing capabilities for budget input in the edit mode.
- * - Alerts the user when the budget is nearing or exceeded with animations.
- * 
  */
 
 

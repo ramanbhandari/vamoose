@@ -1,9 +1,9 @@
+"use client";
+
 /** 
  * @file TripCard.tsx 
  * @description A React component that displays a card for a trip with options to view, edit, delete, or leave, and includes a confirmation dialog. 
  * */
-
-"use client";
 
 import {
   Card,

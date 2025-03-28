@@ -1,9 +1,9 @@
+"use client";
+
 /**
  * @file AuthForm.tsx
  * @description Authentication form for login, signup, and password reset with Supabase and Google OAuth integration.
  */
-
-"use client";
 
 import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";

@@ -1,9 +1,9 @@
+"use client";
+
 /**
  * @file page.tsx
  * @description Displays and manages user trips with image preloading and responsive UI.
  */
-
-"use client";
 
 import { useEffect, useState } from "react";
 import TripCard from "../../components/TripCard";

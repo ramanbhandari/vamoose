@@ -1,9 +1,9 @@
+"use client";
+
 /** 
  * @file ThemeProvider.tsx 
  * @description A component that applies a dynamic Material UI theme based on the user's system or preference, ensuring the theme is rendered only on the client side.
  */
-
-"use client";
 
 import { ReactNode, useEffect, useState } from "react";
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";

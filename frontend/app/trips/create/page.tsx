@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @file CreateTrip.tsx
  * 
@@ -8,7 +10,6 @@
  * - Step 3: Review all entered information before submission
  * 
  */
-"use client";
 
 import { useState, useEffect } from "react";
 import {

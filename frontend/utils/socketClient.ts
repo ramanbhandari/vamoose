@@ -1,10 +1,10 @@
+"use client";
+
 /**
  * @file socketClient.ts
  * @description It manages the socket connection, emits and listens for socket events, and handles communication 
  * with a backend API to send and receive messages, join/leave chat rooms, and add/remove reactions to messages. 
  */
-
-"use client";
 
 import io from "socket.io-client";
 import { EventEmitter } from "events";

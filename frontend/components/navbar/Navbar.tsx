@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @file Navbar.tsx
  * 
@@ -19,7 +21,6 @@
  * experience for authenticated users.
  */
 
-"use client";
 import Link from "next/link";
 import {
   AppBar,
