@@ -27,7 +27,7 @@ const modules = [
   'poll',
   'notification',
   'markedLocation',
-  // 'message',
+  'message',
 ];
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

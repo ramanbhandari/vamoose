@@ -19,10 +19,10 @@
     "testdb:restart:postgres": "docker rm -f integration-tests-prisma || true && docker build -t test-db -f Dockerfile.testdb.postgres . && docker run -d --name integration-tests-prisma -p 5433:5432 test-db && sleep 2",
     "testdb:restart:mongo": "docker rm -f integration-tests-mongo || true && docker build -t test-db-mongo -f Dockerfile.testdb.mongo . && docker run -d --name integration-tests-mongo -p 27018:27017 test-db-mongo && sleep 2",
     "preloadtest": "docker compose -f ../docker-compose.yml up -d server-loadtest",
-    "loadtest:build": "dotenv -e .env.loadtest -- ts-node src/tests/load/scripts/build.ts",
-    "loadtest:run": "dotenv -e .env.loadtest -- ts-node -r tsconfig-paths/register src/tests/load/runner.ts",
+    "loadtest:build": "dotenv -e .env.loadtest -- tsx src/tests/load/scripts/build.ts",
+    "loadtest:run": "dotenv -e .env.loadtest -- tsx -r tsconfig-paths/register src/tests/load/runner.ts",
     "loadtest": "npm run loadtest:build && npm run loadtest:run",
-    "postloadtest": "docker compose -f ../docker-compose.yml rm -sfv server-loadtest loadtest-db"
+    "postloadtest": "docker compose -f ../docker-compose.yml rm -sfv server-loadtest loadtest-db loadtest-mongodb"
   },
   "author": "",
   "license": "ISC",

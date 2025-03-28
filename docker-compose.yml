@@ -31,8 +31,10 @@ services:
     environment:
       DATABASE_URL: postgresql://vamoose:testpassword@loadtest-db:5432/vamoose_test
       DIRECT_URL: postgresql://vamoose:testpassword@loadtest-db:5432/vamoose_test
+      MONGO_TEST_URI: mongodb://mongo:mongo@loadtest-mongodb:27017/tests?authSource=admin&directConnection=true
     depends_on:
       - loadtest-db
+      - loadtest-mongodb
     restart: unless-stopped
 
   loadtest-db:
@@ -49,6 +51,17 @@ services:
     restart: unless-stopped
     tmpfs:
       - /var/lib/postgresql/data
+
+  loadtest-mongodb:
+    image: mongo:4.4
+    container_name: vamoose-loadtest-mongo-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_DATABASE: tests
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
 
 volumes:
   loadtest-db-data:
