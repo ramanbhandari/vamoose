@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>K6 Summary Report</title>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <style>
+    ::-webkit-scrollbar {
+      width: 0px;
+      background: transparent; /* make scrollbar transparent */
+    }
+    .fail-block {
+      background-color: #F9DCDE;
+      color: #9b0909;
+    }
+    .success-block {
+      background-color: #D7EADA;
+      color: #283618;
+    }
+    .banner-danger {
+      background-color: #D94851;
+      color: white;
+    }
+    .banner-success {
+      background-color: #D7EADA;
+      color: #283618;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="jumbotron jumbotron-fluid bg-white my-5">
+      <div class="container px-0 mb-5">
+        <h1 class="display-2 text-primary text-dark text-center">K6 Summary Report</h1>
+        <p class="text-secondary text-center">Generated at 3/28/2025, 8:05:51 PM</p>
+      </div>
+
+      
+        <div class="my-3">
+          <div class="mt-3">
+            <button class="btn btn-lg fs-2 px-0 text-primary" style="box-shadow: none;" data-bs-toggle="collapse" data-bs-target="#collapseThreshold"
+            aria-expanded="false" aria-controls="collapseThreshold">
+              Thresholds
+            </button>
+            <p class="text-secondary">Pass/fail criteria used to specify the performance expectations of the system under test.</p>
+            
+              <div class="alert banner-success my-2" role="alert">
+                All thresholds were met!
+              </div>
+            
+          </div>
+          
+          <div class="collapse show" id="collapseThreshold">
+            <p class="d-inline-block me-3 text-success">passes: 2</p>
+            <p class="d-inline-block me-3 text-danger">fails: 0</p>
+            <ul class="list-group">
+              
+                <li class="list-group-item">
+                  <h6>http_req_duration</h6>
+                  <ul class="list-group">
+                    
+                    
+                    <li class="list-group-item success-block">
+                    
+                      p(95)&lt;1000
+                    </li>
+                    
+                  </ul>
+                </li>
+              
+                <li class="list-group-item">
+                  <h6>http_req_failed</h6>
+                  <ul class="list-group">
+                    
+                    
+                    <li class="list-group-item success-block">
+                    
+                      rate==0
+                    </li>
+                    
+                  </ul>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      
+
+      
+      <div>
+        <div>
+          <button class="btn btn-lg fs-2 px-0 text-primary" style="box-shadow: none;" data-bs-toggle="collapse" data-bs-target="#collapseExample"
+            aria-expanded="false" aria-controls="collapseExample">
+            Checks
+          </button>
+          <p class="text-secondary">Asserts that don't halt the execution unless specified in the threshold.</p>
+        </div>
+        <div class="collapse show mt-4" id="collapseExample">
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">check</th>
+                <th scope="col">passes</th>
+                <th scope="col">fails</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">1</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Fetched notifications</td>
+                <td>671</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">2</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">3</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">4</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">5</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">6</th>
+                <td>Notifications API - VU 1 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">7</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Fetched notifications</td>
+                <td>650</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">8</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">9</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">10</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">11</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">12</th>
+                <td>Notifications API - VU 3 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">13</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Fetched notifications</td>
+                <td>630</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">14</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">15</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">16</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">17</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">18</th>
+                <td>Notifications API - VU 2 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">19</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Fetched notifications</td>
+                <td>610</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">20</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">21</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">22</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">23</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">24</th>
+                <td>Notifications API - VU 4 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">25</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Fetched notifications</td>
+                <td>588</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">26</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">27</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">28</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">29</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">30</th>
+                <td>Notifications API - VU 6 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">31</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Fetched notifications</td>
+                <td>569</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">32</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">33</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">34</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">35</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">36</th>
+                <td>Notifications API - VU 7 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">37</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Fetched notifications</td>
+                <td>548</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">38</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">39</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">40</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">41</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">42</th>
+                <td>Notifications API - VU 14 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">43</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Fetched notifications</td>
+                <td>526</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">44</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">45</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">46</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">47</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">48</th>
+                <td>Notifications API - VU 15 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">49</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Fetched notifications</td>
+                <td>505</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">50</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">51</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">52</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">53</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">54</th>
+                <td>Notifications API - VU 8 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">55</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Fetched notifications</td>
+                <td>484</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">56</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">57</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">58</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">59</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">60</th>
+                <td>Notifications API - VU 16 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">61</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Fetched notifications</td>
+                <td>463</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">62</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">63</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">64</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">65</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">66</th>
+                <td>Notifications API - VU 9 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">67</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Fetched notifications</td>
+                <td>442</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">68</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">69</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">70</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">71</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">72</th>
+                <td>Notifications API - VU 17 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">73</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Fetched notifications</td>
+                <td>422</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">74</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">75</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">76</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">77</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">78</th>
+                <td>Notifications API - VU 18 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">79</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Fetched notifications</td>
+                <td>403</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">80</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">81</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">82</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">83</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">84</th>
+                <td>Notifications API - VU 10 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">85</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Fetched notifications</td>
+                <td>383</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">86</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">87</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">88</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">89</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">90</th>
+                <td>Notifications API - VU 11 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">91</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Fetched notifications</td>
+                <td>362</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">92</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">93</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">94</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">95</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">96</th>
+                <td>Notifications API - VU 20 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">97</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Fetched notifications</td>
+                <td>345</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">98</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">99</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">100</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">101</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">102</th>
+                <td>Notifications API - VU 19 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">103</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Fetched notifications</td>
+                <td>324</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">104</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">105</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">106</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">107</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">108</th>
+                <td>Notifications API - VU 12 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">109</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Fetched notifications</td>
+                <td>305</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">110</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">111</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">112</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">113</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">114</th>
+                <td>Notifications API - VU 13 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">115</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Fetched notifications</td>
+                <td>284</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">116</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Marked single as read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">117</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Marked single as unread</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">118</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Batch mark read</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">119</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Deleted single</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+              
+              <tr>
+                
+                <th scope="row" class="text-secondary">120</th>
+                <td>Notifications API - VU 5 ⇀ ✅ Batch deleted</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              
+            </tbody>
+          </table>
+          <p class="d-inline-block me-3 text-success">passes: 9614</p>
+          <p class="d-inline-block me-3 text-danger">fails: 0</p>
+          <p class="d-inline-block text-info">pass rate: 100.00%</p>
+          
+          
+        </div>
+      </div>
+      
+
+      <div class="mt-3">
+        <div class="mb-4">
+          <button class="btn btn-lg fs-2 px-0 text-primary" style="box-shadow: none;" data-bs-toggle="collapse" data-bs-target="#collapseMetric"
+            aria-expanded="false" aria-controls="collapseMetric">
+            Metrics
+          </button>
+          <p class="text-secondary">Important aspect of metrics management in k6</p>
+        </div>
+        <div class="collapse show" id="collapseMetric">
+          
+          <div class="mb-5">
+            <h5>A metric that cumulatively sums added values.</h5>
+            <table class="table table-hover table-sm">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">name</th>
+                  <th scope="col">count</th>
+                  <th scope="col">rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">1</th>
+                  <td>data_received</td>
+                  <td>2773904</td>
+                  <td>3851.2384161370774</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">2</th>
+                  <td>data_sent</td>
+                  <td>1749273</td>
+                  <td>2428.6591669759855</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">3</th>
+                  <td>http_reqs</td>
+                  <td>9614</td>
+                  <td>13.347904661712107</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">4</th>
+                  <td>iterations</td>
+                  <td>9514</td>
+                  <td>13.20906646052933</td>
+                </tr>
+                
+              </tbody>
+            </table>
+          </div>
+          
+
+          
+          <div class="mb-5">
+            <h5>A metric that allows for calculating statistics on the added values (min, max, average and percentiles).</h5>
+            <table class="table table-hover table-sm">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">name</th>
+                  <th scope="col">avg</th>
+                  <th scope="col">max</th>
+                  <th scope="col">med</th>
+                  <th scope="col">min</th>
+                  <th scope="col">P(90)</th>
+                  <th scope="col">P(95)</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">1</th>
+                  <td>group_duration</td>
+                  <td>87.70 ms</td>
+                  <td>1300.52 ms</td>
+                  <td>62.42 ms</td>
+                  <td>1.46 ms</td>
+                  <td>168.83 ms</td>
+                  <td>213.74 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">2</th>
+                  <td>http_req_blocked</td>
+                  <td>0.02 ms</td>
+                  <td>28.12 ms</td>
+                  <td>0.01 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.02 ms</td>
+                  <td>0.03 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">3</th>
+                  <td>http_req_connecting</td>
+                  <td>0.00 ms</td>
+                  <td>1.62 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">4</th>
+                  <td>http_req_duration</td>
+                  <td>86.55 ms</td>
+                  <td>1253.86 ms</td>
+                  <td>61.85 ms</td>
+                  <td>1.33 ms</td>
+                  <td>168.02 ms</td>
+                  <td>213.47 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">5</th>
+                  <td>http_req_duration{expected_response:true}</td>
+                  <td>86.55 ms</td>
+                  <td>1253.86 ms</td>
+                  <td>61.85 ms</td>
+                  <td>1.33 ms</td>
+                  <td>168.02 ms</td>
+                  <td>213.47 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">6</th>
+                  <td>http_req_receiving</td>
+                  <td>0.06 ms</td>
+                  <td>14.09 ms</td>
+                  <td>0.03 ms</td>
+                  <td>0.01 ms</td>
+                  <td>0.09 ms</td>
+                  <td>0.12 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">7</th>
+                  <td>http_req_sending</td>
+                  <td>0.04 ms</td>
+                  <td>10.26 ms</td>
+                  <td>0.02 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.05 ms</td>
+                  <td>0.12 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">8</th>
+                  <td>http_req_tls_handshaking</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                  <td>0.00 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">9</th>
+                  <td>http_req_waiting</td>
+                  <td>86.44 ms</td>
+                  <td>1253.61 ms</td>
+                  <td>61.81 ms</td>
+                  <td>1.28 ms</td>
+                  <td>167.93 ms</td>
+                  <td>213.41 ms</td>
+                </tr>
+                
+                
+                <tr>
+                
+                  <th scope="row" class="text-secondary">10</th>
+                  <td>iteration_duration</td>
+                  <td>1088.83 ms</td>
+                  <td>2302.46 ms</td>
+                  <td>1063.84 ms</td>
+                  <td>1001.60 ms</td>
+                  <td>1170.18 ms</td>
+                  <td>1214.49 ms</td>
+                </tr>
+                
+              </tbody>
+            </table>
+          </div>
+          
+
+          
+            <div class="mb-5">
+              <h5>A metric that tracks the percentage of added values that are non-zero.</h5>
+              <table class="table table-hover table-sm">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">name</th>
+                    <th scope="col">rate</th>
+                    <th scope="col">passes</th>
+                    <th scope="col">fails</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  
+                  <tr>
+                  
+                    <th scope="row" class="text-secondary">1</th>
+                    <td>http_req_failed</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>9614</td>
+                  </tr>
+                  
+                </tbody>
+              </table>
+            </div>
+          
+
+          
+            <div>
+              <h5>A metric that stores the min, max and last values added to it.</h5>
+              <table class="table table-hover table-sm">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">name</th>
+                    <th scope="col">max</th>
+                    <th scope="col">min</th>
+                    <th scope="col">value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  
+                  <tr>
+                  
+                    <th scope="row" class="text-secondary">1</th>
+                    <td>vus</td>
+                    <td>20</td>
+                    <td>1</td>
+                    <td>1</td>
+                  </tr>
+                  
+                  
+                  <tr>
+                  
+                    <th scope="row" class="text-secondary">2</th>
+                    <td>vus_max</td>
+                    <td>20</td>
+                    <td>20</td>
+                    <td>20</td>
+                  </tr>
+                  
+                </tbody>
+              </table>
+              
+                
+                  <p class="text-success mt-4">All thresholds for metrics were met</p>
+                
+              
+            </div>
+          
+        </div>
+      </div>
+      <hr class="mt-5"/>
+      <footer class="text-secondary text-center">Powered by k6-html-reporter</footer>
+
+
+
+
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+
+</html>
