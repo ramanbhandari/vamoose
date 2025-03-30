@@ -130,7 +130,7 @@ export async function searchLocation(
     return [];
   }
 
-  const token = process.env.MAPBOX_ACCESS_TOKEN;
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   console.log(process.env);
   console.log("token", token);
   // if (!token) {
@@ -142,7 +142,7 @@ export async function searchLocation(
   const encodedQuery = encodeURIComponent(query);
 
   // Build the URL with optional proximity parameter
-  let url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodedQuery}&limit=${limit}&session_token=${sessionToken}&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
+  let url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodedQuery}&limit=${limit}&session_token=${sessionToken}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
   // Add proximity if provided
   if (proximity && proximity.length === 2) {
@@ -191,7 +191,7 @@ export async function searchLocation(
 export async function retrieveLocation(
   suggestionId: string
 ): Promise<SearchResult | null> {
-  const token = process.env.MAPBOX_ACCESS_TOKEN;
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   console.log(process.env);
   console.log("token", token);
   // if (!token) {
@@ -200,7 +200,7 @@ export async function retrieveLocation(
   // }
 
   try {
-    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestionId}?session_token=${sessionToken}&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
+    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestionId}?session_token=${sessionToken}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
     const response = await fetch(url);
 
@@ -243,7 +243,7 @@ export async function fetchPOIsByType(
   limit: number = 15
 ): Promise<POI[]> {
   // Access the token from the environment variable
-  const token = process.env.MAPBOX_ACCESS_TOKEN;
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   console.log(process.env);
   console.log("token", token);
   // if (!token) {
@@ -257,7 +257,7 @@ export async function fetchPOIsByType(
   // Format the bbox as a string for the API
   const bboxString = bbox.join(",");
 
-  const url = `https://api.mapbox.com/search/searchbox/v1/category/${locationType}?bbox=${bboxString}&limit=${limit}&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
+  const url = `https://api.mapbox.com/search/searchbox/v1/category/${locationType}?bbox=${bboxString}&limit=${limit}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
   try {
     const response = await fetch(url);
