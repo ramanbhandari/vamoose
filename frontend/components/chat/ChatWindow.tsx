@@ -40,7 +40,7 @@ interface ChatMessage {
 }
 
 export default function ChatWindow({ onClose }: ChatWindowProps) {
-  const MINIMIZED_TAB_WIDTH = 150;
+  const MINIMIZED_TAB_WIDTH = 280;
   const MAX_TAB_MIN_WIDTH = 200;
   const MAX_TAB_MAX_WIDTH = 400;
   const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👏"];
@@ -63,7 +63,7 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
     initializeSocketListeners,
   } = useMessageStore();
 
-  const { joinAllTrips, clearUnreadCount, unreadCounts } =
+  const { joinAllTrips, clearUnreadCount, unreadCounts, lastMessages } =
     useChatNotificationStore();
 
   const [selectedTrip, setSelectedTrip] = useState<{
@@ -236,11 +236,24 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
   };
 
   /**
+   * @function toggleMenuClose
+   * @description Set trip selection menu visibility to false
+   */
+  const toggleMenuClose = () => {
+    if (isMobile) {
+      setIsTripBarOpenOnMobile(false);
+    } else {
+      setTripTabOpen(false);
+    }
+  };
+
+  /**
    * @function selectTrip
    * @description Sets the currently-selected trip in the chat
    */
   const selectTrip = (trip: { id: number; name?: string }) => {
     setSelectedTrip(trip);
+    toggleMenu();
   };
 
   /**
@@ -396,7 +409,7 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
         position: "fixed",
         right: 20,
         backgroundColor: "var(--background)",
-        borderRadius: 2,
+        borderRadius: isMaximized ? 0 : 2,
         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
         display: "flex",
         flexDirection: "column",
@@ -451,6 +464,7 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
             setIsDragging={setIsDragging}
             tripTabWidth={tripTabWidth}
             unreadCounts={unreadCounts}
+            lastMessages={lastMessages}
           />
         </Collapse>
 
@@ -501,6 +515,7 @@ export default function ChatWindow({ onClose }: ChatWindowProps) {
             onSendMessage={handleSend}
             onHeightChange={handleInputHeightChange}
             isMaximized={isMaximized}
+            toggleMenuClose={toggleMenuClose}
           />
         </Box>
       </Box>

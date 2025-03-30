@@ -83,6 +83,10 @@ export const useMessageStore = create<MessageState>((set, get) => ({
               useChatNotificationStore
                 .getState()
                 .incrementUnreadCount(typedMessage.tripId, typedMessage);
+            } else {
+              useChatNotificationStore
+                .getState()
+                .setLastMessage(typedMessage.tripId, typedMessage);
             }
 
             if (messageExists) {

@@ -1,13 +1,13 @@
 /**
  * @file ChatInput.tsx
- * 
+ *
  * @description
  * A rich text input area for the chat interface with features:
  * - Multi-line text input with auto-expansion
  * - Emoji picker integration
  * - Responsive design for mobile/desktop
  * - Message sending functionality
- * 
+ *
  */
 
 import React, { useState, useRef, useEffect } from "react";
@@ -32,6 +32,7 @@ interface ChatInputProps {
   onSendMessage: (text: string) => void;
   onHeightChange: (height: number) => void;
   isMaximized: boolean;
+  toggleMenuClose: () => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -39,6 +40,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   onHeightChange,
   isMaximized,
+  toggleMenuClose,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -55,6 +57,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   // Handle sending messages
   const handleSend = () => {
+    toggleMenuClose();
     if (messageText.trim() && selectedTrip) {
       onSendMessage(messageText);
       setMessageText("");
@@ -199,6 +202,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             fullWidth
             multiline
             maxRows={4}
+            onClick={toggleMenuClose}
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={(e) => {
@@ -263,7 +267,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
         {/* Emoji Button */}
         <IconButton
           ref={emojiButtonRef}
-          onClick={() => setShowEmojiPicker((prev) => !prev)}
+          onClick={() => {
+            toggleMenuClose();
+            setShowEmojiPicker((prev) => !prev);
+          }}
           disabled={!selectedTrip}
           sx={{
             borderRadius: 3.5,
