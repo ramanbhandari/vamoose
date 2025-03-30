@@ -19,9 +19,11 @@ interface MessageState {
   messages: Message[];
   isConnected: boolean;
   currentTripId: string | null;
+  currentTripName: string | null;
   loading: boolean;
   error: string | null;
   listenersInitialized: boolean;
+  chatWindowOpen: boolean;
 
   // Message actions
   sendMessage: (tripId: string, userId: string, text: string) => Promise<void>;
@@ -29,7 +31,8 @@ interface MessageState {
   clearMessages: () => void;
   addReaction: (messageId: string, userId: string, emoji: string) => boolean;
 
-  setActiveTrip: (tripId: string | null) => void;
+  setActiveTrip: (tripId: string | null, tripName: string | null) => void;
+  setChatWindowOpen: (open: boolean) => void;
 
   // Socket connection management
   initializeSocket: () => void;
@@ -41,13 +44,15 @@ interface MessageState {
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   isConnected: false,
+  chatWindowOpen: false,
   currentTripId: null,
+  currentTripName: null,
   loading: false,
   error: null,
   listenersInitialized: false,
 
-  setActiveTrip: (tripId: string | null) => {
-    set({ currentTripId: tripId });
+  setActiveTrip: (tripId: string | null, tripName: string | null) => {
+    set({ currentTripId: tripId, currentTripName: tripName });
   },
   // Initialize socket event listeners
   initializeSocketListeners: () => {
@@ -73,6 +78,12 @@ export const useMessageStore = create<MessageState>((set, get) => ({
             const messageExists = state.messages.some(
               (m) => m.messageId === typedMessage.messageId
             );
+
+            if (!state.chatWindowOpen) {
+              useChatNotificationStore
+                .getState()
+                .incrementUnreadCount(typedMessage.tripId, typedMessage);
+            }
 
             if (messageExists) {
               return state; // Return unchanged state
@@ -231,6 +242,9 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     set({ error });
   },
 
+  setChatWindowOpen: (open) => {
+    set({ chatWindowOpen: open });
+  },
   // Add reaction to a message
   addReaction: (messageId, userId, emoji) => {
     // First, check if the user has already reacted with this emoji
