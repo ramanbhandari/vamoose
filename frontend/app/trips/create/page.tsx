@@ -2,13 +2,13 @@
 
 /**
  * @file CreateTrip.tsx
- * 
+ *
  * @description
  * A responsive multi-step form for creating a new trip with the following stages:
  * - Step 1: Enter trip details (name, description, destination with autocomplete)
  * - Step 2: Select trip dates and budget
  * - Step 3: Review all entered information before submission
- * 
+ *
  */
 
 import { useState, useEffect } from "react";
@@ -64,7 +64,7 @@ const steps = [
   { label: "Review & Confirm", icon: <CheckCircle fontSize="large" /> },
 ];
 
-const backgroundImage = "/dashboard/dashboard_15.jpg";
+const backgroundImage = "/createTrip/dashboard_15.jpg";
 
 export default function CreateTrip() {
   const [loading, setLoading] = useState(true);
