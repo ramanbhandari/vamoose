@@ -131,17 +131,18 @@ export async function searchLocation(
   }
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  if (!token) {
-    console.error("Mapbox access token is missing");
-    return [];
-  }
+  console.log(process.env);
+  console.log("token", token);
+  // if (!token) {
+  //   console.error("Mapbox access token is missing");
+  //   return [];
+  // }
 
   // URL encode the query
   const encodedQuery = encodeURIComponent(query);
 
   // Build the URL with optional proximity parameter
-  let url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodedQuery}&limit=${limit}&session_token=${sessionToken}&access_token=${token}`;
+  let url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodedQuery}&limit=${limit}&session_token=${sessionToken}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
   // Add proximity if provided
   if (proximity && proximity.length === 2) {
@@ -191,14 +192,15 @@ export async function retrieveLocation(
   suggestionId: string
 ): Promise<SearchResult | null> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  if (!token) {
-    console.error("Mapbox access token is missing");
-    return null;
-  }
+  console.log(process.env);
+  console.log("token", token);
+  // if (!token) {
+  //   console.error("Mapbox access token is missing");
+  //   return null;
+  // }
 
   try {
-    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestionId}?session_token=${sessionToken}&access_token=${token}`;
+    const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${suggestionId}?session_token=${sessionToken}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
     const response = await fetch(url);
 
@@ -242,11 +244,12 @@ export async function fetchPOIsByType(
 ): Promise<POI[]> {
   // Access the token from the environment variable
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  if (!token) {
-    console.error("Mapbox access token is missing");
-    return [];
-  }
+  console.log(process.env);
+  console.log("token", token);
+  // if (!token) {
+  //   console.error("Mapbox access token is missing");
+  //   return [];
+  // }
 
   // Calculate bounding box from center point and radius
   const bbox = calculateBoundingBox(center, radiusKm);
@@ -254,7 +257,7 @@ export async function fetchPOIsByType(
   // Format the bbox as a string for the API
   const bboxString = bbox.join(",");
 
-  const url = `https://api.mapbox.com/search/searchbox/v1/category/${locationType}?bbox=${bboxString}&limit=${limit}&access_token=${token}`;
+  const url = `https://api.mapbox.com/search/searchbox/v1/category/${locationType}?bbox=${bboxString}&limit=${limit}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
 
   try {
     const response = await fetch(url);
