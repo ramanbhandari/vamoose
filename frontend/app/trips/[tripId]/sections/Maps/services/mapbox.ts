@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @file mapbox.ts
  * @description Utility functions and types for working with the Mapbox Search API.
