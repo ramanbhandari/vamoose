@@ -1,7 +1,9 @@
 "use client";
+
 import { create } from "zustand";
 import apiClient from "@/utils/apiClient";
 import socketClient, { SocketEvent } from "@/utils/socketClient";
+import { useChatNotificationStore } from "./chat-notification-store";
 
 export interface Message {
   messageId: string;
@@ -17,8 +19,11 @@ interface MessageState {
   messages: Message[];
   isConnected: boolean;
   currentTripId: string | null;
+  currentTripName: string | null;
   loading: boolean;
   error: string | null;
+  listenersInitialized: boolean;
+  chatWindowOpen: boolean;
 
   // Message actions
   sendMessage: (tripId: string, userId: string, text: string) => Promise<void>;
@@ -26,30 +31,34 @@ interface MessageState {
   clearMessages: () => void;
   addReaction: (messageId: string, userId: string, emoji: string) => boolean;
 
-  // Trip chat actions
-  joinTripChat: (tripId: string) => void;
-  leaveTripChat: () => void;
+  setActiveTrip: (tripId: string | null, tripName: string | null) => void;
+  setChatWindowOpen: (open: boolean) => void;
 
   // Socket connection management
   initializeSocket: () => void;
-  disconnectSocket: () => void;
   initializeSocketListeners: () => void;
-  cleanupSocketListeners: () => void;
 
-  // State management
   setError: (error: string | null) => void;
-  setIsConnected: (isConnected: boolean) => void;
 }
 
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   isConnected: false,
+  chatWindowOpen: false,
   currentTripId: null,
+  currentTripName: null,
   loading: false,
   error: null,
+  listenersInitialized: false,
 
+  setActiveTrip: (tripId: string | null, tripName: string | null) => {
+    set({ currentTripId: tripId, currentTripName: tripName });
+  },
   // Initialize socket event listeners
   initializeSocketListeners: () => {
+    if (get().listenersInitialized) {
+      return;
+    }
     const handleConnect = () => {
       set({ isConnected: true });
     };
@@ -64,19 +73,35 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
         // Check if message already exists to prevent duplicates
         set((state) => {
-          // If message with this ID already exists, don't add it again
-          const messageExists = state.messages.some(
-            (m) => m.messageId === typedMessage.messageId
-          );
+          if (typedMessage.tripId === state.currentTripId) {
+            // If message with this ID already exists, don't add it again
+            const messageExists = state.messages.some(
+              (m) => m.messageId === typedMessage.messageId
+            );
 
-          if (messageExists) {
-            return state; // Return unchanged state
+            if (!state.chatWindowOpen) {
+              useChatNotificationStore
+                .getState()
+                .incrementUnreadCount(typedMessage.tripId, typedMessage);
+            } else {
+              useChatNotificationStore
+                .getState()
+                .setLastMessage(typedMessage.tripId, typedMessage);
+            }
+
+            if (messageExists) {
+              return state; // Return unchanged state
+            }
+
+            return {
+              messages: [...state.messages, typedMessage],
+            };
+          } else {
+            useChatNotificationStore
+              .getState()
+              .incrementUnreadCount(typedMessage.tripId, typedMessage);
+            return state;
           }
-
-          // Add new message
-          return {
-            messages: [...state.messages, typedMessage],
-          };
         });
       }
     };
@@ -144,11 +169,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       SocketEvent.REACTION_UPDATED,
       handleReactionUpdated
     );
-  },
 
-  // Clean up socket event listeners (just disconnect the socket) hehe
-  cleanupSocketListeners: () => {
-    socketClient.disconnectSocket();
+    set({ listenersInitialized: true });
   },
 
   // Initialize socket connection
@@ -168,36 +190,9 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     return socketClient.isConnected();
   },
 
-  // Join a trip's chat room
-  joinTripChat: (tripId) => {
-    if (!socketClient.isConnected()) {
-      console.warn("Socket not connected; waiting for connect event...");
-      // Initialize the socket; this will attach a listener for CONNECT
-      get().initializeSocket();
-      // Instead of a timeout, wait for the connect event once:
-      socketClient.getSocket().once(SocketEvent.CONNECT, () => {
-        socketClient.joinTripChat(tripId);
-        set({ currentTripId: tripId });
-      });
-    } else {
-      socketClient.joinTripChat(tripId);
-      set({ currentTripId: tripId });
-    }
-  },
-
-  // Leave the current trip's chat room
-  leaveTripChat: () => {
-    const { currentTripId } = get();
-    if (currentTripId) {
-      socketClient.leaveTripChat(currentTripId);
-      set({ currentTripId: null, messages: [] });
-    }
-  },
-
   // Send a message
   sendMessage: async (tripId, userId, text) => {
     if (!socketClient.isConnected()) {
-      set({ error: "Connection lost. Reconnecting..." });
       get().initializeSocket();
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
@@ -251,15 +246,9 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     set({ error });
   },
 
-  // Set connection state
-  setIsConnected: (isConnected) => {
-    set({ isConnected });
+  setChatWindowOpen: (open) => {
+    set({ chatWindowOpen: open });
   },
-
-  disconnectSocket: () => {
-    socketClient.disconnectSocket();
-  },
-
   // Add reaction to a message
   addReaction: (messageId, userId, emoji) => {
     // First, check if the user has already reacted with this emoji
@@ -312,18 +301,5 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     });
 
     return hasReacted;
-  },
-
-  checkConnection: () => {
-    return socketClient.isConnected();
-  },
-
-  reconnect: async () => {
-    if (!socketClient.isConnected()) {
-      get().initializeSocket();
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return socketClient.isConnected();
-    }
-    return true;
   },
 }));
