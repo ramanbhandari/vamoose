@@ -35,10 +35,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { FloatingDialog } from "./styled";
 
 import { CreatePollRequest } from "./types";
-import {
-  formatDateTimeForAPI,
-  parseLocalDateWithTime,
-} from "@/utils/dateFormatter";
+import { formatDateTimeForAPI } from "@/utils/dateFormatter";
 
 import { useNotificationStore } from "@/stores/notification-store";
 
@@ -163,7 +160,7 @@ export default function CreatePollDialog({
         return;
       }
 
-      const formattedDate = formatDateTimeForAPI(newValue);
+      const formattedDate = newValue.toISOString();
 
       setExpiresAtDate(formattedDate);
     }
@@ -311,7 +308,7 @@ export default function CreatePollDialog({
                   >
                     <DateTimePicker
                       label="Deadline*"
-                      value={parseLocalDateWithTime(expiresAtDate)}
+                      value={expiresAtDate ? new Date(expiresAtDate) : null}
                       disablePast
                       onChange={handleExpiresAtDate}
                       minDateTime={new Date()}
