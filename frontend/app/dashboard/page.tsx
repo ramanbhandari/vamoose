@@ -23,7 +23,7 @@ const items = [
   "/dashboard/dashboard_4.jpg",
   "/dashboard/dashboard_5.jpg",
   "/dashboard/dashboard_6.jpg",
-  "/dashboard/dashboard_7.avif",
+  "/dashboard/dashboard_7.jpg",
   "/dashboard/dashboard_8.jpg",
   "/dashboard/dashboard_9.jpg",
   "/dashboard/dashboard_10.jpg",
