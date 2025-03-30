@@ -1,3 +1,13 @@
+/**
+ * @file mapbox.ts
+ * @description Utility functions and types for working with the Mapbox Search API.
+ * Includes support for location suggestions, detailed location retrieval, and category-based POI fetching.
+ *
+ * Constants:
+ * - `SEARCH_RADIUS_KM`: Default search radius used for POI queries.
+ *
+ */
+
 import * as turf from "@turf/turf";
 import { v4 as uuidv4 } from "uuid";
 

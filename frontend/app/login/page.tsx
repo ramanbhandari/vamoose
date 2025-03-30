@@ -1,3 +1,8 @@
+/**
+ * @file LoginPage.tsx
+ * @description Server-side rendered login page that redirects authenticated users and displays the AuthForm component.
+ */
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import AuthForm from "./AuthForm";

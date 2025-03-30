@@ -1,3 +1,5 @@
 .vscode/*
 .DS_Store
 /.idea/
+server/src/tests/load/reports/
+server/src/tests/load/bundled/

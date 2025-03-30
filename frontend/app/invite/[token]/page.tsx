@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file page.tsx
+ * @description Fetches and validates trip invite details using token, and renders the invite UI component.
+ */
+
 import { useEffect, useState } from "react";
 import { notFound, useParams } from "next/navigation";
 import apiClient from "@/utils/apiClient";

@@ -1,5 +1,12 @@
+/**
+ * @file notificationService.ts
+ * @description Service for managing notifications in the application.
+ * Handles creation of immediate and scheduled notifications, and cleanup of scheduled notifications.
+ * Supports both in-app and email notification channels.
+ */
+
 import prisma from '@/config/prismaClient.js';
-import { NotificationType } from '@/interfaces/enums';
+import { NotificationType } from '@/interfaces/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 

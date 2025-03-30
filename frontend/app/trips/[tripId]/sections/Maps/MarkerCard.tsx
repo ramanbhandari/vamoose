@@ -1,3 +1,10 @@
+/**
+ * @file MarkerCard.tsx
+ * @description UI card component that displays details about a map marker (location/POI).
+ * Supports saving, editing notes, deleting locations, and displaying user info and permissions.
+ * Dynamically adjusts position based on MapLibre coordinates and handles hover vs selected view.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   Box,

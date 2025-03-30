@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file CreatePollDialog.tsx
+ * @description Dialog form for creating a new poll with options, question, and deadline.
+ */
+
 import React, { useState } from "react";
 import {
   DialogTitle,

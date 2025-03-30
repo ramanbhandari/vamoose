@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file TripOverview.tsx
+ * @description Main landing section for a trip, combining header, journey essentials, member avatars, expenses, and active polls.
+ * Includes scroll scaling effect for desktop and handles redirection for member invites.
+ */
+
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Container,
@@ -20,6 +26,8 @@ import ExpensesSection from "./ExpensesSection";
 import PollsSection from "./PollsSection";
 import { useRouter } from "next/navigation";
 import { usePollStore } from "@/stores/polls-store";
+import ItinerarySection from "./ItinerarySection";
+import { useItineraryStore } from "@/stores/itinerary-store";
 
 interface TripOverviewProps {
   tripData: TripData | null;
@@ -38,6 +46,8 @@ export default function TripOverview({
   const { tripData: tripDataStore } = useTripStore();
   // fetch active polls that must already be in our store
   const { activePolls } = usePollStore();
+  //fetch itinerary events from our store
+  const { itineraryEvents } = useItineraryStore();
 
   const tripData = tripDataStore || initialTripData;
 
@@ -81,6 +91,10 @@ export default function TripOverview({
               />
             </Grid>
           </Grid>
+          <ItinerarySection
+            itineraryEvents={itineraryEvents}
+            onSectionChange={onSectionChange}
+          />
           <ExpensesSection
             expenses={tripData.expenses}
             onSectionChange={onSectionChange}

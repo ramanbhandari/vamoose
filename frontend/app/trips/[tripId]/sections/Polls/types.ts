@@ -1,3 +1,9 @@
+
+/**
+ * @file types.ts
+ * @description TypeScript interfaces and types used for managing Poll data, including Poll structure, options, voters, and creation payload.
+ */
+
 export interface PollOption {
   id: number;
   option: string;

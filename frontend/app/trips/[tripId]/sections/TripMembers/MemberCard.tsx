@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @file MemberCard.tsx
+ * @description Card component that displays trip member details with role management, deletion, and selection options.
+ * 
+ */
+
 import {
   Paper,
   Avatar,

@@ -1,5 +1,32 @@
 "use client";
 
+/**
+ * @file Chat.tsx
+ * 
+ * @description
+ * A real-time chat interface for trip groups with features like:
+ * - Multiple trip selection
+ * - Message reactions
+ * - Responsive design for mobile/desktop
+ * - Real-time updates via socket connection
+ * 
+ * Functions:
+ * - toggleChat: Toggle chat window visibility with animation
+ * - toggleMaximize: Toggle between minimized and maximized chat view
+ * - toggleMenu: Toggle trip selection menu visibility
+ * - selectTrip: Handle trip selection for chat
+ * - handleSend: Send new chat messages
+ * - handleInputHeightChange: Adjust layout when input height changes
+ * - formatTimestamp: Format message timestamps
+ * - handleReaction: Add/remove reactions to messages
+ * - isReactionProcessing: Check if a reaction is being processed
+ * - hasUserReacted: Check if user has reacted with specific emoji
+ * - getUserFullName: Get display name for message sender
+ * - shouldShowDateDivider: Determine if date divider should be shown between messages
+ * - handleMouseEnter/Leave: Show/hide trip member info on hover
+ * 
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { differenceInHours, startOfDay, format } from "date-fns";
 
@@ -738,8 +765,8 @@ export default function Chat() {
                 position: "relative",
                 backgroundImage: (theme) =>
                   theme.palette.mode === "dark"
-                    ? "url('dark-mode.jpg')"
-                    : "url('light-mode.jpg')",
+                    ? "url('chat_dark-mode.jpg')"
+                    : "url('chat_light-mode.jpg')",
                 backgroundRepeat: "repeat",
                 backgroundSize: "auto",
                 backgroundPosition: "center",

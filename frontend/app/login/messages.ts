@@ -1,3 +1,7 @@
+/**
+ * @file messages.ts
+ * @description Static UI text content used in the AuthForm component for labels, placeholders, and error messages.
+ */
 export const getMessages = {
   title: "Vamoose!",
   tagline: "Plan your perfect trip with your group",

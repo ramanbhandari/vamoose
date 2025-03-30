@@ -1,3 +1,10 @@
+/**
+ * @file scheduler.ts
+ * @description Cron job scheduler for handling scheduled tasks.
+ * Processes scheduled notifications and manages poll expiration/completion.
+ * Runs every 5 minutes to check for due notifications and expired polls.
+ */
+
 import cron from 'node-cron';
 import prisma from '@/config/prismaClient.js';
 import { NotificationType, PollStatus } from '@/interfaces/enums.js';

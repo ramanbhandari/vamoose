@@ -1,3 +1,8 @@
+/**
+ * @file CustomToolbar.tsx
+ * @description A responsive and styled custom toolbar for the React Big Calendar component.
+ */
+
 import React from "react";
 import { ToolbarProps, Navigate, Views } from "react-big-calendar";
 import {

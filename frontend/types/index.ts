@@ -1,3 +1,9 @@
+/** 
+ * @file models.ts 
+ * @description This file contains the data models and TypeScript interfaces used across the application.
+ * The models include structures for handling trip data, expenses, members, and city suggestions.
+ */
+
 export interface Expense {
   id: number;
   amount: number;
@@ -56,7 +62,6 @@ export interface ExpensesSummary {
   totalExpenses: number;
 }
 
-// Photo API Response
 export interface PhotonAPIResponse {
   features: {
     properties: {

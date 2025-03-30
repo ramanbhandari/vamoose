@@ -1,5 +1,16 @@
+/** 
+ * @file supabaseClient.ts
+ * @description This file handles the creation of Supabase clients for both server-side and browser-side requests.
+ * It provides functions to create Supabase clients, attach authentication tokens, and manage cookies.
+ */
+
 import { createBrowserClient } from "@supabase/ssr";
 
+
+/**
+ * Creates a Supabase client for use on the client-side.
+ * This client will be used to interact with Supabase from the browser.
+ */
 export const createClient = () =>
   createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

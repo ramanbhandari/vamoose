@@ -1,3 +1,9 @@
+/**
+ * @file Maps.tsx
+ * @description Renders the trip-specific Maps section with a styled header and an interactive map.
+ * The map allows users to view and manage Points of Interest (POIs) relevant to their trip.
+ */
+
 import { Box, Typography, useTheme, Container } from "@mui/material";
 import { GradientHeader } from "../Overview/styled";
 import InteractiveMap from "./InteractiveMap";

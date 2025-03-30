@@ -1,3 +1,8 @@
+/**
+ * @file DestinationField.tsx
+ * @description A form field with autocomplete for selecting a destination using the Photon geocoding API. Includes error handling and dynamic suggestion list.
+ */
+
 import React, { useState, useRef } from "react";
 import {
   TextField,

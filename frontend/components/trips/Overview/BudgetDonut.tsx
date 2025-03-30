@@ -1,3 +1,13 @@
+/**
+ * @file BudgetDonut.tsx
+ * @description A React component that renders a donut chart displaying the user's budget vs expenses.
+ * It provides functionality for editing the budget, displaying breakdowns of expenses by category,
+ * and showing alerts if the budget is near or exceeded. The chart is interactive and displays tooltips
+ * with detailed information when hovered.
+ * 
+ */
+
+
 import {
   Box,
   Typography,

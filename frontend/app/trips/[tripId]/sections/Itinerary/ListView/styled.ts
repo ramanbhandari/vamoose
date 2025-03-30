@@ -1,3 +1,8 @@
+/**
+ * @file styled.ts
+ * @description Custom styled components for the itinerary timeline UI.
+ */
+
 import { Box, styled, alpha } from "@mui/material";
 
 export const TimelineDot = styled(Box)(({ theme }) => ({

@@ -1,3 +1,9 @@
+/**
+ * @file ListView.tsx
+ * @description This component renders the itinerary events in a grouped-by-date timeline view.
+ * 
+ */
+
 import React, { useMemo, useState } from "react";
 import {
   Box,

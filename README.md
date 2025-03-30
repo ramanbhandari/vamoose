@@ -1,5 +1,10 @@
 # Vamoose! - Comp 4350
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=alert_status)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=coverage)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ramanbhandari_vamoose&metric=security_rating)](https://sonarcloud.io/dashboard?id=ramanbhandari_vamoose)
+
 ## Table of Contents
 
 - [Vamoose! - Comp 4350](#vamoose---comp-4350)
@@ -8,6 +13,9 @@
   - [Documents](#documents)
   - [Installation](#installation)
   - [Docker Images](#docker-images)
+  - [Load Tests](#load-tests)
+    - [**Report Contents:**](#report-contents)
+    - [**📊 Access the Latest Report**](#-access-the-latest-report)
   - [Architecture](#architecture)
   - [Contributing](#contributing)
   - [Team](#team)
@@ -39,16 +47,13 @@ Vamoose! aims to make group trip planning seamless and fun, removing the stress 
   - [Invite_API](./Documentation/SequenceDiagrams/invitee_api_seq_diagram.pdf)
   - [Member_API](./Documentation/SequenceDiagrams/member_api_seq_diagram.pdf)
   - [Trip_API](./Documentation/SequenceDiagrams/trip_api_seq_diagram.pdf)
+  - [Marked_Location_API](./Documentation/SequenceDiagrams/markedLocation_api_seq_diagram.pdf)
   - [Polls_API](./Documentation/SequenceDiagrams/polls_api_seq_diagram.pdf)
   - [Notifications_API](./Documentation/SequenceDiagrams/notifications_api_seq_diagram.pdf)
   - [Events_API](./Documentation/SequenceDiagrams/events_api_seq_diagram.pdf)
   - [Events_Notes_API](./Documentation/SequenceDiagrams/eventNotes_api_seq_diagram.pdf)
   - [Locations_API](./Documentation/SequenceDiagrams/location_api_seq_diagram.pdf)
   - [Messages_API](./Documentation/SequenceDiagrams/messages_api_seq_diagram.pdf)
-
-
-Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
-
 
 ## Installation
 
@@ -59,6 +64,25 @@ Documentation/Sequence Diagrams/expense_API_sequence_diagram.pdf
 
 - **Backend:** [Vamoose Server](https://hub.docker.com/r/ramanbhandari14/vamoose-server)
 - **Frontend:** [Vamoose Frontend](https://hub.docker.com/r/ramanbhandari14/vamoose-frontend)
+
+## Load Tests
+
+Load tests are run using **K6**. Each API endpoint’s load test is executed concurrently with **20 virtual users**. The results are stored in a timestamped directory, containing:
+
+- **JSON Files:** Raw performance data for each endpoint (e.g., `expense.json`, `invite.json`).
+- **HTML Reports:** Each endpoint has a dedicated report folder (e.g., `expense.report.html`) that includes a `report.html` file.
+
+### **Report Contents:**
+- **Thresholds:** Pass/fail criteria for performance expectations.
+- **Checks:** Assertions (e.g., "Expense API ⇀ ✅ Trip created") with pass/fail counts.
+- **Metrics:**
+  - **Cumulative Data:** Total requests, data sent/received.
+  - **Response Times:** Average, median, max, and percentiles (P90, P95).
+  - **Virtual Users:** Confirms 50 concurrent users per test.
+
+### **📊 [Access the Latest Report](./server/src/tests/load/reports/2025-03-29T00-53-49-979Z/)**
+
+Click the link above to view the most recent load test results. Select an endpoint-specific HTML report inside the directory for detailed performance insights.
 
 ## Architecture
 

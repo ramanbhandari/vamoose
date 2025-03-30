@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * @file ExpenseBreakdown.tsx
+ * @description Displays a breakdown of debts for each trip member in a collapsible card format.
+ */
 import React, { useState } from "react";
 import MemberOwedCard from "./MemberOwedCard";
 import { Box, Container, Paper, Typography, useTheme } from "@mui/material";

@@ -1,5 +1,12 @@
 "use client";
 
+/** 
+ * @file NotificationSnackbar.tsx 
+ * @description A React component that displays a snackbar with an alert message, 
+ * triggered by the application's state, to notify users of different events (success, error, info, warning).
+ * The component automatically hides after 6 seconds or when manually closed.
+ */
+
 import React, { useEffect } from "react";
 import { Snackbar, Alert, SnackbarCloseReason } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";

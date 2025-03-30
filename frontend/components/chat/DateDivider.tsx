@@ -1,3 +1,14 @@
+/**
+ * @file DateDivider Component
+ * 
+ * @description
+ * A visual separator for chat messages that displays formatted dates with:
+ * - Relative dates (Today/Yesterday) when applicable
+ * - Day of week + date for current year dates
+ * - Full date with year for past/future years
+ * - Smooth fade-in animation
+ */
+
 import React from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { format, isToday, isYesterday } from "date-fns";

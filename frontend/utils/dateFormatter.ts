@@ -1,3 +1,9 @@
+/**
+ * @file dateFormatter.ts
+ * @description This module provides helper functions for working with date and time. It includes 
+ * utilities to format, parse, and handle date strings in various formats. 
+ */
+
 import { format, parseISO } from "date-fns";
 
 // helper to print in Apr 8, 2025 format (no Time)

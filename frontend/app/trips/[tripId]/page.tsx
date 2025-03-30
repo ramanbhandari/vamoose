@@ -1,5 +1,19 @@
 "use client";
 
+/**
+ * @file page.tsx
+ * 
+ * @description
+ * Main summary page for a specific trip, displaying various sections like:
+ * - Overview
+ * - Itinerary
+ * - Polls
+ * - Expenses
+ * - Members
+ * - Maps
+ * - Packing List
+ */
+
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -13,7 +27,6 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PollIcon from "@mui/icons-material/Poll";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import WorkIcon from "@mui/icons-material/Work";
 import GroupIcon from "@mui/icons-material/Group";
 import CalculateIcon from "@mui/icons-material/Calculate";
 
@@ -21,7 +34,6 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 import Overview from "./sections/Overview/index";
 import Polls from "./sections/Polls/index";
 import Itinerary from "./sections/Itinerary/index";
-import PackingList from "./sections/PackingList/index";
 import TripMembers from "./sections/TripMembers/index";
 import Expenses from "./sections/Expenses";
 
@@ -51,19 +63,14 @@ const sections = [
     icon: <CalculateIcon fontSize="medium" />,
   },
   {
-    id: "members",
-    label: "Members",
-    icon: <GroupIcon fontSize="medium" />,
-  },
-  {
     id: "maps",
     label: "Maps",
     icon: <LocationOn fontSize="medium" />,
   },
   {
-    id: "packing",
-    label: "Packing List",
-    icon: <WorkIcon fontSize="medium" />,
+    id: "members",
+    label: "Members",
+    icon: <GroupIcon fontSize="medium" />,
   },
 ];
 
@@ -257,13 +264,6 @@ export default function TripSummaryPage() {
 
         {activeSection === "maps" && tripData && (
           <Maps
-            tripId={tripData.id}
-            tripName={tripData.name}
-            imageUrl={tripData.imageUrl ?? null}
-          />
-        )}
-        {activeSection === "packing" && tripData && (
-          <PackingList
             tripId={tripData.id}
             tripName={tripData.name}
             imageUrl={tripData.imageUrl ?? null}

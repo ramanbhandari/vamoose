@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * @file InviteClientComponent.tsx
+ * @description Displays and manages trip invitations with user authentication, validation, and responsive UI.
+ */
+
 import { useEffect, useState } from "react";
 import { notFound, useRouter } from "next/navigation";
 import {

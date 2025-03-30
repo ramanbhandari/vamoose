@@ -1,3 +1,10 @@
+/**
+ * @file server.ts
+ * @description This module creates and configures a Supabase client for server-side usage
+ * in a Next.js environment. It handles cookie management for retrieving and setting cookies 
+ * across requests, ensuring that sessions are correctly managed.
+ */
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 

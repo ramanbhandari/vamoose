@@ -1,3 +1,9 @@
+/**
+ * 
+ * Animation for ham icon.
+ * 
+ */
+
 const AnimatedMenuIcon = ({
   isOpen,
   onClick,
