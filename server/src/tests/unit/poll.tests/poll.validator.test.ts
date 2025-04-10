@@ -4,7 +4,7 @@ import {
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
   validateCompletePollInput,
-} from '@/middlewares/poll.validators.js';
+} from '@/middleware/poll.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

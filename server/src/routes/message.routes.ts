@@ -9,8 +9,8 @@ import {
   validateCreateMessageInput,
   validateGetMessagesInput,
   validateUpdateMessageInput,
-} from '@/middlewares/message.validators.js';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+} from '@/middleware/message.validators.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 const router = express.Router({ mergeParams: true });
 

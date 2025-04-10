@@ -1,6 +1,6 @@
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
-import { validateItineraryEventAssignmentInput } from '@/middlewares/itineraryEventAssignment.validators.js';
+import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators.js';
 
 describe('Itinerary Event Assignment Validators Middleware', () => {
   let mockReq: Partial<Request>;

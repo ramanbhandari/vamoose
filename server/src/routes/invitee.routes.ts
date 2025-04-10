@@ -10,8 +10,8 @@ import {
 import {
   validateCreateInviteInput,
   validateInviteParams,
-} from '@/middlewares/invitee.validators.js';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+} from '@/middleware/invitee.validators.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 const router = express.Router({ mergeParams: true });
 

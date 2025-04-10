@@ -1,16 +1,16 @@
 import express from 'express';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateCreatePollInput,
   validateDeletePollInput,
   validateBatchDeletePollsInput,
   validateGetAllPollsForTripInput,
   validateCompletePollInput,
-} from '@/middlewares/poll.validators.js';
+} from '@/middleware/poll.validators.js';
 import {
   validateCastVoteInput,
   validateDeleteVoteInput,
-} from '@/middlewares/pollVote.validators.js';
+} from '@/middleware/pollVote.validators.js';
 import {
   createPollHandler,
   deletePollHandler,

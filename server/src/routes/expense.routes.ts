@@ -1,13 +1,13 @@
 import express from 'express';
 
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 import {
   validateAddExpenseInput,
   validateFetchExpense,
   validateDeleteSingleExpense,
   validateDeleteMultipleExpenses,
-} from '@/middlewares/expense.validators.js';
+} from '@/middleware/expense.validators.js';
 
 import {
   addExpenseHandler,

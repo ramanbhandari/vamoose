@@ -5,7 +5,7 @@ import {
   validateLeaveTripInput,
   validateRemoveTripMemberInput,
   validateBatchRemoveTripMembersInput,
-} from '@/middlewares/member.validators.js';
+} from '@/middleware/member.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

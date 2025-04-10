@@ -1,12 +1,12 @@
 import express from 'express';
 
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 import {
   validateTripDebtSummaryInput,
   validateUserDebtSummaryInput,
   validateSettleExpenseSharesInput,
-} from '@/middlewares/expenseShare.validators.js';
+} from '@/middleware/expenseShare.validators.js';
 
 import {
   getTripDebtsSummaryHandler,

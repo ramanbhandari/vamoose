@@ -10,8 +10,8 @@ import {
   validateGetAllMarkedLocationsInput,
   validateUpdateMarkedLocationNotesInput,
   validateDeleteMarkedLocationInput,
-} from '@/middlewares/markedLocation.validators.js';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+} from '@/middleware/markedLocation.validators.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 
 const router = express.Router({ mergeParams: true });
 

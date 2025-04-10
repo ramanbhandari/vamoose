@@ -1,11 +1,11 @@
 import express from 'express';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateAddEventNoteInput,
   validateBatchDeleteEventNotesInput,
   validateDeleteEventNoteInput,
   validateUpdateEventNoteInput,
-} from '@/middlewares/itineraryEventNote.validators.js';
+} from '@/middleware/itineraryEventNote.validators.js';
 import {
   addNoteToItineraryEventHandler,
   batchDeleteItineraryEventNotesHandler,

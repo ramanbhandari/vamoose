@@ -1,5 +1,5 @@
 import express from 'express';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateCreateItineraryEventInput,
   validateUpdateItineraryEventInput,
@@ -7,7 +7,7 @@ import {
   validateGetSingleItineraryEventInput,
   validateDeleteItineraryEventInput,
   validateBatchDeleteItineraryEventsInput,
-} from '@/middlewares/itineraryEvent.validators.js';
+} from '@/middleware/itineraryEvent.validators.js';
 import {
   createItineraryEventHandler,
   updateItineraryEventHandler,
@@ -20,7 +20,7 @@ import {
   assignUsersToItineraryEventHandler,
   unassignUserFromItineraryEventHandler,
 } from '@/controllers/itineraryEventAssignment.controller.js';
-import { validateItineraryEventAssignmentInput } from '@/middlewares/itineraryEventAssignment.validators.js';
+import { validateItineraryEventAssignmentInput } from '@/middleware/itineraryEventAssignment.validators.js';
 import eventNoteRouter from '@/routes/itineraryEventNote.routes.js';
 
 const router = express.Router({ mergeParams: true });

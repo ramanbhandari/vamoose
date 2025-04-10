@@ -1,10 +1,10 @@
 import express from 'express';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateGetNotificationsInput,
   validateHandleSingleNotificationInput,
   validateHandleBatchNotificationsInput,
-} from '@/middlewares/notification.validators.js';
+} from '@/middleware/notification.validators.js';
 import {
   getNotificationsHandler,
   markNotificationAsReadHandler,

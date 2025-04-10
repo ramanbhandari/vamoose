@@ -1,5 +1,5 @@
 import express from 'express';
-import validationErrorHandler from '@/middlewares/validationErrorHandler.js';
+import validationErrorHandler from '@/middleware/validationErrorHandler.js';
 import {
   validateUpdateTripMemberInput,
   validateFetchSingleTripMember,
@@ -7,7 +7,7 @@ import {
   validateLeaveTripInput,
   validateRemoveTripMemberInput,
   validateBatchRemoveTripMembersInput,
-} from '@/middlewares/member.validators.js';
+} from '@/middleware/member.validators.js';
 import {
   updateTripMemberHandler,
   getTripMemberHandler,
