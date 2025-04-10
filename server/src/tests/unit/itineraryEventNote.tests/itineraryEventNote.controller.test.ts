@@ -5,9 +5,9 @@ import {
   deleteItineraryEventNoteHandler,
   batchDeleteItineraryEventNotesHandler,
 } from '@/controllers/itineraryEventNote.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     eventNote: {

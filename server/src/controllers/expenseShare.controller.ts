@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import {
   fetchExpenseSharesForTrip,
   fetchExpenseSharesForUser,
@@ -8,9 +8,9 @@ import {
 } from '@/models/expenseShare.model.js';
 import { getTripMember } from '@/models/member.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { TripDebtDetail } from '@/interfaces/interfaces.js';
+import { TripDebtDetail } from '@/daos/interfaces.js';
 import { notifyIndividual } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { getUserById } from '@/models/user.model.js';
 
 /**

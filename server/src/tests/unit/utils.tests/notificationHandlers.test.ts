@@ -7,7 +7,7 @@ import {
 } from '@/utils/notificationHandlers.js';
 import { createNotification } from '@/services/notificationService.js';
 import { getAllTripMembers } from '@/models/member.model.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 
 // Mock the dependencies
 jest.mock('@/services/notificationService.js', () => ({

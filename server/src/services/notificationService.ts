@@ -5,8 +5,8 @@
  * Supports both in-app and email notification channels.
  */
 
-import prisma from '@/config/prismaClient.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import prisma from '@/configs/prismaClient.js';
+import { NotificationType } from '@/daos/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { LocationType } from '@/interfaces/enums.js';
+import { LocationType } from '@/daos/enums.js';
 import {
   createMarkedLocation,
   getAllMarkedLocationsForTrip,
@@ -14,7 +14,7 @@ import {
   notifyIndividual,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 
 // Create a new marked location

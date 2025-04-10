@@ -31,6 +31,7 @@ import {
   Toolbar,
   SelectChangeEvent,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 
 import {
@@ -43,6 +44,7 @@ import {
   FilterList,
   Person,
   SportsKabaddi,
+  HelpOutline,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
@@ -144,6 +146,7 @@ export default function Expenses({
     category: "",
     description: "",
     paidByEmail: "",
+    splitAmongEmails: [] as string[],
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -193,6 +196,9 @@ export default function Expenses({
         category: formData.category,
         description: formData.description,
         ...(formData.paidByEmail && { paidByEmail: formData.paidByEmail }),
+        ...(formData.splitAmongEmails.length > 0 && {
+          splitAmongEmails: formData.splitAmongEmails,
+        }),
       };
 
       const response = await apiClient.post(
@@ -209,6 +215,7 @@ export default function Expenses({
         category: "",
         description: "",
         paidByEmail: "",
+        splitAmongEmails: [],
       });
 
       await fetchTripData(tripId);
@@ -221,7 +228,16 @@ export default function Expenses({
     }
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setFormData({
+      amount: "",
+      category: "",
+      description: "",
+      paidByEmail: "",
+      splitAmongEmails: [],
+    });
+  };
 
   const handleSelect = (id: number) => {
     setSelected((prev) =>
@@ -555,7 +571,7 @@ export default function Expenses({
         </Box>
       </Container>
 
-      <FloatingDialog open={open} onClose={() => setOpen(false)}>
+      <FloatingDialog open={open} onClose={() => handleClose()}>
         <DialogTitle
           sx={{
             backgroundColor: theme.palette.background.default,
@@ -634,6 +650,83 @@ export default function Expenses({
                     </MenuItem>
                   ))}
                 </Select>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  By default, the expense is paid by you.
+                </Typography>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sx={{ mt: -3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  mb: 0.5,
+                }}
+              >
+                <Tooltip
+                  title={
+                    <>
+                      <Typography variant="body2" fontWeight={600}>
+                        How splitting works:
+                      </Typography>
+                      <Typography variant="body2">
+                        If only one member is selected, that person owes the
+                        entire amount.
+                        <br />
+                        To split the cost among multiple members, select all
+                        relevant users (including yourself).
+                      </Typography>
+                    </>
+                  }
+                  arrow
+                  placement="top"
+                >
+                  <HelpOutline
+                    fontSize="small"
+                    color="action"
+                    sx={{ cursor: "pointer" }}
+                  />
+                </Tooltip>
+              </Box>
+
+              <FormControl fullWidth>
+                <InputLabel>Split Amongst</InputLabel>
+                <Select
+                  label="Split Amongst"
+                  name="splitAmongEmails"
+                  multiple
+                  value={formData.splitAmongEmails}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      splitAmongEmails: e.target.value as string[],
+                    }))
+                  }
+                  renderValue={(selected) => selected.join(", ")}
+                >
+                  {membersList.map((member) => (
+                    <MenuItem key={member.value} value={member.value}>
+                      <Checkbox
+                        checked={formData.splitAmongEmails.includes(
+                          member.value
+                        )}
+                      />
+                      {member.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  By default, the expense is split equally among all members.
+                </Typography>
               </FormControl>
             </Grid>
           </Grid>
@@ -646,7 +739,7 @@ export default function Expenses({
           }}
         >
           <Button
-            onClick={() => setOpen(false)}
+            onClick={() => handleClose()}
             color="inherit"
             sx={{ mr: "auto" }}
           >

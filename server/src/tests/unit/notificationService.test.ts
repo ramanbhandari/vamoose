@@ -1,7 +1,7 @@
 import { createNotification } from '@/services/notificationService.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   notification: { createMany: jest.fn() },
   scheduledNotification: { createMany: jest.fn() },
 }));

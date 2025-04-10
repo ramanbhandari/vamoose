@@ -3,9 +3,9 @@ import { castVote, deleteVote } from '@/models/pollVote.model.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getPollById } from '@/models/poll.model.js';
 import { getPollOptionById } from '@/models/pollOption.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { PollStatus } from '@/interfaces/enums.js';
+import { PollStatus } from '@/daos/enums.js';
 import { DateTime } from 'luxon';
 
 export const castVoteHandler = async (req: Request, res: Response) => {

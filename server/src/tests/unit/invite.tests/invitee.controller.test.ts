@@ -6,13 +6,13 @@ import {
   deleteInvite,
   checkInvite,
 } from '@/controllers/invitee.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: { findUnique: jest.fn() },

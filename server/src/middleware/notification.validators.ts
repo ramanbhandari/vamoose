@@ -1,5 +1,5 @@
 import { body, checkExact, param, query } from 'express-validator';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 
 export const validateGetNotificationsInput = checkExact(
   query('type')

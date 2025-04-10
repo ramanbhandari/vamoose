@@ -6,12 +6,12 @@ import {
   deleteItineraryEventHandler,
   batchDeleteItineraryEventsHandler,
 } from '@/controllers/itineraryEvent.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { Request, Response } from 'express';
 import { DateTime } from 'luxon';
-import { EventCategory } from '@/interfaces/enums.js';
+import { EventCategory } from '@/daos/enums.js';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: {

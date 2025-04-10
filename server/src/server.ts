@@ -8,8 +8,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import app from '@/app.js';
-import prisma from '@/config/prismaClient.js';
-import connectMongoDB from '@/db/mongo.js';
+import prisma from '@/configs/prismaClient.js';
+import connectMongoDB from '@/configs/mongo.js';
 
 const port = process.env.PORT || 8000;
 const isLoadTest = process.env.LOADTEST === 'true';
@@ -18,7 +18,7 @@ connectMongoDB();
 
 // imports only load if not in loadtest
 if (!isLoadTest) {
-  await import('@/cron/scheduler.js');
+  await import('@/services/scheduler.js');
 
   const { initializeSocketServer } = await import('@/socketServer.js');
   const server = initializeSocketServer(app);

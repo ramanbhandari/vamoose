@@ -1,9 +1,9 @@
 import request from 'supertest';
 import app from '@/app.js';
 import mongoose from 'mongoose';
-import connectMongoDB from '@/db/mongo.js';
+import connectMongoDB from '@/configs/mongo.js';
 import Message from '@/models/message.model.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
