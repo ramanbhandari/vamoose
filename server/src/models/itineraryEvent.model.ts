@@ -1,10 +1,10 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import {
   CreateItineraryEventInput,
   UpdateItineraryEventInput,
-} from '@/interfaces/interfaces.js';
-import { EventCategory } from '@/interfaces/enums.js';
+} from '@/daos/interfaces.js';
+import { EventCategory } from '@/daos/enums.js';
 
 export const createItineraryEvent = async (data: CreateItineraryEventInput) => {
   try {

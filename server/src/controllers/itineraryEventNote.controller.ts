@@ -9,10 +9,10 @@ import {
 } from '@/models/itineraryEventNote.model.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getItineraryEventById } from '@/models/itineraryEvent.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { notifySpecificTripMembers } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 
 // Add a note to an event

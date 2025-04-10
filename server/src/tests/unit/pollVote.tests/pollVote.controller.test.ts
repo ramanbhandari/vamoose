@@ -2,11 +2,11 @@ import {
   castVoteHandler,
   deleteVoteHandler,
 } from '@/controllers/pollVote.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { Request, Response } from 'express';
 import { DateTime } from 'luxon';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {

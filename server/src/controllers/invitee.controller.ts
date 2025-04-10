@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import TripInvite from '@/models/invitee.model.js';
 import { getUserByEmail, getUserById } from '@/models/user.model.js';
 import { addTripMember, getTripMember } from '@/models/member.model.js';
@@ -10,8 +10,8 @@ import {
   notifyTripAdmins,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
-import prisma from '@/config/prismaClient.js';
+import { NotificationType } from '@/daos/enums.js';
+import prisma from '@/configs/prismaClient.js';
 
 export const checkInvite = async (req: Request, res: Response) => {
   try {

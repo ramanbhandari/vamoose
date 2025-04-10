@@ -5,7 +5,7 @@ import {
   markNotificationsAsUnread,
   deleteNotifications,
 } from '@/models/notification.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 
 export const getNotificationsHandler = async (req: Request, res: Response) => {

@@ -1,4 +1,4 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 

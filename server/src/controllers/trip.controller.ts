@@ -7,13 +7,13 @@ import {
   deleteMultipleTrips,
   updateTrip,
 } from '@/models/trip.model.js';
-import { AuthenticatedRequest, TripFilters } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest, TripFilters } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getTripMember } from '@/models/member.model.js';
 import { getTripExpensesGrouped } from '@/models/expense.model.js';
 import { DateTime } from 'luxon';
 import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 
 /**
  * Create a Trip

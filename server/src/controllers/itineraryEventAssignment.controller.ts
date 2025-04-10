@@ -8,11 +8,11 @@ import {
   getTripMember,
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { getItineraryEventById } from '@/models/itineraryEvent.model.js';
 import { notifySpecificTripMembers } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 
 export const assignUsersToItineraryEventHandler = async (
