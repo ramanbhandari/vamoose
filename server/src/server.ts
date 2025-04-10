@@ -18,7 +18,7 @@ connectMongoDB();
 
 // imports only load if not in loadtest
 if (!isLoadTest) {
-  await import('@/cron/scheduler.js');
+  await import('@/services/scheduler.js');
 
   const { initializeSocketServer } = await import('@/socketServer.js');
   const server = initializeSocketServer(app);
