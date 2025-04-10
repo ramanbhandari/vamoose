@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import app from '@/app.js';
 import prisma from '@/configs/prismaClient.js';
-import connectMongoDB from '@/db/mongo.js';
+import connectMongoDB from '@/configs/mongo.js';
 
 const port = process.env.PORT || 8000;
 const isLoadTest = process.env.LOADTEST === 'true';
