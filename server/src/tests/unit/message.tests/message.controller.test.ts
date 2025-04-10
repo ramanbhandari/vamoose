@@ -6,7 +6,7 @@ import {
 } from '@/controllers/message.controller.js';
 import Message from '@/models/message.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { getTripMember } from '@/models/member.model.js';
 
 // Mock dependencies

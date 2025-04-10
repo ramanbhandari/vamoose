@@ -6,13 +6,13 @@ import {
   fetchSingleTripHandler,
   fetchTripsWithFiltersHandler,
 } from '@/controllers/trip.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { Request, Response } from 'express';
 import { NotFoundError } from '@/utils/errors.js';
 
 // Mock Prisma client functions
 // Add models->functions you want to mock here
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: {

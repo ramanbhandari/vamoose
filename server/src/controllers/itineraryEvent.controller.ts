@@ -12,17 +12,17 @@ import {
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
-import { EventCategory } from '@/interfaces/enums.js';
+import { EventCategory } from '@/daos/enums.js';
 import {
   cancelScheduledNotifications,
   notifySpecificTripMembers,
   notifyTripMembers,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 
 export const createItineraryEventHandler = async (
   req: Request,

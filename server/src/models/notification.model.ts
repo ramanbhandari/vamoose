@@ -1,6 +1,6 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { NotificationFilterOptions } from '@/interfaces/interfaces.js';
+import { NotificationFilterOptions } from '@/daos/interfaces.js';
 import { DateTime } from 'luxon';
 
 export const getNotificationsForUser = async (

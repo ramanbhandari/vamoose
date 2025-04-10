@@ -5,10 +5,10 @@ import {
   deleteMultipleExpensesHandler,
 } from '@/controllers/expense.controller.js';
 import { Request, Response } from 'express';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { NotFoundError } from '@/utils/errors.js';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {

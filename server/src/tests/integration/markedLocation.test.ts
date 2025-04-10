@@ -1,9 +1,9 @@
 import request from 'supertest';
 import app from '@/app.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { LocationType } from '@/interfaces/enums.js';
+import { LocationType } from '@/daos/enums.js';
 
 dotenv.config({ path: '.env.test' });
 

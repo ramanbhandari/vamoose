@@ -8,8 +8,8 @@ import {
   getAllPollsForTrip,
   markPollAsCompleted,
 } from '@/models/poll.model.js';
-import { NotificationType, PollStatus } from '@/interfaces/enums.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { NotificationType, PollStatus } from '@/daos/enums.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 import { notifyTripMembersExceptInitiator } from '@/utils/notificationHandlers.js';
