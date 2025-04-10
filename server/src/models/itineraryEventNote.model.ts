@@ -1,4 +1,4 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 
 // Add a note to an event

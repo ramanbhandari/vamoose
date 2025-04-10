@@ -6,10 +6,10 @@ import {
   completePollHandler,
 } from '@/controllers/poll.controller.js';
 import { PollStatus } from '@/interfaces/enums.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { Request, Response } from 'express';
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {

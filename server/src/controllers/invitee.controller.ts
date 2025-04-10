@@ -11,7 +11,7 @@ import {
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
 import { NotificationType } from '@/interfaces/enums.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 
 export const checkInvite = async (req: Request, res: Response) => {
   try {

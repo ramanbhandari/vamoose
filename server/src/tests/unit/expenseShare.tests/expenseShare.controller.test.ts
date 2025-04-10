@@ -4,10 +4,10 @@ import {
   getUserDebtDetailsHandler,
   settleExpenseSharesHandler,
 } from '@/controllers/expenseShare.controller.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 
 // Mock the specific Prisma client methods
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     tripMember: {

@@ -28,7 +28,7 @@ jest.mock('@/models/markedLocation.model.js', () => ({
   getMarkedLocationById: jest.fn(),
 }));
 
-jest.mock('@/config/prismaClient.js', () => ({
+jest.mock('@/configs/prismaClient.js', () => ({
   __esModule: true,
   default: {
     trip: {

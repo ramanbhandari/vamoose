@@ -8,7 +8,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import app from '@/app.js';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import connectMongoDB from '@/db/mongo.js';
 
 const port = process.env.PORT || 8000;

@@ -1,5 +1,5 @@
 import { PrismaPromise } from '@prisma/client';
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { UpdateTripMemberInput } from '@/interfaces/interfaces.js';
 

@@ -1,4 +1,4 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { PollStatus } from '@/interfaces/enums.js';
 import {
   CreatePollInput,

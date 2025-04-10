@@ -1,4 +1,4 @@
-import prisma from '@/config/prismaClient.js';
+import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError } from '@/utils/errors.js';
 import { CreateMarkedLocationInput } from '@/interfaces/interfaces.js';
