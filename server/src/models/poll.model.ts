@@ -1,9 +1,6 @@
 import prisma from '@/configs/prismaClient.js';
-import { PollStatus } from '@/interfaces/enums.js';
-import {
-  CreatePollInput,
-  DeletePollPermissions,
-} from '@/interfaces/interfaces.js';
+import { PollStatus } from '@/daos/enums.js';
+import { CreatePollInput, DeletePollPermissions } from '@/daos/interfaces.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { DateTime } from 'luxon';
 

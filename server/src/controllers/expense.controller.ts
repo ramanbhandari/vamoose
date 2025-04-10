@@ -14,13 +14,13 @@ import {
   deleteMultipleExpenses,
 } from '@/models/expense.model.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { ForbiddenError, NotFoundError } from '@/utils/errors.js';
 import {
   notifySpecificTripMembers,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 
 /**

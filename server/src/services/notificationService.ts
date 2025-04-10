@@ -6,7 +6,7 @@
  */
 
 import prisma from '@/configs/prismaClient.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 import { DateTime } from 'luxon';
 

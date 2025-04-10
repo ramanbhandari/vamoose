@@ -1,4 +1,4 @@
-import { CreateTripInput, UpdateTripInput } from '@/interfaces/interfaces.js';
+import { CreateTripInput, UpdateTripInput } from '@/daos/interfaces.js';
 import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError, ForbiddenError } from '@/utils/errors.js';

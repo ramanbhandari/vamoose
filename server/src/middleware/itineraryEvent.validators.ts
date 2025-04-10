@@ -1,5 +1,5 @@
 import { checkExact, body, param, query } from 'express-validator';
-import { EventCategory } from '@/interfaces/enums.js';
+import { EventCategory } from '@/daos/enums.js';
 
 export const validateCreateItineraryEventInput = checkExact([
   param('tripId').isInt({ min: 1 }).withMessage('Trip ID must be a number'),

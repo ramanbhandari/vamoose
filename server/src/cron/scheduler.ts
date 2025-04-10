@@ -7,7 +7,7 @@
 
 import cron from 'node-cron';
 import prisma from '@/configs/prismaClient.js';
-import { NotificationType, PollStatus } from '@/interfaces/enums.js';
+import { NotificationType, PollStatus } from '@/daos/enums.js';
 import { notifyTripMembers } from '@/utils/notificationHandlers.js';
 import { DateTime } from 'luxon';
 

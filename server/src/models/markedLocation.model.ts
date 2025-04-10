@@ -1,7 +1,7 @@
 import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
 import { NotFoundError } from '@/utils/errors.js';
-import { CreateMarkedLocationInput } from '@/interfaces/interfaces.js';
+import { CreateMarkedLocationInput } from '@/daos/interfaces.js';
 
 // Create a Marked Location
 export const createMarkedLocation = async (

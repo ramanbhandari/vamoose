@@ -3,7 +3,7 @@ import {
   removeScheduledNotifications,
 } from '@/services/notificationService.js';
 import { getAllTripMembers } from '@/models/member.model.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 
 /**

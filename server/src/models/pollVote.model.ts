@@ -1,6 +1,6 @@
 import prisma from '@/configs/prismaClient.js';
 import { handlePrismaError } from '@/utils/errorHandlers.js';
-import { CastVoteInput, DeleteVoteInput } from '@/interfaces/interfaces.js';
+import { CastVoteInput, DeleteVoteInput } from '@/daos/interfaces.js';
 import { DateTime } from 'luxon';
 
 export const castVote = async ({

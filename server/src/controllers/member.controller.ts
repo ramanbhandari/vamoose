@@ -8,7 +8,7 @@ import {
   getTripMemberCount,
   getManyTripMembersFilteredByUserId,
 } from '@/models/member.model.js';
-import { AuthenticatedRequest } from '@/interfaces/interfaces.js';
+import { AuthenticatedRequest } from '@/daos/interfaces.js';
 import { handleControllerError } from '@/utils/errorHandlers.js';
 import {
   notifyIndividual,
@@ -16,7 +16,7 @@ import {
   notifyTripMembers,
   notifyTripMembersExceptInitiator,
 } from '@/utils/notificationHandlers.js';
-import { NotificationType } from '@/interfaces/enums.js';
+import { NotificationType } from '@/daos/enums.js';
 import { fetchSingleTrip } from '@/models/trip.model.js';
 
 /**
