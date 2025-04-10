@@ -5,7 +5,7 @@ import {
   validateFetchSingleTrip,
   validateFetchTripsWithFilters,
   validateDeleteMultipleTripsInput,
-} from '@/middleware/trip.validators.js';
+} from '@/middlewares/trip.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

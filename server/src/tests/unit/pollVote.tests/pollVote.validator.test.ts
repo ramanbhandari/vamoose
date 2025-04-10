@@ -1,7 +1,7 @@
 import {
   validateCastVoteInput,
   validateDeleteVoteInput,
-} from '@/middleware/pollVote.validators.js';
+} from '@/middlewares/pollVote.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

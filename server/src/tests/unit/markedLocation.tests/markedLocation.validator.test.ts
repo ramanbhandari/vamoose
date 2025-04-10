@@ -3,7 +3,7 @@ import {
   validateUpdateMarkedLocationNotesInput,
   validateGetAllMarkedLocationsInput,
   validateDeleteMarkedLocationInput,
-} from '@/middleware/markedLocation.validators.js';
+} from '@/middlewares/markedLocation.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

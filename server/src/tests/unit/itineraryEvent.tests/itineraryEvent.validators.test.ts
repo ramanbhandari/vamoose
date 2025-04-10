@@ -5,7 +5,7 @@ import {
   validateGetSingleItineraryEventInput,
   validateDeleteItineraryEventInput,
   validateBatchDeleteItineraryEventsInput,
-} from '@/middleware/itineraryEvent.validators.js';
+} from '@/middlewares/itineraryEvent.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

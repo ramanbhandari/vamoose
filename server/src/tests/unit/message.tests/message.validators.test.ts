@@ -2,7 +2,7 @@ import {
   validateCreateMessageInput,
   validateGetMessagesInput,
   validateUpdateMessageInput,
-} from '@/middleware/message.validators.js';
+} from '@/middlewares/message.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';

@@ -15,7 +15,7 @@ import pollRouter from '@/routes/poll.routes.js';
 import itineraryEventRouter from '@/routes/itineraryEvent.routes.js';
 import notificationRouter from '@/routes/notification.routes.js';
 import markedLocationRouter from '@/routes/markedLocation.routes.js';
-import { authMiddleware } from '@/middleware/authMiddleware.js';
+import { authMiddleware } from '@/middlewares/authMiddleware.js';
 
 const router = express.Router();
 

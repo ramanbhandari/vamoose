@@ -2,7 +2,7 @@ import {
   validateTripDebtSummaryInput,
   validateUserDebtSummaryInput,
   validateSettleExpenseSharesInput,
-} from '@/middleware/expenseShare.validators.js';
+} from '@/middlewares/expenseShare.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

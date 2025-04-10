@@ -2,7 +2,7 @@ import {
   validateGetNotificationsInput,
   validateHandleSingleNotificationInput,
   validateHandleBatchNotificationsInput,
-} from '@/middleware/notification.validators.js';
+} from '@/middlewares/notification.validators.js';
 import { validationResult } from 'express-validator';
 import { Request } from 'express';
 

@@ -5,7 +5,7 @@ import {
   validateUpdateEventNoteInput,
   validateDeleteEventNoteInput,
   validateBatchDeleteEventNotesInput,
-} from '@/middleware/itineraryEventNote.validators.js';
+} from '@/middlewares/itineraryEventNote.validators.js';
 
 describe('Itinerary Event Note Validators', () => {
   let mockReq: Partial<Request>;
