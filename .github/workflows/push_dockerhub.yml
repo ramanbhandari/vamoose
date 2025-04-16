@@ -30,7 +30,13 @@ jobs:
 
       - name: Build Frontend Image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/vamoose-frontend:latest ./frontend
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+            --build-arg NEXT_PUBLIC_SOCKET_URL=${{ secrets.NEXT_PUBLIC_SOCKET_URL }} \
+            --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
+            -t ${{ secrets.DOCKER_HUB_USERNAME }}/vamoose-frontend:latest ./frontend
 
       - name: Push Frontend to Docker Hub
         run: |
